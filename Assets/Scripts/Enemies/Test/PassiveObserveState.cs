@@ -11,8 +11,10 @@ public class PassiveObserveState : State<EnemyController>
 
     public override void Enter(EnemyController owner)
     {
-        if (owner.animatorBridge != null)
+        if (owner.animatorBridge)
             owner.animatorBridge.SetBool("IsScared", true);
+
+        owner.debugStateName = "PassiveObserve";
     }
 
     public override void Tick(EnemyController owner)
@@ -23,26 +25,12 @@ public class PassiveObserveState : State<EnemyController>
             return;
         }
 
-        // --- NUEVO: DETECCIÓN POR CERCANÍA ---
-        bool close = owner.perception.IsTargetClose(player);
-
-        // --- DETECCIÓN NORMAL (visión) ---
-        bool visible = owner.perception.CanSeeTarget(player);
-
-        // Si no lo ve y no está cerca, volver a patrulla
-        if (!visible && !close)
-        {
-            owner.ChangeState(new WanderState());
-            return;
-        }
-
         // Siempre mirar al jugador
         owner.movement.RotateTowards(player.position);
 
-        // Distancia
+        // Distancia al jugador
         float dist = Vector3.Distance(owner.transform.position, player.position);
 
-        // Obtener valores pasivos
         float safeDist = (owner.instanceOverrides != null)
             ? owner.instanceOverrides.GetPassiveSafeDistance(owner.stats.passiveSafeDistance)
             : owner.stats.passiveSafeDistance;
@@ -51,27 +39,21 @@ public class PassiveObserveState : State<EnemyController>
             ? owner.instanceOverrides.GetPassiveRetreatSpeed(owner.stats.passiveRetreatSpeed)
             : owner.stats.passiveRetreatSpeed;
 
-        // Si el jugador está demasiado cerca, retroceder mirando al jugador
+        // Si el jugador está dentro de la zona segura → retroceder pero sin girar
         if (dist < safeDist)
         {
-            Vector3 backward = -owner.transform.forward; // retroceder sin girar
-            owner.movement.MoveDirection_NoRotate(backward, retreatSpeed);
-
-            if (owner.animatorBridge != null)
-                owner.animatorBridge.SetFloat("Speed", retreatSpeed);
-
+            Vector3 retreatDir = (owner.transform.position - player.position).normalized;
+            owner.movement.MoveDirection_NoRotate(retreatDir, retreatSpeed);
             return;
         }
 
-        // Si lo ve pero no está dentro de safeDist → quedarse quieto mirando al jugador
+        // Si el jugador está lejos → quedarse quieto mirando
         owner.movement.StopInstantly();
-        if (owner.animatorBridge != null)
-            owner.animatorBridge.SetFloat("Speed", 0f);
     }
 
     public override void Exit(EnemyController owner)
     {
-        if (owner.animatorBridge != null)
+        if (owner.animatorBridge)
             owner.animatorBridge.SetBool("IsScared", false);
     }
 }

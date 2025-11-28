@@ -132,5 +132,46 @@ public class EnemyController : MonoBehaviour, IEnemy
         }
     }
 
+    // ---------------------------------------------------------
+    // FUNCIÓN GLOBAL PARA ACTIVAR EL MODO ASUSTADO
+    // ---------------------------------------------------------
+    public void TriggerFear(Transform target)
+    {
+        if (IsKnockedOut || IsRecruited) return;
+
+        // Cambiar al estado de miedo directamente
+        ChangeState(new PassiveObserveState(target));
+    }
+
+    // -----------------------------------------
+    // Métodos públicos para controlar estados
+    // -----------------------------------------
+
+    public void SetWalking()
+    {
+        EnemyBehaviors.EnterWalking(this);
+    }
+
+    public void SetScared(Transform player)
+    {
+        EnemyBehaviors.EnterScared(this, player);
+    }
+
+    public void SetChasing(Transform target)
+    {
+        EnemyBehaviors.EnterChasing(this, target);
+    }
+
+    public void SetFollowingPlayer(Transform player)
+    {
+        EnemyBehaviors.EnterFollowingPlayer(this, player);
+    }
+
+    public void StopAI()
+    {
+        EnemyBehaviors.StopAI(this);
+    }
+
+
 
 }
