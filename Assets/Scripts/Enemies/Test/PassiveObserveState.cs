@@ -25,29 +25,16 @@ public class PassiveObserveState : State<EnemyController>
             return;
         }
 
-        // -----------------------------------------
-        // 1) SALIDA DEL ESTADO SI YA NO LO VE
-        // -----------------------------------------
+        // 1) Solo permanece en estado si PUEDE VER al jugador
         bool seesPlayer = owner.perception.CanSeeTarget(player);
 
-        // Rango cercano para "detectar sin verlo"
-        float closeRadius = owner.stats.closeDetectionRadius;
-
-        float dist = Vector3.Distance(owner.transform.position, player.position);
-        bool playerClose = dist < closeRadius;
-
-        // Si NO lo ve y NO está cerca → salir del estado
-        if (!seesPlayer && !playerClose)
+        if (!seesPlayer)
         {
             owner.ChangeState(new WanderState());
             return;
         }
 
-        // -----------------------------------------
-        // 2) Mientras lo vea o esté cerca → mantenerse
-        // -----------------------------------------
-
-        // Mirar SIEMPRE al jugador
+        // 2) Mirar al jugador
         owner.movement.RotateTowards(player.position);
 
         float safeDist = owner.instanceOverrides != null
@@ -58,7 +45,9 @@ public class PassiveObserveState : State<EnemyController>
             ? owner.instanceOverrides.GetPassiveRetreatSpeed(owner.stats.passiveRetreatSpeed)
             : owner.stats.passiveRetreatSpeed;
 
-        // Si está demasiado cerca → retroceder sin girar
+        float dist = Vector3.Distance(owner.transform.position, player.position);
+
+        // 3) Si está muy cerca → retroceder
         if (dist < safeDist)
         {
             Vector3 retreatDir = (owner.transform.position - player.position).normalized;
@@ -66,7 +55,6 @@ public class PassiveObserveState : State<EnemyController>
             return;
         }
 
-        // Si lo ve pero no está cerca → quedarse quieto mirando
         owner.movement.StopInstantly();
     }
 
@@ -75,7 +63,6 @@ public class PassiveObserveState : State<EnemyController>
         if (owner.animatorBridge)
             owner.animatorBridge.SetBool("IsScared", false);
 
-        // Importante: NO seguir mirando al jugador fuera del estado
         owner.movement.StopInstantly();
     }
 }

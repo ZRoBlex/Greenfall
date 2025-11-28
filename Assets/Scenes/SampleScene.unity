@@ -1576,8 +1576,8 @@ GameObject:
   - component: {fileID: 1039216098262650816}
   - component: {fileID: 1039216098262650817}
   m_Layer: 6
-  m_Name: Idle
-  m_TagString: Untagged
+  m_Name: Player
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3006,7 +3006,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1281764117408669025}
   m_Layer: 6
-  m_Name: Player
+  m_Name: PlayerObject
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

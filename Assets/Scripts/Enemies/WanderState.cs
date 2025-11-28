@@ -14,33 +14,18 @@ public class WanderState : State<EnemyController>
         waitTimer = 0;
         waiting = false;
         PickNextTarget(owner);
+        owner.debugStateName = "Wander";
     }
 
     public override void Tick(EnemyController owner)
     {
         Transform player;
 
-        // -----------------------------------------
-        // 1) DETECCIÓN DEL PLAYER (vista O cercanía)
-        // -----------------------------------------
-        bool detected = owner.perception.HasDetectedTarget(out player);
+        // 1) SOLO cambia de estado si lo VE (no por cercanía)
+        bool seesPlayer = owner.perception.HasDetectedTarget(out player);
 
-        // Si no lo detectó aún, verificar proximidad manual
-        if (!detected)
-        {
-            GameObject p = GameObject.FindWithTag("Player");
-            if (p != null)
-            {
-                if (owner.perception.IsTargetClose(p.transform))
-                {
-                    player = p.transform;
-                    detected = true;
-                }
-            }
-        }
-
-        // Si lo detectó en cualquiera de las dos formas → cambiar estado
-        if (detected && player != null)
+        // HasDetectedTarget combina FOV + closeRadius, debemos limitarlo:
+        if (seesPlayer && owner.perception.CanSeeTarget(player))
         {
             if (owner.stats.cannibalType == CannibalType.Passive)
                 owner.ChangeState(new PassiveObserveState(player));
@@ -50,9 +35,17 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // -----------------------------------------
-        // 2) LÓGICA DE ESPERA
-        // -----------------------------------------
+        // 2) Si el jugador está cerca → SOLO rotar hacia él (no asustarse)
+        GameObject p = GameObject.FindWithTag("Player");
+        if (p != null)
+        {
+            if (owner.perception.IsTargetClose(p.transform))
+            {
+                owner.movement.RotateTowards(p.transform.position);
+            }
+        }
+
+        // 3) Lógica de espera
         if (waiting)
         {
             waitTimer -= Time.deltaTime;
@@ -64,9 +57,7 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // -----------------------------------------
-        // 3) MOVERSE AL PUNTO OBJETIVO
-        // -----------------------------------------
+        // 4) Moverse hacia objetivo
         Vector3 targetPos = usingRandom ? randomTarget : owner.patrolPath.points[index].position;
 
         float speed = (owner.instanceOverrides != null)
@@ -75,7 +66,6 @@ public class WanderState : State<EnemyController>
 
         owner.movement.MoveTowards(targetPos, speed);
 
-        // Debug
         owner.debugTarget = targetPos;
 
         float dist = Vector3.Distance(owner.transform.position, targetPos);
@@ -90,9 +80,6 @@ public class WanderState : State<EnemyController>
         }
     }
 
-    // ------------------------------------------------------
-    // Seleccionar próximo punto de la ruta o wander aleatorio
-    // ------------------------------------------------------
     void PickNextTarget(EnemyController owner)
     {
         if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
@@ -106,7 +93,6 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // Sin ruta → movimiento aleatorio
         usingRandom = true;
 
         Vector2 rnd = Random.insideUnitCircle * owner.stats.wanderRadius;
