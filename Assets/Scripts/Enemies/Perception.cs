@@ -1,16 +1,60 @@
 ﻿using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(SphereCollider))]
 public class Perception : MonoBehaviour
 {
     public EnemyStats stats;
     public LayerMask targetMask;     // layer(s) donde está el player
     public LayerMask obstacleMask;   // layers que bloquean la visión
 
-    /// <summary>
-    /// Devuelve true si detectó un objetivo.
-    /// PRIORIDAD: primero detección cercana (close radius) → luego FOV+raycast.
-    /// </summary>
+    SphereCollider closeTrigger;
+
+    void Awake()
+    {
+        closeTrigger = GetComponent<SphereCollider>();
+        closeTrigger.isTrigger = true;
+        closeTrigger.radius = (stats != null) ? stats.closeDetectionRadius : 1f;
+    }
+
+    void Update()
+    {
+        // mantener radio sincronizado si se modifica en runtime
+        if (closeTrigger != null && stats != null)
+            closeTrigger.radius = stats.closeDetectionRadius;
+    }
+
+    // -------------------------------------------------------------------
+    // SOLO IMPRIME EN CONSOLA CUANDO EL PLAYER ENTRE AL RADIO CERCANO
+    // -------------------------------------------------------------------
+    void OnTriggerEnter(Collider other)
+    {
+        if (((1 << other.gameObject.layer) & targetMask.value) != 0)
+        {
+            Debug.Log("Cerca del enemigo");
+        }
+    }
+
+    void OnTriggerStay(Collider other)
+    {
+        if (((1 << other.gameObject.layer) & targetMask.value) == 0)
+            return;
+
+        // Obtener referencia al enemigo
+        EnemyController owner = GetComponent<EnemyController>();
+        if (owner == null) return;
+
+        // Referencia al jugador
+        Transform player = other.transform;
+        if (player == null) return;
+
+        // Rotar hacia el jugador continuamente
+        owner.movement.RotateTowards(player.position);
+    }
+
+
+    // -------------------------------------------------------------------
+    // DETECCIÓN SOLO POR VISIÓN (FOV + RAYCAST)
+    // -------------------------------------------------------------------
     public bool HasDetectedTarget(out Transform target)
     {
         target = null;
@@ -21,27 +65,17 @@ public class Perception : MonoBehaviour
             return false;
         }
 
-        // 1) Detección cercana (auto-detect), SIN comprobar obstáculos.
-        //    Esto permite que el enemigo "note" al jugador si entra muy cerca, aun sin verlo.
-        Collider[] closeHits = Physics.OverlapSphere(transform.position, stats.closeDetectionRadius, targetMask);
-        if (closeHits.Length > 0)
-        {
-            target = closeHits[0].transform;
-            return true;
-        }
-
-        // 2) Detección por FOV + línea de visión
         Collider[] hits = Physics.OverlapSphere(transform.position, stats.perceptionRange, targetMask);
+
         foreach (var h in hits)
         {
             Vector3 dir = h.transform.position - transform.position;
             float dist = dir.magnitude;
 
-            // Ángulo entre forward y la dirección al objetivo
             float angle = Vector3.Angle(transform.forward, dir);
-            if (angle > stats.fieldOfView * 0.5f) continue;
+            if (angle > stats.fieldOfView * 0.5f)
+                continue;
 
-            // Raycast para comprobar si hay obstáculo entre ambos
             if (!Physics.Raycast(transform.position + Vector3.up * 1.2f,
                                  dir.normalized,
                                  out RaycastHit hit,
@@ -53,7 +87,6 @@ public class Perception : MonoBehaviour
             }
             else if (hit.transform == h.transform)
             {
-                // Si el rayo impactó con el propio target (por ejemplo collider fino)
                 target = h.transform;
                 return true;
             }
@@ -62,21 +95,9 @@ public class Perception : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Chequeo directo: si el target está dentro del radio pequeño.
-    /// Útil para pruebas independientes o llamadas directas.
-    /// </summary>
-    public bool IsTargetClose(Transform target)
-    {
-        if (target == null || stats == null) return false;
-        float dist = Vector3.Distance(transform.position, target.position);
-        return dist <= stats.closeDetectionRadius;
-    }
-
-    /// <summary>
-    /// Comprueba si el target es visible por FOV + raycast.
-    /// NO considera la detección por proximidad (IsTargetClose) — esa es otra comprobación.
-    /// </summary>
+    // -------------------------------------------------------------------
+    // Chequeo directo si el target está visible por FOV + raycast
+    // -------------------------------------------------------------------
     public bool CanSeeTarget(Transform target)
     {
         if (target == null || stats == null) return false;
@@ -95,11 +116,20 @@ public class Perception : MonoBehaviour
                             dist,
                             obstacleMask))
         {
-            if (hit.transform != target)
-                return false;
+            if (hit.transform != target) return false;
         }
 
         return true;
+    }
+
+    // -------------------------------------------------------------------
+    // Método utilitario: comprobar distancia cercana (sin causar efectos)
+    // -------------------------------------------------------------------
+    public bool IsPlayerWithinCloseRange(Transform target)
+    {
+        if (target == null || stats == null) return false;
+        float dist = Vector3.Distance(transform.position, target.position);
+        return dist <= stats.closeDetectionRadius;
     }
 
     // -----------------------
@@ -113,7 +143,7 @@ public class Perception : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, stats.perceptionRange);
 
-        // Círculo de detección cercana
+        // Círculo de detección cercana (visual)
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, stats.closeDetectionRadius);
 

@@ -19,33 +19,34 @@ public class WanderState : State<EnemyController>
 
     public override void Tick(EnemyController owner)
     {
-        Transform player;
+        // 1) DETECCIÓN DE PLAYER POR VISIÓN (HasDetectedTarget)
+        Transform seenPlayer;
+        bool saw = owner.perception.HasDetectedTarget(out seenPlayer);
 
-        // 1) SOLO cambia de estado si lo VE (no por cercanía)
-        bool seesPlayer = owner.perception.HasDetectedTarget(out player);
-
-        // HasDetectedTarget combina FOV + closeRadius, debemos limitarlo:
-        if (seesPlayer && owner.perception.CanSeeTarget(player))
+        if (saw && seenPlayer != null)
         {
+            // cambio de estado solo si lo VIO (HasDetectedTarget está basado en FOV+raycast)
             if (owner.stats.cannibalType == CannibalType.Passive)
-                owner.ChangeState(new PassiveObserveState(player));
+                owner.ChangeState(new PassiveObserveState(seenPlayer));
             else
-                owner.ChangeState(new ChaseState(player));
+                owner.ChangeState(new ChaseState(seenPlayer));
 
             return;
         }
 
-        // 2) Si el jugador está cerca → SOLO rotar hacia él (no asustarse)
-        GameObject p = GameObject.FindWithTag("Player");
-        if (p != null)
+        // 2) Si el player está físicamente CERCA → solo rotar hacia él (sin cambiar estado)
+        GameObject pObj = GameObject.FindWithTag("Player");
+        if (pObj != null)
         {
-            if (owner.perception.IsTargetClose(p.transform))
+            Transform pT = pObj.transform;
+            if (owner.perception.IsPlayerWithinCloseRange(pT))
             {
-                owner.movement.RotateTowards(p.transform.position);
+                owner.movement.RotateTowards(pT.position);
+                // no hacemos más: seguimos patrullando pero mirando al jugador
             }
         }
 
-        // 3) Lógica de espera
+        // 3) LÓGICA DE ESPERA
         if (waiting)
         {
             waitTimer -= Time.deltaTime;
@@ -57,8 +58,8 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // 4) Moverse hacia objetivo
-        Vector3 targetPos = usingRandom ? randomTarget : owner.patrolPath.points[index].position;
+        // 4) MOVERSE AL PUNTO OBJETIVO (ruta o aleatorio)
+        Vector3 targetPos = usingRandom ? randomTarget : (owner.patrolPath != null && owner.patrolPath.points.Length > 0 ? owner.patrolPath.points[index].position : owner.transform.position);
 
         float speed = (owner.instanceOverrides != null)
             ? owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed)
@@ -77,6 +78,17 @@ public class WanderState : State<EnemyController>
             waitTimer = (owner.instanceOverrides != null)
                 ? owner.instanceOverrides.GetWanderWait(owner.stats.wanderWaitTime)
                 : owner.stats.wanderWaitTime;
+
+            // si tenemos ruta, avanzar indice
+            if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
+            {
+                index++;
+                if (index >= owner.patrolPath.points.Length) index = 0;
+            }
+            else
+            {
+                // si es wander aleatorio, calculamos uno nuevo al volver a salir de wait
+            }
         }
     }
 
@@ -85,16 +97,13 @@ public class WanderState : State<EnemyController>
         if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
         {
             usingRandom = false;
-
-            index++;
-            if (index >= owner.patrolPath.points.Length)
-                index = 0;
-
+            // si index está fuera, recórtalo
+            if (index >= owner.patrolPath.points.Length) index = 0;
             return;
         }
 
+        // Sin ruta → movimiento aleatorio
         usingRandom = true;
-
         Vector2 rnd = Random.insideUnitCircle * owner.stats.wanderRadius;
         randomTarget = owner.transform.position + new Vector3(rnd.x, 0, rnd.y);
     }
