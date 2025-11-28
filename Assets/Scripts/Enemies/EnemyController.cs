@@ -9,12 +9,11 @@ public class EnemyController : MonoBehaviour, IEnemy
     public Profession profession;
 
     [Header("AI Path")]
-    public PatrolPath patrolPath;  // ← ← ← AGREGADO AQUÍ
+    public PatrolPath patrolPath;
 
     [Header("Debug Info")]
     public Vector3 debugTarget;
     public string debugStateName = "";
-
 
     // Components
     public MovementGrounded movement { get; private set; }
@@ -35,7 +34,9 @@ public class EnemyController : MonoBehaviour, IEnemy
     public EnemyStats Stats => stats;
     Health IEnemy.Health => health;
 
-
+    // Ya NO se usa porque animaciones son manuales por State
+    [Header("Animation (NOT USED)")]
+    public float walkSpeedThreshold = 0.1f;
 
     void Awake()
     {
@@ -62,6 +63,9 @@ public class EnemyController : MonoBehaviour, IEnemy
     {
         if (!IsKnockedOut && !IsRecruited)
             fsm.Tick();
+
+        // 🔥 Animaciones totalmente desactivadas
+        // UpdateAnimationFlags();  <= ELIMINADO
     }
 
     void OnDestroy()
@@ -98,26 +102,41 @@ public class EnemyController : MonoBehaviour, IEnemy
 
     void OnKnockedOut() => KnockOut();
 
+    // ----------------------------
+    // ❌ DESACTIVADO: Animaciones centralizadas
+    // Mantengo el método vacío por si otros scripts lo llaman
+    // ----------------------------
+    void UpdateAnimationFlags()
+    {
+        // Animación controlada SOLO desde los estados
+        // Este método queda vacío
+    }
+
+    // ----------------------------
+    // ❌ Función usada por el sistema viejo, también la desactivamos
+    // ----------------------------
+    bool isChasedOverride(bool isChasing, bool isScared)
+    {
+        return false; // nunca se usa
+    }
+
+    // Dibujos de gizmos (sin cambios)
     void OnDrawGizmos()
     {
-        // Dibujar dirección de movimiento
         if (movement != null)
         {
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(transform.position, transform.position + movement.LastMoveDirection * 1.5f);
         }
 
-        // Dibujar target de IA
         Gizmos.color = Color.magenta;
         Gizmos.DrawSphere(debugTarget, 0.25f);
         Gizmos.DrawLine(transform.position, debugTarget);
 
-        // Dibujar texto del estado
 #if UNITY_EDITOR
         UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, debugStateName);
 #endif
 
-        // Dibujar ruta si existe
         if (patrolPath != null)
         {
             Gizmos.color = Color.green;
@@ -131,47 +150,4 @@ public class EnemyController : MonoBehaviour, IEnemy
             }
         }
     }
-
-    // ---------------------------------------------------------
-    // FUNCIÓN GLOBAL PARA ACTIVAR EL MODO ASUSTADO
-    // ---------------------------------------------------------
-    public void TriggerFear(Transform target)
-    {
-        if (IsKnockedOut || IsRecruited) return;
-
-        // Cambiar al estado de miedo directamente
-        ChangeState(new PassiveObserveState(target));
-    }
-
-    // -----------------------------------------
-    // Métodos públicos para controlar estados
-    // -----------------------------------------
-
-    public void SetWalking()
-    {
-        EnemyBehaviors.EnterWalking(this);
-    }
-
-    public void SetScared(Transform player)
-    {
-        EnemyBehaviors.EnterScared(this, player);
-    }
-
-    public void SetChasing(Transform target)
-    {
-        EnemyBehaviors.EnterChasing(this, target);
-    }
-
-    public void SetFollowingPlayer(Transform player)
-    {
-        EnemyBehaviors.EnterFollowingPlayer(this, player);
-    }
-
-    public void StopAI()
-    {
-        EnemyBehaviors.StopAI(this);
-    }
-
-
-
 }

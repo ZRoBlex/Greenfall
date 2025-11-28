@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
@@ -13,10 +13,10 @@ public class MovementGrounded : MonoBehaviour
     public float turnSlerp = 8f;
 
     // estado
-    Vector3 velocity = Vector3.zero;               // <- necesario para gravedad y cálculo vertical
+    Vector3 velocity = Vector3.zero;               // <- necesario para gravedad y cÃ¡lculo vertical
     bool stunned = false;
 
-    // info pública para debug / animaciones
+    // info pÃºblica para debug / animaciones
     public float CurrentSpeed { get; private set; } = 0f;
     public Vector3 LastMoveDirection { get; private set; } = Vector3.zero;
 
@@ -26,7 +26,7 @@ public class MovementGrounded : MonoBehaviour
         controller.stepOffset = stepOffset;
     }
 
-    // Mover hacia una posición (rota hacia la dirección)
+    // Mover hacia una posiciÃ³n (rota hacia la direcciÃ³n)
     public void MoveTowards(Vector3 targetPosition, float speed)
     {
         if (stunned) return;
@@ -43,7 +43,7 @@ public class MovementGrounded : MonoBehaviour
         }
 
         Vector3 moveDir = dir.normalized;
-        // rotación suave hacia moveDir
+        // rotaciÃ³n suave hacia moveDir
         Quaternion targetRot = Quaternion.LookRotation(moveDir);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSlerp * Time.deltaTime);
 
@@ -57,7 +57,7 @@ public class MovementGrounded : MonoBehaviour
         velocity.y += gravity * Time.deltaTime;
     }
 
-    // Mover en una dirección relativa (rota hacia la dirección — uso general)
+    // Mover en una direcciÃ³n relativa (rota hacia la direcciÃ³n â€” uso general)
     public void MoveDirection(Vector3 direction, float speed)
     {
         if (stunned) return;
@@ -72,7 +72,7 @@ public class MovementGrounded : MonoBehaviour
 
         Vector3 dirN = direction.normalized;
 
-        // ROTAR hacia la dirección de movimiento
+        // ROTAR hacia la direcciÃ³n de movimiento
         Quaternion targetRot = Quaternion.LookRotation(dirN);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, turnSlerp * Time.deltaTime);
 
@@ -84,7 +84,7 @@ public class MovementGrounded : MonoBehaviour
         velocity.y += gravity * Time.deltaTime;
     }
 
-    // Mover en una dirección PERO SIN ROTAR el transform (útil para retroceder mirando al objetivo)
+    // Mover en una direcciÃ³n PERO SIN ROTAR el transform (Ãºtil para retroceder mirando al objetivo)
     public void MoveDirection_NoRotate(Vector3 direction, float speed)
     {
         if (stunned) return;
@@ -106,7 +106,7 @@ public class MovementGrounded : MonoBehaviour
         controller.Move(move + Vector3.up * velocity.y * Time.deltaTime);
         velocity.y += gravity * Time.deltaTime;
 
-        // NO hacemos ninguna rotación aquí: el transform mantiene la orientación actual
+        // NO hacemos ninguna rotaciÃ³n aquÃ­: el transform mantiene la orientaciÃ³n actual
     }
 
     // Rotar suavemente hacia un punto (no mueve)
@@ -133,7 +133,9 @@ public class MovementGrounded : MonoBehaviour
 
     public void StopInstantly()
     {
+        controller.Move(Vector3.zero); // â† fuerza velocidad 0 real
         CurrentSpeed = 0f;
         LastMoveDirection = Vector3.zero;
     }
+
 }

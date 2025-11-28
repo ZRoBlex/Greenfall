@@ -15,17 +15,20 @@ public class WanderState : State<EnemyController>
         waiting = false;
         PickNextTarget(owner);
         owner.debugStateName = "Wander";
+
+        // ANIMACIÓN: Idle al entrar (aún no está caminando)
+        owner.animatorBridge.SetBool("IsIdle", true);
+        owner.animatorBridge.SetBool("IsWalking", false);
     }
 
     public override void Tick(EnemyController owner)
     {
-        // 1) DETECCIÓN DE PLAYER POR VISIÓN (HasDetectedTarget)
+        // --- 1) DETECCIÓN DEL PLAYER POR VISIÓN ---
         Transform seenPlayer;
         bool saw = owner.perception.HasDetectedTarget(out seenPlayer);
 
         if (saw && seenPlayer != null)
         {
-            // cambio de estado solo si lo VIO (HasDetectedTarget está basado en FOV+raycast)
             if (owner.stats.cannibalType == CannibalType.Passive)
                 owner.ChangeState(new PassiveObserveState(seenPlayer));
             else
@@ -34,7 +37,7 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // 2) Si el player está físicamente CERCA → solo rotar hacia él (sin cambiar estado)
+        // --- 2) ROTAR SI EL PLAYER ESTÁ CERCA ---
         GameObject pObj = GameObject.FindWithTag("Player");
         if (pObj != null)
         {
@@ -42,13 +45,16 @@ public class WanderState : State<EnemyController>
             if (owner.perception.IsPlayerWithinCloseRange(pT))
             {
                 owner.movement.RotateTowards(pT.position);
-                // no hacemos más: seguimos patrullando pero mirando al jugador
             }
         }
 
-        // 3) LÓGICA DE ESPERA
+        // --- 3) LÓGICA DE ESPERA ---
         if (waiting)
         {
+            // ANIMACIÓN: Idle
+            owner.animatorBridge.SetBool("IsIdle", true);
+            owner.animatorBridge.SetBool("IsWalking", false);
+
             waitTimer -= Time.deltaTime;
             if (waitTimer <= 0)
             {
@@ -58,8 +64,11 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // 4) MOVERSE AL PUNTO OBJETIVO (ruta o aleatorio)
-        Vector3 targetPos = usingRandom ? randomTarget : (owner.patrolPath != null && owner.patrolPath.points.Length > 0 ? owner.patrolPath.points[index].position : owner.transform.position);
+        // --- 4) MOVIMIENTO ---
+        Vector3 targetPos = usingRandom ? randomTarget :
+            (owner.patrolPath != null && owner.patrolPath.points.Length > 0 ?
+            owner.patrolPath.points[index].position :
+            owner.transform.position);
 
         float speed = (owner.instanceOverrides != null)
             ? owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed)
@@ -71,23 +80,29 @@ public class WanderState : State<EnemyController>
 
         float dist = Vector3.Distance(owner.transform.position, targetPos);
 
+        // ANIMACIÓN: caminando
+        if (dist >= 0.6f)
+        {
+            owner.animatorBridge.SetBool("IsWalking", true);
+            owner.animatorBridge.SetBool("IsIdle", false);
+        }
+
         if (dist < 0.6f)
         {
             waiting = true;
+
+            // ANIMACIÓN: se detuvo → Idle
+            owner.animatorBridge.SetBool("IsIdle", true);
+            owner.animatorBridge.SetBool("IsWalking", false);
 
             waitTimer = (owner.instanceOverrides != null)
                 ? owner.instanceOverrides.GetWanderWait(owner.stats.wanderWaitTime)
                 : owner.stats.wanderWaitTime;
 
-            // si tenemos ruta, avanzar indice
             if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
             {
                 index++;
                 if (index >= owner.patrolPath.points.Length) index = 0;
-            }
-            else
-            {
-                // si es wander aleatorio, calculamos uno nuevo al volver a salir de wait
             }
         }
     }
@@ -97,12 +112,10 @@ public class WanderState : State<EnemyController>
         if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
         {
             usingRandom = false;
-            // si index está fuera, recórtalo
             if (index >= owner.patrolPath.points.Length) index = 0;
             return;
         }
 
-        // Sin ruta → movimiento aleatorio
         usingRandom = true;
         Vector2 rnd = Random.insideUnitCircle * owner.stats.wanderRadius;
         randomTarget = owner.transform.position + new Vector3(rnd.x, 0, rnd.y);

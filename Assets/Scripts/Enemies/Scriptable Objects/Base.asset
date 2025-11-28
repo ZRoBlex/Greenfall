@@ -22,7 +22,7 @@ MonoBehaviour:
   attackDamage: 10
   attackCooldown: 1.2
   wanderRadius: 8
-  wanderWaitTime: 2
+  wanderWaitTime: 4
   cannibalType: 0
   passiveSafeDistance: 3
   passiveRetreatSpeed: 2
@@ -31,4 +31,4 @@ MonoBehaviour:
   captureDecayPerSecond: 5
   capturePerHit: 20
   team: 1
-  closeDetectionRadius: 2
+  closeDetectionRadius: 3
