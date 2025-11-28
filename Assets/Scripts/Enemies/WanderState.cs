@@ -6,8 +6,8 @@ public class WanderState : State<EnemyController>
     float waitTimer = 0f;
     bool waiting = false;
 
-    Vector3 randomTarget;     // ← Target aleatorio
-    bool usingRandom = false; // ← Está usando wander aleatorio
+    Vector3 randomTarget;
+    bool usingRandom = false;
 
     public override void Enter(EnemyController owner)
     {
@@ -18,8 +18,29 @@ public class WanderState : State<EnemyController>
 
     public override void Tick(EnemyController owner)
     {
-        // Detectar jugador
-        if (owner.perception.HasDetectedTarget(out Transform player))
+        Transform player;
+
+        // -----------------------------------------
+        // 1) DETECCIÓN DEL PLAYER (vista O cercanía)
+        // -----------------------------------------
+        bool detected = owner.perception.HasDetectedTarget(out player);
+
+        // Si no lo detectó aún, verificar proximidad manual
+        if (!detected)
+        {
+            GameObject p = GameObject.FindWithTag("Player");
+            if (p != null)
+            {
+                if (owner.perception.IsTargetClose(p.transform))
+                {
+                    player = p.transform;
+                    detected = true;
+                }
+            }
+        }
+
+        // Si lo detectó en cualquiera de las dos formas → cambiar estado
+        if (detected && player != null)
         {
             if (owner.stats.cannibalType == CannibalType.Passive)
                 owner.ChangeState(new PassiveObserveState(player));
@@ -29,7 +50,9 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // Espera cuando llega al punto
+        // -----------------------------------------
+        // 2) LÓGICA DE ESPERA
+        // -----------------------------------------
         if (waiting)
         {
             waitTimer -= Time.deltaTime;
@@ -41,15 +64,18 @@ public class WanderState : State<EnemyController>
             return;
         }
 
+        // -----------------------------------------
+        // 3) MOVERSE AL PUNTO OBJETIVO
+        // -----------------------------------------
         Vector3 targetPos = usingRandom ? randomTarget : owner.patrolPath.points[index].position;
 
-        float speed = owner.instanceOverrides != null ?
-            owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed) :
-            owner.stats.moveSpeed;
+        float speed = (owner.instanceOverrides != null)
+            ? owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed)
+            : owner.stats.moveSpeed;
 
         owner.movement.MoveTowards(targetPos, speed);
 
-        // ⬇ Renderizar target para debug
+        // Debug
         owner.debugTarget = targetPos;
 
         float dist = Vector3.Distance(owner.transform.position, targetPos);
@@ -58,15 +84,17 @@ public class WanderState : State<EnemyController>
         {
             waiting = true;
 
-            waitTimer = owner.instanceOverrides != null ?
-                owner.instanceOverrides.GetWanderWait(owner.stats.wanderWaitTime) :
-                owner.stats.wanderWaitTime;
+            waitTimer = (owner.instanceOverrides != null)
+                ? owner.instanceOverrides.GetWanderWait(owner.stats.wanderWaitTime)
+                : owner.stats.wanderWaitTime;
         }
     }
 
+    // ------------------------------------------------------
+    // Seleccionar próximo punto de la ruta o wander aleatorio
+    // ------------------------------------------------------
     void PickNextTarget(EnemyController owner)
     {
-        // Si tiene ruta → usar ruta
         if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
         {
             usingRandom = false;
@@ -78,7 +106,7 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // Si NO tiene ruta → wander aleatorio
+        // Sin ruta → movimiento aleatorio
         usingRandom = true;
 
         Vector2 rnd = Random.insideUnitCircle * owner.stats.wanderRadius;
