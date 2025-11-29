@@ -16,6 +16,13 @@ public class NonLethalHealth : MonoBehaviour
     bool isUnconscious = false;
     float unconsciousTimer = 0f;
 
+    EnemyController ec;
+
+    void Awake()
+    {
+        ec = GetComponent<EnemyController>();
+    }
+
     void Start()
     {
         currentCapture = 0f;
@@ -26,7 +33,10 @@ public class NonLethalHealth : MonoBehaviour
         if (isUnconscious)
         {
             unconsciousTimer -= Time.deltaTime;
-            if (unconsciousTimer <= 0f) Recover();
+
+            if (unconsciousTimer <= 0f)
+                Recover();
+
             return;
         }
 
@@ -34,7 +44,6 @@ public class NonLethalHealth : MonoBehaviour
         {
             currentCapture = Mathf.Max(0f, currentCapture - decayPerSecond * Time.deltaTime);
         }
-        //Debug.Log();
     }
 
     public void ApplyCaptureTick(float amount)
@@ -58,8 +67,10 @@ public class NonLethalHealth : MonoBehaviour
     {
         isUnconscious = true;
         unconsciousTimer = unconsciousDuration;
+
         OnBecameUnconscious?.Invoke();
-        var ec = GetComponent<EnemyController>();
+
+        // Pone al enemigo en animación de knockout / estado KO
         ec?.KnockOut();
     }
 
@@ -67,11 +78,19 @@ public class NonLethalHealth : MonoBehaviour
     {
         isUnconscious = false;
         currentCapture = 0f;
+
         OnRecovered?.Invoke();
-        // maybe restore AI
-        var ec = GetComponent<EnemyController>();
-        if (ec != null && !ec.IsRecruited)
-            ec.ChangeState(new WanderState());
+
+        if (ec == null)
+            return;
+
+        // Si es un aliado reclutado, no lo enviamos a patrullar
+        if (ec.IsRecruited)
+            return;
+
+        // Volver AL ESTADO NORMAL
+        // Igual que cuando deja de ver al jugador
+        ec.ChangeState(new WanderState());
     }
 
     public bool IsUnconscious() => isUnconscious;

@@ -4906,8 +4906,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f40be40e62155f84eacbc18e4093aa2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stunAmount: 10
-  captureTick: 5
+  captureTick: 10
+  extraStunTick: 0
+  isLethal: 0
+  lethalDamage: 50
 --- !u!114 &4494666840322846125
 MonoBehaviour:
   m_ObjectHideFlags: 0

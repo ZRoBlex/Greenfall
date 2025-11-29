@@ -4587,7 +4587,7 @@ MonoBehaviour:
   stats: {fileID: 11400000, guid: 894262848c446134597b8e5c4575b091, type: 2}
   damageMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
 --- !u!114 &6876470412052677810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4603,7 +4603,7 @@ MonoBehaviour:
   maxCapture: 100
   currentCapture: 0
   decayPerSecond: 5
-  unconsciousDuration: 30
+  unconsciousDuration: 3
 --- !u!114 &6876470412052677811
 MonoBehaviour:
   m_ObjectHideFlags: 0
