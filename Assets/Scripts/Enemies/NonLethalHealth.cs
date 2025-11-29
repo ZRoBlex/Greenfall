@@ -33,10 +33,7 @@ public class NonLethalHealth : MonoBehaviour
         if (isUnconscious)
         {
             unconsciousTimer -= Time.deltaTime;
-
-            if (unconsciousTimer <= 0f)
-                Recover();
-
+            if (unconsciousTimer <= 0f) Recover();
             return;
         }
 
@@ -67,10 +64,7 @@ public class NonLethalHealth : MonoBehaviour
     {
         isUnconscious = true;
         unconsciousTimer = unconsciousDuration;
-
         OnBecameUnconscious?.Invoke();
-
-        // Pone al enemigo en animación de knockout / estado KO
         ec?.KnockOut();
     }
 
@@ -78,19 +72,15 @@ public class NonLethalHealth : MonoBehaviour
     {
         isUnconscious = false;
         currentCapture = 0f;
-
         OnRecovered?.Invoke();
 
-        if (ec == null)
-            return;
+        if (ec == null) return;
 
-        // Si es un aliado reclutado, no lo enviamos a patrullar
-        if (ec.IsRecruited)
-            return;
+        // Si está reclutado, no lo forzamos a patrullar
+        if (ec.IsRecruited) return;
 
-        // Volver AL ESTADO NORMAL
-        // Igual que cuando deja de ver al jugador
-        ec.ChangeState(new WanderState());
+        // -> Llamar al método público Revive para restaurar estado y reactivar sistemas
+        ec.Revive();
     }
 
     public bool IsUnconscious() => isUnconscious;

@@ -17,8 +17,7 @@ public class WanderState : State<EnemyController>
         owner.debugStateName = "Wander";
 
         // ANIMACIÓN: Idle al entrar (aún no está caminando)
-        owner.animatorBridge.SetBool("IsIdle", true);
-        owner.animatorBridge.SetBool("IsWalking", false);
+        if (owner.animatorBridge != null) owner.animatorBridge.SetIdle(true);
     }
 
     public override void Tick(EnemyController owner)
@@ -52,8 +51,7 @@ public class WanderState : State<EnemyController>
         if (waiting)
         {
             // ANIMACIÓN: Idle
-            owner.animatorBridge.SetBool("IsIdle", true);
-            owner.animatorBridge.SetBool("IsWalking", false);
+            if (owner.animatorBridge != null) owner.animatorBridge.SetIdle(true); owner.animatorBridge.SetWalking(false);
 
             waitTimer -= Time.deltaTime;
             if (waitTimer <= 0)
@@ -80,11 +78,11 @@ public class WanderState : State<EnemyController>
 
         float dist = Vector3.Distance(owner.transform.position, targetPos);
 
-        // ANIMACIÓN: caminando
+        // ANIMACIÓN: caminando si se está desplazando hacia el objetivo
+        // usamos la distancia al punto para decidir (ya que MoveTowards no expone un booleano directamente)
         if (dist >= 0.6f)
         {
-            owner.animatorBridge.SetBool("IsWalking", true);
-            owner.animatorBridge.SetBool("IsIdle", false);
+            if (owner.animatorBridge != null) owner.animatorBridge.SetWalking(true);
         }
 
         if (dist < 0.6f)
@@ -92,8 +90,7 @@ public class WanderState : State<EnemyController>
             waiting = true;
 
             // ANIMACIÓN: se detuvo → Idle
-            owner.animatorBridge.SetBool("IsIdle", true);
-            owner.animatorBridge.SetBool("IsWalking", false);
+            if (owner.animatorBridge != null) owner.animatorBridge.SetIdle(true);
 
             waitTimer = (owner.instanceOverrides != null)
                 ? owner.instanceOverrides.GetWanderWait(owner.stats.wanderWaitTime)
