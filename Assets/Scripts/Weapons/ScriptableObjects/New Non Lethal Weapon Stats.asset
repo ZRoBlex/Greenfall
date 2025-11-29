@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24ed5e012be379543b9f8448157b4d8e, type: 3}
   m_Name: New Non Lethal Weapon Stats
   m_EditorClassIdentifier: 
+  fireMode: 1
+  burstCount: 3
+  burstDelay: 0.08
   weaponName: A
   projectilePrefab: {fileID: 3816561263398032381, guid: f70b8f0ccb9f9b94dbfd4151bc9b20ba, type: 3}
   projectileSpeed: 25
@@ -21,4 +24,4 @@ MonoBehaviour:
   taserCaptureTick: 10
   stunAmountOnHit: 15
   captureTickOnHit: 20
-  cooldown: 0
+  cooldown: 0.2
