@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Base
   m_EditorClassIdentifier: 
   displayName: Enemy
-  moveSpeed: 3.5
-  runSpeed: 6
+  moveSpeed: 2
+  runSpeed: 3
   turnSpeed: 8
   perceptionRange: 12
   fieldOfView: 120
@@ -23,7 +23,7 @@ MonoBehaviour:
   attackCooldown: 1.2
   wanderRadius: 8
   wanderWaitTime: 4
-  cannibalType: 0
+  cannibalType: 1
   passiveSafeDistance: 3
   passiveRetreatSpeed: 2
   maxHealth: 100

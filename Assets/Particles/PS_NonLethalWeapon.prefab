@@ -171,7 +171,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 50
+      scalar: 200
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -4909,7 +4909,7 @@ MonoBehaviour:
   captureTick: 10
   extraStunTick: 0
   isLethal: 0
-  lethalDamage: 50
+  lethalDamage: 5
 --- !u!114 &4494666840322846125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4922,5 +4922,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35b9c36a56c528947950ee8adb8ac3bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shrinkSpeed: 10
-  destroyThreshold: 0.05
+  shrinkSpeed: 100
+  destroyThreshold: 0.1
