@@ -34,6 +34,7 @@ public class NonLethalHealth : MonoBehaviour
         {
             currentCapture = Mathf.Max(0f, currentCapture - decayPerSecond * Time.deltaTime);
         }
+        //Debug.Log();
     }
 
     public void ApplyCaptureTick(float amount)

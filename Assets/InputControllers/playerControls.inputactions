@@ -43,25 +43,16 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "FireNonLethal",
+                    "name": "Fire",
                     "type": "Button",
                     "id": "ae9810ed-2635-4078-a123-9b6dc8963da3",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "Press",
+                    "interactions": "Press,Hold",
                     "initialStateCheck": false
                 },
                 {
-                    "name": "CaptureInteract",
-                    "type": "Button",
-                    "id": "8d88c519-99d1-4c0c-9ec3-1a93014b807a",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "Press",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "ThrowTrap",
+                    "name": "Interact",
                     "type": "Button",
                     "id": "39d6219d-5b50-459e-893c-5b2560576a88",
                     "expectedControlType": "",
@@ -70,12 +61,12 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "CarryToggle",
+                    "name": "Reload",
                     "type": "Button",
-                    "id": "ee4dfaaa-e4e1-4ccf-a404-54ef7c1c8da1",
+                    "id": "9c270242-a0ff-4282-8ef0-1d9be987ab5d",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "Press",
+                    "interactions": "",
                     "initialStateCheck": false
                 }
             ],
@@ -175,40 +166,29 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "FireNonLethal",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "934820bb-1f5c-4e43-acb1-23335a5c4b47",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "CaptureInteract",
+                    "action": "Fire",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "7d8535ee-f5d6-44dc-b7cb-fcb769e59c0f",
-                    "path": "<Keyboard>/q",
+                    "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ThrowTrap",
+                    "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "39717664-0be5-40e7-9548-1a82bb528c59",
-                    "path": "<Keyboard>/f",
+                    "id": "cfc85b76-6f81-47f8-b1d5-442b4d583a6f",
+                    "path": "<Keyboard>/r",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "CarryToggle",
+                    "action": "Reload",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

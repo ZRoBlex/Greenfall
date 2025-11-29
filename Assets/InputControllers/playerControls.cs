@@ -129,25 +129,16 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""FireNonLethal"",
+                    ""name"": ""Fire"",
                     ""type"": ""Button"",
                     ""id"": ""ae9810ed-2635-4078-a123-9b6dc8963da3"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": ""Press"",
+                    ""interactions"": ""Press,Hold"",
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""CaptureInteract"",
-                    ""type"": ""Button"",
-                    ""id"": ""8d88c519-99d1-4c0c-9ec3-1a93014b807a"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": ""Press"",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""ThrowTrap"",
+                    ""name"": ""Interact"",
                     ""type"": ""Button"",
                     ""id"": ""39d6219d-5b50-459e-893c-5b2560576a88"",
                     ""expectedControlType"": """",
@@ -156,12 +147,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""CarryToggle"",
+                    ""name"": ""Reload"",
                     ""type"": ""Button"",
-                    ""id"": ""ee4dfaaa-e4e1-4ccf-a404-54ef7c1c8da1"",
+                    ""id"": ""9c270242-a0ff-4282-8ef0-1d9be987ab5d"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": ""Press"",
+                    ""interactions"": """",
                     ""initialStateCheck"": false
                 }
             ],
@@ -261,40 +252,29 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""FireNonLethal"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""934820bb-1f5c-4e43-acb1-23335a5c4b47"",
-                    ""path"": ""<Keyboard>/e"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""CaptureInteract"",
+                    ""action"": ""Fire"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
                     ""id"": ""7d8535ee-f5d6-44dc-b7cb-fcb769e59c0f"",
-                    ""path"": ""<Keyboard>/q"",
+                    ""path"": ""<Keyboard>/e"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ThrowTrap"",
+                    ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
-                    ""id"": ""39717664-0be5-40e7-9548-1a82bb528c59"",
-                    ""path"": ""<Keyboard>/f"",
+                    ""id"": ""cfc85b76-6f81-47f8-b1d5-442b4d583a6f"",
+                    ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""CarryToggle"",
+                    ""action"": ""Reload"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -309,10 +289,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Rotation = m_Player.FindAction("Rotation", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
-        m_Player_FireNonLethal = m_Player.FindAction("FireNonLethal", throwIfNotFound: true);
-        m_Player_CaptureInteract = m_Player.FindAction("CaptureInteract", throwIfNotFound: true);
-        m_Player_ThrowTrap = m_Player.FindAction("ThrowTrap", throwIfNotFound: true);
-        m_Player_CarryToggle = m_Player.FindAction("CarryToggle", throwIfNotFound: true);
+        m_Player_Fire = m_Player.FindAction("Fire", throwIfNotFound: true);
+        m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+        m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -397,10 +376,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Rotation;
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Sprint;
-    private readonly InputAction m_Player_FireNonLethal;
-    private readonly InputAction m_Player_CaptureInteract;
-    private readonly InputAction m_Player_ThrowTrap;
-    private readonly InputAction m_Player_CarryToggle;
+    private readonly InputAction m_Player_Fire;
+    private readonly InputAction m_Player_Interact;
+    private readonly InputAction m_Player_Reload;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -429,21 +407,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
         /// <summary>
-        /// Provides access to the underlying input action "Player/FireNonLethal".
+        /// Provides access to the underlying input action "Player/Fire".
         /// </summary>
-        public InputAction @FireNonLethal => m_Wrapper.m_Player_FireNonLethal;
+        public InputAction @Fire => m_Wrapper.m_Player_Fire;
         /// <summary>
-        /// Provides access to the underlying input action "Player/CaptureInteract".
+        /// Provides access to the underlying input action "Player/Interact".
         /// </summary>
-        public InputAction @CaptureInteract => m_Wrapper.m_Player_CaptureInteract;
+        public InputAction @Interact => m_Wrapper.m_Player_Interact;
         /// <summary>
-        /// Provides access to the underlying input action "Player/ThrowTrap".
+        /// Provides access to the underlying input action "Player/Reload".
         /// </summary>
-        public InputAction @ThrowTrap => m_Wrapper.m_Player_ThrowTrap;
-        /// <summary>
-        /// Provides access to the underlying input action "Player/CarryToggle".
-        /// </summary>
-        public InputAction @CarryToggle => m_Wrapper.m_Player_CarryToggle;
+        public InputAction @Reload => m_Wrapper.m_Player_Reload;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -482,18 +456,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Sprint.started += instance.OnSprint;
             @Sprint.performed += instance.OnSprint;
             @Sprint.canceled += instance.OnSprint;
-            @FireNonLethal.started += instance.OnFireNonLethal;
-            @FireNonLethal.performed += instance.OnFireNonLethal;
-            @FireNonLethal.canceled += instance.OnFireNonLethal;
-            @CaptureInteract.started += instance.OnCaptureInteract;
-            @CaptureInteract.performed += instance.OnCaptureInteract;
-            @CaptureInteract.canceled += instance.OnCaptureInteract;
-            @ThrowTrap.started += instance.OnThrowTrap;
-            @ThrowTrap.performed += instance.OnThrowTrap;
-            @ThrowTrap.canceled += instance.OnThrowTrap;
-            @CarryToggle.started += instance.OnCarryToggle;
-            @CarryToggle.performed += instance.OnCarryToggle;
-            @CarryToggle.canceled += instance.OnCarryToggle;
+            @Fire.started += instance.OnFire;
+            @Fire.performed += instance.OnFire;
+            @Fire.canceled += instance.OnFire;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
+            @Reload.started += instance.OnReload;
+            @Reload.performed += instance.OnReload;
+            @Reload.canceled += instance.OnReload;
         }
 
         /// <summary>
@@ -517,18 +488,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Sprint.started -= instance.OnSprint;
             @Sprint.performed -= instance.OnSprint;
             @Sprint.canceled -= instance.OnSprint;
-            @FireNonLethal.started -= instance.OnFireNonLethal;
-            @FireNonLethal.performed -= instance.OnFireNonLethal;
-            @FireNonLethal.canceled -= instance.OnFireNonLethal;
-            @CaptureInteract.started -= instance.OnCaptureInteract;
-            @CaptureInteract.performed -= instance.OnCaptureInteract;
-            @CaptureInteract.canceled -= instance.OnCaptureInteract;
-            @ThrowTrap.started -= instance.OnThrowTrap;
-            @ThrowTrap.performed -= instance.OnThrowTrap;
-            @ThrowTrap.canceled -= instance.OnThrowTrap;
-            @CarryToggle.started -= instance.OnCarryToggle;
-            @CarryToggle.performed -= instance.OnCarryToggle;
-            @CarryToggle.canceled -= instance.OnCarryToggle;
+            @Fire.started -= instance.OnFire;
+            @Fire.performed -= instance.OnFire;
+            @Fire.canceled -= instance.OnFire;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
+            @Reload.started -= instance.OnReload;
+            @Reload.performed -= instance.OnReload;
+            @Reload.canceled -= instance.OnReload;
         }
 
         /// <summary>
@@ -598,32 +566,25 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSprint(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "FireNonLethal" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Fire" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnFireNonLethal(InputAction.CallbackContext context);
+        void OnFire(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "CaptureInteract" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnCaptureInteract(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "ThrowTrap" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Reload" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnThrowTrap(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "CarryToggle" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnCarryToggle(InputAction.CallbackContext context);
+        void OnReload(InputAction.CallbackContext context);
     }
 }
