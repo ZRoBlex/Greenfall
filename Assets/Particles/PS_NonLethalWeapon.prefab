@@ -4908,7 +4908,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   captureTick: 10
   extraStunTick: 0
-  isLethal: 1
+  isLethal: 0
   lethalDamage: 5
 --- !u!114 &4494666840322846125
 MonoBehaviour:
