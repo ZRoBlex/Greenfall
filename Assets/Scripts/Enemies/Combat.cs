@@ -16,8 +16,8 @@ public class Combat : MonoBehaviour
         Collider[] hits = Physics.OverlapSphere(transform.position, stats.attackRange, damageMask);
         foreach (var c in hits)
         {
-            var h = c.GetComponent<Health>();
-            if (h != null) h.ApplyDamage(stats.attackDamage);
+            var h = c.GetComponent<PlayerHealth>();
+            if (h != null) h.TakeDamage(stats.attackDamage);
         }
     }
 }

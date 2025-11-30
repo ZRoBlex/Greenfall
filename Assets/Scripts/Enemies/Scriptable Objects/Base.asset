@@ -30,5 +30,5 @@ MonoBehaviour:
   captureMeterMax: 100
   captureDecayPerSecond: 5
   capturePerHit: 20
-  team: 1
+  team: 0
   closeDetectionRadius: 3
