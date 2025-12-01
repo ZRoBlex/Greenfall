@@ -91,6 +91,33 @@ public class WanderState : State<EnemyController>
         float speed = (owner.instanceOverrides != null) ? owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed) : owner.stats.moveSpeed;
 
         owner.movement.MoveTowards(node, speed);
+
+
+
+        LocalGridPathfinder pf = owner.GetComponent<LocalGridPathfinder>();
+
+        // --- VALIDACIÓN DINÁMICA DEL SIGUIENTE NODO ---
+        if (pf.IsNodeBlocked(node))
+        {
+            // Recalcular SOLO si es necesario, NO cada frame
+            List<Vector3> newPath = pf.FindPath(owner.transform.position, usingRandom ? randomTarget : node);
+
+            if (newPath != null && newPath.Count > 0)
+            {
+                path = newPath;
+                pathIndex = 0;
+                node = path[pathIndex];
+            }
+            else
+            {
+                // si no se puede recalcular → generar nuevo target
+                PickNextTarget(owner);
+                return;
+            }
+        }
+
+
+
         owner.debugTarget = node;
 
         float dist = Vector3.Distance(owner.transform.position, node);

@@ -4421,17 +4421,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75141a1ed2ce4604aa9d0e709ce2e3a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridRadius: 8
-  cellSize: 1
+  gridRadius: 24
+  cellSize: 0.5
   agentRadius: 0.5
   agentHeight: 1.6
   maxStepHeight: 0.5
   obstacleMask:
     serializedVersion: 2
     m_Bits: 128
-  ignoreMask:
-    serializedVersion: 2
-    m_Bits: 512
   drawGrid: 1
   drawPath: 1
 --- !u!114 &6876470412052677821
@@ -4446,10 +4443,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 489accb11ef124d4d8dfdda0adff3966, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nodeReachDistance: 0.6
-  ignoreMask:
-    serializedVersion: 2
-    m_Bits: 512
+  path: []
+  index: 0
+  currentTarget: {x: 0, y: 0, z: 0}
+  repathInterval: 0.4
 --- !u!1 &6904984116965439410
 GameObject:
   m_ObjectHideFlags: 0

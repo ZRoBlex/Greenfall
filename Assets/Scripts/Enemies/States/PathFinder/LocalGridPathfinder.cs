@@ -238,4 +238,37 @@ public class LocalGridPathfinder : MonoBehaviour
             }
         }
     }
+
+    public bool IsNodeBlocked(Vector3 nodePos)
+    {
+        Vector3 bottom = nodePos + Vector3.up * agentRadius;
+        Vector3 top = bottom + Vector3.up * Mathf.Max(0.01f, agentHeight - agentRadius * 2f);
+
+        // obstacleMask = todo lo que es sólido EXCEPTO el mismo enemigo
+        return Physics.CheckCapsule(bottom, top, agentRadius, obstacleMask, QueryTriggerInteraction.Ignore);
+    }
+
+    public bool IsPathStillValid(List<Vector3> path)
+    {
+        if (path == null || path.Count == 0)
+            return false;
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            if (IsNodeBlocked(path[i]))
+                return false;
+        }
+
+        return true;
+    }
+
+    public List<Vector3> RecalculateIfInvalid(Vector3 currentPos, Vector3 finalTarget, List<Vector3> oldPath)
+    {
+        if (IsPathStillValid(oldPath))
+            return oldPath; // sigue válido
+
+        // Si algo bloqueó el camino: recalcular
+        return FindPath(currentPos, finalTarget);
+    }
+
 }
