@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class WanderState : State<EnemyController>
 {
@@ -9,6 +10,13 @@ public class WanderState : State<EnemyController>
     Vector3 randomTarget;
     bool usingRandom = false;
 
+    List<Vector3> path = new List<Vector3>();
+    int pathIndex = 0;
+
+    // configuración local de intentos para targets fallidos
+    int attemptsBeforeGiveUp = 3;
+    float minTargetDistance = 0.8f; // si el target queda demasiado cerca del origen, se regenera
+
     public override void Enter(EnemyController owner)
     {
         waitTimer = 0;
@@ -16,7 +24,6 @@ public class WanderState : State<EnemyController>
         PickNextTarget(owner);
         owner.debugStateName = "Wander";
 
-        // ANIMACIÓN: Idle al entrar (aún no está caminando)
         if (owner.animatorBridge != null) owner.animatorBridge.SetIdle(true);
     }
 
@@ -50,8 +57,7 @@ public class WanderState : State<EnemyController>
         // --- 3) LÓGICA DE ESPERA ---
         if (waiting)
         {
-            // ANIMACIÓN: Idle
-            if (owner.animatorBridge != null) owner.animatorBridge.SetIdle(true); owner.animatorBridge.SetWalking(false);
+            if (owner.animatorBridge != null) { owner.animatorBridge.SetIdle(true); owner.animatorBridge.SetWalking(false); }
 
             waitTimer -= Time.deltaTime;
             if (waitTimer <= 0)
@@ -62,24 +68,34 @@ public class WanderState : State<EnemyController>
             return;
         }
 
-        // --- 4) MOVIMIENTO ---
-        Vector3 targetPos = usingRandom ? randomTarget :
-            (owner.patrolPath != null && owner.patrolPath.points.Length > 0 ?
-            owner.patrolPath.points[index].position :
-            owner.transform.position);
+        // --- 4) MOVIMIENTO (seguir path) ---
+        if (path == null || path.Count == 0)
+        {
+            // fallback: intenta moverse al randomTarget directo; si tampoco hay, pick next
+            if (randomTarget == Vector3.zero || Vector3.Distance(owner.transform.position, randomTarget) < minTargetDistance)
+            {
+                PickNextTarget(owner);
+                return;
+            }
 
-        float speed = (owner.instanceOverrides != null)
-            ? owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed)
-            : owner.stats.moveSpeed;
+            float speedFallback = (owner.instanceOverrides != null) ? owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed) : owner.stats.moveSpeed;
+            owner.movement.MoveTowards(randomTarget, speedFallback);
+            owner.debugTarget = randomTarget;
+            return;
+        }
 
-        owner.movement.MoveTowards(targetPos, speed);
+        // si pathIndex fuera inválido, reiniciar
+        pathIndex = Mathf.Clamp(pathIndex, 0, Mathf.Max(0, path.Count - 1));
+        Vector3 node = path[pathIndex];
 
-        owner.debugTarget = targetPos;
+        float speed = (owner.instanceOverrides != null) ? owner.instanceOverrides.GetMoveSpeed(owner.stats.moveSpeed) : owner.stats.moveSpeed;
 
-        float dist = Vector3.Distance(owner.transform.position, targetPos);
+        owner.movement.MoveTowards(node, speed);
+        owner.debugTarget = node;
 
-        // ANIMACIÓN: caminando si se está desplazando hacia el objetivo
-        // usamos la distancia al punto para decidir (ya que MoveTowards no expone un booleano directamente)
+        float dist = Vector3.Distance(owner.transform.position, node);
+
+        // animaciones
         if (dist >= 0.6f)
         {
             if (owner.animatorBridge != null) owner.animatorBridge.SetWalking(true);
@@ -87,34 +103,99 @@ public class WanderState : State<EnemyController>
 
         if (dist < 0.6f)
         {
-            waiting = true;
-
-            // ANIMACIÓN: se detuvo → Idle
-            if (owner.animatorBridge != null) owner.animatorBridge.SetIdle(true);
-
-            waitTimer = (owner.instanceOverrides != null)
-                ? owner.instanceOverrides.GetWanderWait(owner.stats.wanderWaitTime)
-                : owner.stats.wanderWaitTime;
-
-            if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
+            pathIndex++;
+            if (pathIndex >= path.Count)
             {
-                index++;
-                if (index >= owner.patrolPath.points.Length) index = 0;
+                // llegó al final
+                waiting = true;
+                waitTimer = (owner.instanceOverrides != null) ? owner.instanceOverrides.GetWanderWait(owner.stats.wanderWaitTime) : owner.stats.wanderWaitTime;
+
+                // avanzar en patrol path si existiera
+                if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
+                {
+                    index++;
+                    if (index >= owner.patrolPath.points.Length) index = 0;
+                }
+            }
+            else
+            {
+                // continuar al siguiente nodo
             }
         }
+
+        // Si el enemigo se queda estancado (por ejemplo, no puede moverse y el nodo no cambia),
+        // detectarlo: si hemos intentado muchos frames sin avanzar, regen target.
+        // (Este bloque es simple y evita quedarse pegado en el mismo punto indefinidamente)
+        // Puedes mejorar con contadores por frame si quieres más robustez.
     }
 
     void PickNextTarget(EnemyController owner)
     {
+        // escoger objetivo (patrol o random)
         if (owner.patrolPath != null && owner.patrolPath.points.Length > 0)
         {
             usingRandom = false;
             if (index >= owner.patrolPath.points.Length) index = 0;
-            return;
+            randomTarget = owner.patrolPath.points[index].position;
+        }
+        else
+        {
+            usingRandom = true;
+
+            // generar con attempts y evitar targets demasiado cercanos o iguales
+            int attempts = 0;
+            Vector3 candidate = owner.transform.position;
+            do
+            {
+                attempts++;
+                Vector2 rnd = Random.insideUnitCircle * owner.stats.wanderRadius;
+                candidate = owner.transform.position + new Vector3(rnd.x, 0, rnd.y);
+
+                // ajustar al piso
+                if (Physics.Raycast(candidate + Vector3.up * 10f, Vector3.down, out RaycastHit hit, 30f))
+                    candidate = hit.point;
+
+                // si el candidate coincide con la posición del agente o es muy cercano, volver a generar
+                if (Vector3.Distance(candidate, owner.transform.position) < minTargetDistance) continue;
+
+                break;
+            } while (attempts < attemptsBeforeGiveUp);
+
+            randomTarget = candidate;
         }
 
-        usingRandom = true;
-        Vector2 rnd = Random.insideUnitCircle * owner.stats.wanderRadius;
-        randomTarget = owner.transform.position + new Vector3(rnd.x, 0, rnd.y);
+        // Obtener/crear pathfinder en el owner
+        LocalGridPathfinder pf = owner.GetComponent<LocalGridPathfinder>();
+        if (pf == null)
+            pf = owner.gameObject.AddComponent<LocalGridPathfinder>();
+
+        // IMPORTANT: Ajusta en inspector pf.obstacleMask para EXCLUIR la capa del propio enemigo
+        // Si quieres, aquí podrías modificar pf.obstacleMask en runtime: pf.obstacleMask &= ~ (1 << owner.gameObject.layer);
+        // Pero normalmente es mejor configurar las capas desde el editor.
+
+        // calcular ruta
+        Vector3 start = owner.transform.position;
+        Vector3 dest = randomTarget;
+
+        // intentos para generar path; si falla, acortar destino hacia el start
+        path = pf.FindPath(start, dest);
+        int tries = 0;
+        while ((path == null || path.Count == 0) && tries < 3)
+        {
+            tries++;
+            // recortar destino a un punto intermedio para facilitar encontrar camino
+            dest = Vector3.Lerp(start, dest, 0.5f);
+            path = pf.FindPath(start, dest);
+        }
+
+        pathIndex = 0;
+
+        // Si aún no hay path, forzar otro target (evitar quedarse en el mismo punto forever)
+        if (path == null || path.Count == 0)
+        {
+            // marcar target invalid y forzar regeneración la próxima Tick
+            randomTarget = Vector3.zero;
+            usingRandom = true;
+        }
     }
 }

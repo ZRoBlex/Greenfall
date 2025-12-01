@@ -16,6 +16,8 @@ MonoBehaviour:
   moveSpeed: 2
   runSpeed: 3
   turnSpeed: 8
+  chaseSpeed: 4.5
+  repathThreshold: 1.5
   perceptionRange: 12
   fieldOfView: 120
   attackRange: 2

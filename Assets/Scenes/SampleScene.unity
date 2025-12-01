@@ -221,8 +221,8 @@ Transform:
   m_GameObject: {fileID: 97051513}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.707107, z: -0, w: 0.7071066}
-  m_LocalPosition: {x: 4.999999, y: 1, z: 8.000003}
-  m_LocalScale: {x: 10, y: 1, z: 0.5}
+  m_LocalPosition: {x: 4.9999995, y: 1, z: 7.000003}
+  m_LocalScale: {x: 8, y: 1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -4114,6 +4114,8 @@ GameObject:
   - component: {fileID: 6876470412052677815}
   - component: {fileID: 6876470412052677816}
   - component: {fileID: 6876470412052677817}
+  - component: {fileID: 6876470412052677820}
+  - component: {fileID: 6876470412052677821}
   m_Layer: 9
   m_Name: Idle
   m_TagString: Untagged
@@ -4407,6 +4409,47 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6876470412052677820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6063518299592990228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75141a1ed2ce4604aa9d0e709ce2e3a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridRadius: 8
+  cellSize: 1
+  agentRadius: 0.5
+  agentHeight: 1.6
+  maxStepHeight: 0.5
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 128
+  ignoreMask:
+    serializedVersion: 2
+    m_Bits: 512
+  drawGrid: 1
+  drawPath: 1
+--- !u!114 &6876470412052677821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6063518299592990228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 489accb11ef124d4d8dfdda0adff3966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nodeReachDistance: 0.6
+  ignoreMask:
+    serializedVersion: 2
+    m_Bits: 512
 --- !u!1 &6904984116965439410
 GameObject:
   m_ObjectHideFlags: 0
