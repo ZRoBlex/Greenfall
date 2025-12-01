@@ -189,4 +189,13 @@ public class EnemyController : MonoBehaviour, IEnemy
             }
         }
     }
+
+
+
+
+    public void MakeFriendly()
+    {
+        //ChangeState(new FriendlyState(transform));
+    }
+
 }

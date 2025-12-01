@@ -17,13 +17,13 @@ MonoBehaviour:
   runSpeed: 3
   turnSpeed: 8
   perceptionRange: 12
-  fieldOfView: 120
+  fieldOfView: 140
   attackRange: 2
   attackDamage: 10
   attackCooldown: 1.2
   wanderRadius: 8
   wanderWaitTime: 4
-  cannibalType: 1
+  cannibalType: 0
   passiveSafeDistance: 3
   passiveRetreatSpeed: 2
   maxHealth: 100
