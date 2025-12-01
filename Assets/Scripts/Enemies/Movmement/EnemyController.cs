@@ -15,6 +15,14 @@ public class EnemyController : MonoBehaviour, IEnemy
     public Vector3 debugTarget;
     public string debugStateName = "";
 
+
+    [Header("Friendly Settings")]
+    public float friendlyFollowSpeed = 3f;
+    public float friendlyStopDistance = 2f;
+
+    public bool ForceFriendly = false;
+
+
     // Components
     public MovementGrounded movement { get; private set; }
     public Perception perception { get; private set; }
@@ -63,8 +71,25 @@ public class EnemyController : MonoBehaviour, IEnemy
     void Update()
     {
         // Sólo tickea la FSM si no está KO ni reclutado
-        if (!IsKnockedOut && !IsRecruited)
+        if (IsKnockedOut)
+        {
             fsm.Tick();
+            return;
+        }
+
+        // 🔥 BLOQUEAR TODO SI ES FRIENDLY
+        if (ForceFriendly)
+        {
+            if (!(fsm.CurrentState is FriendlyFollowState))
+                ChangeState(new FriendlyFollowState());
+
+            fsm.Tick(); // seguir ejecutando friendly
+            return;
+        }
+
+        // Normal AI
+        fsm.Tick();
+
 
         // centraliza animaciones u otras cosas si quieres...
         UpdateAnimationFlags();
@@ -145,20 +170,23 @@ public class EnemyController : MonoBehaviour, IEnemy
 
         bool isChasing = fsm.CurrentState is ChaseState;
         bool isScared = fsm.CurrentState is PassiveObserveState;
+        bool isFriendly = fsm.CurrentState is FriendlyFollowState;
         bool isWalking = movement.CurrentSpeed > walkSpeedThreshold && !(isChasing || isScared);
-        bool isIdle = !isWalking && !isChasing && !isScared;
+        bool isIdle = !isWalking && !isChasing && !isScared && !isFriendly;
 
+        // En caso de que quieras animaciones específicas:
         //animatorBridge.SetChasing(isChasing);
         //animatorBridge.SetScared(isScared);
         //animatorBridge.SetWalking(isWalking);
         //animatorBridge.SetIdle(isIdle);
 
-        if (isChasing) debugStateName = "Chase";
+        if (isFriendly) debugStateName = "Friendly";
+        else if (isChasing) debugStateName = "Chase";
         else if (isScared) debugStateName = "Scared";
         else if (isWalking) debugStateName = "Walking";
         else if (isIdle) debugStateName = "Idle";
-        //else debugStateName = "Idle";
     }
+
 
     // OnDrawGizmos (mantener si ya lo tienes)
     void OnDrawGizmos()
@@ -195,7 +223,10 @@ public class EnemyController : MonoBehaviour, IEnemy
 
     public void MakeFriendly()
     {
-        //ChangeState(new FriendlyState(transform));
+        ForceFriendly = true;
+        ChangeState(new FriendlyFollowState());
     }
+
+
 
 }
