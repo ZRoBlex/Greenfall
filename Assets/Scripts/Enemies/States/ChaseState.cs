@@ -25,32 +25,28 @@ public class ChaseState : State<EnemyController>
 
         float dist = Vector3.Distance(owner.transform.position, target.position);
 
-        // --- Passive behavior ---
+        var priority = owner.GetComponent<MovementPriorityController>();
+
+        // Passive → no persigue
         if (owner.stats.cannibalType == CannibalType.Passive)
         {
             owner.movement.RotateTowards(target.position);
-
             if (dist < owner.stats.passiveSafeDistance)
             {
                 Vector3 retreat = (owner.transform.position - target.position).normalized;
                 owner.movement.MoveDirection(retreat, owner.stats.passiveRetreatSpeed);
-                return;
             }
             else
             {
-                owner.movement.StopInstantly();
-                return;
+                priority.Stop();
             }
+            return;
         }
 
-        // --- Aggressive: chase ---
-        float speed =
-            owner.instanceOverrides != null
-                ? owner.instanceOverrides.GetRunSpeed(owner.stats.runSpeed)
-                : owner.stats.runSpeed;
+        // Aggressive → path hacia el jugador
+        priority.MoveTo(target.position, MovementMode.Chase);
 
-        owner.movement.MoveTowards(target.position, speed);
-
+        // ataque
         if (dist <= owner.stats.attackRange)
             owner.ChangeState(new AttackState(target));
     }

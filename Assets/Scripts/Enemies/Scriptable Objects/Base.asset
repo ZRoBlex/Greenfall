@@ -23,12 +23,12 @@ MonoBehaviour:
   attackCooldown: 1.2
   wanderRadius: 8
   wanderWaitTime: 4
-  cannibalType: 1
+  cannibalType: 0
   passiveSafeDistance: 3
   passiveRetreatSpeed: 2
   maxHealth: 100
   captureMeterMax: 100
   captureDecayPerSecond: 10
   capturePerHit: 20
-  team: 0
+  team: 3
   closeDetectionRadius: 3
