@@ -125,6 +125,8 @@ public class EnemyPathAgent : MonoBehaviour
     }
 
 
+
+
     /// <summary>
     /// Indica si actualmente tiene una ruta y aún no llegó.
     /// </summary>
