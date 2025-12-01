@@ -3858,7 +3858,8 @@ PrefabInstance:
       value: PlayerObject
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5958916186134301046, guid: fc95a902743b2f244bc1085196210a31, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fc95a902743b2f244bc1085196210a31, type: 3}
@@ -4421,8 +4422,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75141a1ed2ce4604aa9d0e709ce2e3a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridRadius: 24
-  cellSize: 0.5
+  gridRadius: 12
+  cellSize: 1
   agentRadius: 0.5
   agentHeight: 1.6
   maxStepHeight: 0.5
