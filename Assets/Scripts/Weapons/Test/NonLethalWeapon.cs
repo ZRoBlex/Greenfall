@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections;
+using UnityEditor.EditorTools;
+using UnityEngine;
 
 public class NonLethalWeapon : MonoBehaviour
 {
@@ -94,5 +95,12 @@ public class NonLethalWeapon : MonoBehaviour
         if (stats.projectilePrefab == null || firePoint == null) return;
 
         Instantiate(stats.projectilePrefab, firePoint.position, firePoint.rotation);
+        //GameObject bullet = ParticlePool.Instance.ObtenerBala();
+        //bullet.transform.position = transform.position;
+        //bullet.transform.rotation = transform.rotation;
+
+        //bullet.GetComponent<ParticleSystem>().Clear();
+
+        //bullet.GetComponent<ParticleSystem>().Play();
     }
 }

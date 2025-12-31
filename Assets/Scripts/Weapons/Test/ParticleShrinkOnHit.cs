@@ -20,7 +20,9 @@ public class ParticleShrinkOnHit : MonoBehaviour
         // Si ya es muy pequeña → destruir
         if (transform.localScale.x < destroyThreshold)
         {
-            Destroy(gameObject);
+            //Destroy(gameObject);
+            GetComponent<ParticleSystem>().Stop();
+            enabled = false;
         }
     }
 

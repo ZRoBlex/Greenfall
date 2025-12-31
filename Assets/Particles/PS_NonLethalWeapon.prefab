@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6297870531996684265}
   - component: {fileID: 5292395790967312144}
   - component: {fileID: 4494666840322846125}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: PS_NonLethalWeapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1196,7 +1196,7 @@ ParticleSystem:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
-    separateAxes: 0
+    separateAxes: 1
   RotationModule:
     enabled: 0
     x:
@@ -3849,7 +3849,7 @@ ParticleSystem:
         m_RotationOrder: 4
     minKillSpeed: 0
     maxKillSpeed: 10000
-    radiusScale: 1
+    radiusScale: 3
     collidesWith:
       serializedVersion: 2
       m_Bits: 640
@@ -4130,30 +4130,30 @@ ParticleSystem:
         m_NumAlphaKeys: 2
     widthOverTrail:
       serializedVersion: 2
-      minMaxState: 0
-      scalar: 1
+      minMaxState: 1
+      scalar: 20
       minScalar: 1
       maxCurve:
         serializedVersion: 2
         m_Curve:
         - serializedVersion: 3
           time: 0
-          value: 1
+          value: 0.75
           inSlope: 0
           outSlope: 0
           tangentMode: 0
           weightedMode: 0
-          inWeight: 0.33333334
-          outWeight: 0.33333334
+          inWeight: 0
+          outWeight: 0
         - serializedVersion: 3
           time: 1
-          value: 1
+          value: 0.25
           inSlope: 0
           outSlope: 0
           tangentMode: 0
           weightedMode: 0
-          inWeight: 0.33333334
-          outWeight: 0.33333334
+          inWeight: 0
+          outWeight: 0
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
@@ -4906,7 +4906,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f40be40e62155f84eacbc18e4093aa2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+<<<<<<< Updated upstream
   captureTick: 10
+=======
+  captureTick: 20
+>>>>>>> Stashed changes
   extraStunTick: 0
   isLethal: 0
   lethalDamage: 5
@@ -4922,5 +4926,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35b9c36a56c528947950ee8adb8ac3bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shrinkSpeed: 100
-  destroyThreshold: 0.1
+  shrinkSpeed: 1000
+  destroyThreshold: 1

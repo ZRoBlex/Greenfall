@@ -18,10 +18,10 @@ MonoBehaviour:
   weaponName: Base
   projectilePrefab: {fileID: 3816561263398032381, guid: f70b8f0ccb9f9b94dbfd4151bc9b20ba, type: 3}
   projectileSpeed: 25
-  projectileLife: 5
+  projectileLife: 3
   taserRange: 3
   taserStun: 3
   taserCaptureTick: 10
   stunAmountOnHit: 15
   captureTickOnHit: 20
-  cooldown: 0.2
+  cooldown: 0
