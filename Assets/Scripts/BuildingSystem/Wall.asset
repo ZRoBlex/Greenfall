@@ -14,21 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   previewPrefab: {fileID: 3962245478324999150, guid: b227ed6d2cd2b384491692ee9460ed2d, type: 3}
   finalPrefab: {fileID: 3962245478324999150, guid: c59751c2c3203914fb3520fbea1a8384, type: 3}
-  gridBounds: {x: 4, y: 4, z: 4}
+  gridBounds: {x: 1, y: 4, z: 4}
   occupiedCells:
-  - {x: 1, y: 0, z: 0}
   - {x: 1, y: 1, z: 0}
   - {x: 1, y: 2, z: 0}
   - {x: 1, y: 3, z: 0}
   - {x: 2, y: 2, z: 0}
   - {x: 2, y: 3, z: 0}
-  - {x: 1, y: 0, z: 1}
-  - {x: 1, y: 0, z: 2}
-  - {x: 1, y: 0, z: 3}
-  - {x: 2, y: 0, z: 3}
-  - {x: 2, y: 0, z: 2}
-  - {x: 2, y: 0, z: 1}
-  - {x: 2, y: 0, z: 0}
   - {x: 2, y: 1, z: 0}
   - {x: 2, y: 1, z: 1}
   - {x: 1, y: 1, z: 1}
@@ -48,3 +40,25 @@ MonoBehaviour:
   - {x: 2, y: 3, z: 2}
   - {x: 2, y: 3, z: 3}
   - {x: 1, y: 3, z: 3}
+  - {x: 0, y: 0, z: 0}
+  - {x: 1, y: 0, z: 0}
+  - {x: 2, y: 0, z: 0}
+  - {x: 0, y: 1, z: 0}
+  - {x: 0, y: 2, z: 0}
+  - {x: 0, y: 3, z: 0}
+  - {x: 3, y: 3, z: 0}
+  - {x: 3, y: 2, z: 0}
+  - {x: 3, y: 1, z: 0}
+  - {x: 3, y: 0, z: 0}
+  - {x: 0, y: 0, z: 1}
+  - {x: 0, y: 0, z: 2}
+  - {x: 0, y: 0, z: 3}
+  - {x: 0, y: 1, z: 1}
+  - {x: 0, y: 1, z: 2}
+  - {x: 0, y: 1, z: 3}
+  - {x: 0, y: 2, z: 1}
+  - {x: 0, y: 2, z: 2}
+  - {x: 0, y: 2, z: 3}
+  - {x: 0, y: 3, z: 1}
+  - {x: 0, y: 3, z: 2}
+  - {x: 0, y: 3, z: 3}
