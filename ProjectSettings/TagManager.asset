@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - DeliveryZone
+  - BuildBlocker
   layers:
   - Default
   - TransparentFX

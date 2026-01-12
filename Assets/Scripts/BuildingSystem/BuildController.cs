@@ -31,6 +31,10 @@ public class BuildController : MonoBehaviour
             return;
 
         HandleRotationInput();
+        currentRotation = GetRotationFromPlayer();
+        
+
+
 
         Ray ray = new Ray(
             playerCamera.transform.position,
@@ -47,7 +51,11 @@ public class BuildController : MonoBehaviour
 
         StructureConfig structure = selector.Current;
 
-        bool canBuild = CanBuild(originCell, structure, currentRotation);
+        //bool canBuild = CanBuild(originCell, structure, currentRotation);
+        bool canBuild =
+    CanBuild(originCell, structure, currentRotation)
+    && !preview.IsBlockedByCollision();
+
 
         Vector3 worldPos = GridMath.CellToWorld(originCell);
         Quaternion rotation = GetWorldRotation();
@@ -68,6 +76,14 @@ public class BuildController : MonoBehaviour
             currentRotation = (StructureRotation)(((int)currentRotation + 1) % 4);
         }
     }
+
+    StructureRotation GetRotationFromPlayer()
+    {
+        float yaw = playerCamera.transform.eulerAngles.y;
+        int index = Mathf.RoundToInt(yaw / 90f) % 4;
+        return (StructureRotation)index;
+    }
+
 
     bool CanBuild(
         Vector3Int origin,

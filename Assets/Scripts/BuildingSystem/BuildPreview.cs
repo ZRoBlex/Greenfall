@@ -7,6 +7,12 @@ public class BuildPreview : MonoBehaviour
 
     public Material validMat;
     public Material invalidMat;
+    BuildPreviewCollision collision;
+
+    void Awake()
+    {
+        collision = GetComponent<BuildPreviewCollision>();
+    }
 
     public void Show(
         StructureConfig config,
@@ -40,5 +46,10 @@ public class BuildPreview : MonoBehaviour
     {
         if (previewInstance)
             Destroy(previewInstance);
+    }
+
+    public bool IsBlockedByCollision()
+    {
+        return collision != null && collision.IsBlocked();
     }
 }
