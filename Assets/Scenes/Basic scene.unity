@@ -1754,14 +1754,13 @@ GameObject:
   - component: {fileID: 1189667037}
   - component: {fileID: 1189667038}
   - component: {fileID: 1189667031}
-  - component: {fileID: 1189667036}
   m_Layer: 6
   m_Name: BuildingSystem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1189667030
 Transform:
   m_ObjectHideFlags: 0
@@ -1801,8 +1800,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b78a899886ad4c84c8eb7ee8abc10110, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cellSize: 1
-  enabledGrid: 1
+  cellSize: 0.1
 --- !u!114 &1189667033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1850,19 +1848,7 @@ MonoBehaviour:
   preview: {fileID: 1189667034}
   validator: {fileID: 1189667033}
   occupancy: {fileID: 1189667031}
-  smoothSpeed: 20
---- !u!114 &1189667036
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189667029}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3e30d5e2443f5d44b8d926e23ed8974, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  previewSmoothSpeed: 25
 --- !u!114 &1189667037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4885,7 +4871,7 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 128
-  drawGrid: 1
+  drawGrid: 0
   drawPath: 1
 --- !u!114 &6876470412052677821
 MonoBehaviour:
@@ -4894,7 +4880,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6063518299592990228}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 489accb11ef124d4d8dfdda0adff3966, type: 3}
   m_Name: 

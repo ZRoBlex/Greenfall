@@ -3,6 +3,15 @@ using UnityEngine;
 public class BuildPreviewCollision : MonoBehaviour
 {
     int hits = 0;
+    BuildPreviewCollision collision;
+
+    void Awake()
+    {
+        collision = GetComponent<BuildPreviewCollision>();
+
+        foreach (var c in GetComponentsInChildren<Collider>())
+            c.isTrigger = true;
+    }
 
     void OnTriggerEnter(Collider other)
     {

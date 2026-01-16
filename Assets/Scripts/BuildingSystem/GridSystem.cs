@@ -3,22 +3,25 @@ using UnityEngine;
 public class GridSystem : MonoBehaviour
 {
     public float cellSize = 1f;
-    public bool enabledGrid = true;
 
-    /// <summary>
-    /// Snap determinista basado en dirección del rayo
-    /// </summary>
-    public Vector3 Snap(Vector3 world, Vector3 rayDir)
+    public Vector3Int WorldToCellStable(Vector3 world, Vector3 rayDir)
     {
-        if (!enabledGrid)
-            return world;
+        // bias según dirección para evitar indecisión
+        Vector3 bias = rayDir.normalized * 0.01f;
 
-        // pequeño bias en dirección del rayo (CLAVE)
-        Vector3 biased = world + rayDir.normalized * 0.001f;
+        return new Vector3Int(
+            Mathf.FloorToInt((world.x + bias.x) / cellSize),
+            0,
+            Mathf.FloorToInt((world.z + bias.z) / cellSize)
+        );
+    }
 
-        float x = Mathf.Floor(biased.x / cellSize) * cellSize + cellSize * 0.5f;
-        float z = Mathf.Floor(biased.z / cellSize) * cellSize + cellSize * 0.5f;
-
-        return new Vector3(x, world.y, z);
+    public Vector3 CellToWorld(Vector3Int cell)
+    {
+        return new Vector3(
+            (cell.x + 0.5f) * cellSize,
+            0,
+            (cell.z + 0.5f) * cellSize
+        );
     }
 }

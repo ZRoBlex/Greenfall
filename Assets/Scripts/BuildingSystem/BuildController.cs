@@ -30,54 +30,45 @@ public class BuildController : MonoBehaviour
             return;
         }
 
-        // 1️⃣ Base position: SIEMPRE hit.point
-        Vector3 targetPos = hit.point;
+        StructureData data = Current;
 
-        // 2️⃣ Rotación
+        // 🔒 1. Obtener celda DETERMINISTA (NO hit.point directo)
+        Vector3Int cell = grid.WorldToCellStable(
+            hit.point,
+            ray.direction
+        );
+
+        // 🔒 2. Celda → mundo (estable)
+        Vector3 targetPos = grid.CellToWorld(cell);
+
+        // 🔒 3. Rotación snap 90°
         Quaternion rot = Quaternion.Euler(
             0,
             Mathf.Round(cam.transform.eulerAngles.y / 90f) * 90f,
             0
         );
 
-        // 3️⃣ Normal estable
-        Vector3 normal = hit.normal;
-        if (Vector3.Angle(normal, Vector3.up) < 45f)
-            normal = Vector3.up;
-
-        // 4️⃣ Snap a superficie (corrige pivot centrado)
-        targetPos = BuildSnapSurface.SnapToSurface(
-            Current.finalPrefab,
-            targetPos,
-            normal,
+        // 🔒 4. Ajuste de pivote (una sola vez, estable)
+        targetPos += BuildSnapUtility.GetBottomOffset(
+            data.finalPrefab,
             rot
         );
 
-        // 5️⃣ Grid snap DETERMINISTA
-        if (Current.useGrid)
-        {
-            targetPos = grid.Snap(targetPos, ray.direction);
-        }
+        bool valid = validator.CanPlace(data, targetPos, rot, preview);
 
-        // 6️⃣ Validación (lógica)
-        bool valid = validator.CanPlace(Current, targetPos, rot, preview);
-
-        // 7️⃣ Suavizado SOLO visual
+        // 🔒 5. Suavizado SOLO visual
         visualPos = Vector3.Lerp(
             visualPos == Vector3.zero ? targetPos : visualPos,
             targetPos,
             Time.deltaTime * previewSmoothSpeed
         );
 
-        // 8️⃣ Mostrar preview
-        preview.Show(Current, visualPos, rot, valid);
+        preview.Show(data, visualPos, rot, valid);
 
-        // 9️⃣ Construir
         if (valid && Input.GetMouseButtonDown(0))
-        {
             Place(targetPos, rot);
-        }
     }
+
 
     void Place(Vector3 pos, Quaternion rot)
     {
