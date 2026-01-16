@@ -6,6 +6,8 @@ TagManager:
   tags:
   - DeliveryZone
   - BuildBlocker
+  - Enemy
+  - EnemyPerception
   layers:
   - Default
   - TransparentFX
@@ -17,7 +19,7 @@ TagManager:
   - Obstacle
   - CaptureArea
   - Enemy
-  - 
+  - EnemyPerception
   - 
   - 
   - 

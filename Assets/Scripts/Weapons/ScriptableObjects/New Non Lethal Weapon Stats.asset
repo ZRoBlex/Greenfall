@@ -13,15 +13,28 @@ MonoBehaviour:
   m_Name: New Non Lethal Weapon Stats
   m_EditorClassIdentifier: 
   fireMode: 1
+  cooldown: 0.2
   burstCount: 3
   burstDelay: 0.08
-  weaponName: Base
-  projectilePrefab: {fileID: 3816561263398032381, guid: f70b8f0ccb9f9b94dbfd4151bc9b20ba, type: 3}
-  projectileSpeed: 25
-  projectileLife: 5
-  taserRange: 3
-  taserStun: 3
-  taserCaptureTick: 10
-  stunAmountOnHit: 15
-  captureTickOnHit: 20
-  cooldown: 0.2
+  range: 150
+  pellets: 1
+  spreadAngle: 1.5
+  hittableLayers:
+    serializedVersion: 2
+    m_Bits: 640
+  damageTags:
+  - Enemy
+  useCaptureDamage: 0
+  lethalDamage: 10
+  stunAmount: 15
+  captureTick: 20
+  linePrefab: {fileID: 2868811331770395856, guid: 1a8674e820b8f7f4daa0c6a17218bd9a, type: 3}
+  normalLine: {fileID: 2100000, guid: 5fa7ff882c3f01f4688fa3932a8d7244, type: 2}
+  hitLine: {fileID: 2100000, guid: cecf50ae743bf6b4f96d98e6fb23f11b, type: 2}
+  lineDuration: 0.05
+  metalImpact: {fileID: 0}
+  dirtImpact: {fileID: 0}
+  fleshImpact: {fileID: 0}
+  recoilKick: 1.2
+  recoilRandom: 0.5
+  recoilReturnSpeed: 12
