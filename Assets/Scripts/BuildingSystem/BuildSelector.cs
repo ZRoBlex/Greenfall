@@ -2,29 +2,17 @@ using UnityEngine;
 
 public class BuildSelector : MonoBehaviour
 {
-    public StructureConfig[] availableStructures;
-    public int currentIndex;
+    public StructureData[] structures;
+    int index;
 
-    public StructureConfig Current =>
-        availableStructures[currentIndex];
+    public StructureData Current => structures[index];
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.E))
-            Next();
+            index = (index + 1) % structures.Length;
+
         if (Input.GetKeyDown(KeyCode.Q))
-            Previous();
-    }
-
-    void Next()
-    {
-        currentIndex = (currentIndex + 1) % availableStructures.Length;
-    }
-
-    void Previous()
-    {
-        currentIndex--;
-        if (currentIndex < 0)
-            currentIndex = availableStructures.Length - 1;
+            index = (index - 1 + structures.Length) % structures.Length;
     }
 }

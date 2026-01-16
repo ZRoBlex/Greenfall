@@ -2,22 +2,25 @@ using UnityEngine;
 
 public class BuildPreviewCollision : MonoBehaviour
 {
-    public int blockingCount = 0;
+    int hits = 0;
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("BuildBlocker"))
-            blockingCount++;
+        if (other.transform.root == transform.root)
+            return;
+
+        if (other.isTrigger)
+            return;
+
+        hits++;
     }
+
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("BuildBlocker"))
-            blockingCount--;
+        if (!other.isTrigger)
+            hits--;
     }
 
-    public bool IsBlocked()
-    {
-        return blockingCount > 0;
-    }
+    public bool IsBlocked() => hits > 0;
 }

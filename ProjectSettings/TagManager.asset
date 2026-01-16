@@ -8,6 +8,8 @@ TagManager:
   - BuildBlocker
   - Enemy
   - EnemyPerception
+  - build
+  - preview
   layers:
   - Default
   - TransparentFX

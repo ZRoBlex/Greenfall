@@ -1,135 +1,94 @@
-using UnityEngine;
-using System.Collections.Generic;
+﻿using UnityEngine;
 
 public class BuildController : MonoBehaviour
 {
-    public Camera playerCamera;
-    public float buildDistance = 5f;
+    [Header("General")]
+    public Camera cam;
+    public float range = 6f;
 
+    [Header("References")]
     public BuildSelector selector;
+    public GridSystem grid;
     public BuildPreview preview;
+    public BuildValidator validator;
+    public WorldOccupancy occupancy;
 
-    public bool buildModeActive = false;
+    [Header("Visual")]
+    public float previewSmoothSpeed = 25f;
 
-    private StructureRotation currentRotation = StructureRotation.Deg0;
+    StructureData Current => selector.Current;
 
-    // Grid l�gico (luego ir� a chunks)
-    private static Dictionary<Vector3Int, GameObject> occupiedCells
-        = new Dictionary<Vector3Int, GameObject>();
+    Vector3 visualPos;
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            buildModeActive = !buildModeActive;
+        Ray ray = new Ray(cam.transform.position, cam.transform.forward);
 
-            if (!buildModeActive)
-                preview.Hide();
-        }
-
-        if (!buildModeActive)
-            return;
-
-        HandleRotationInput();
-        currentRotation = GetRotationFromPlayer();
-        
-
-
-
-        Ray ray = new Ray(
-            playerCamera.transform.position,
-            playerCamera.transform.forward
-        );
-
-        if (!Physics.Raycast(ray, out RaycastHit hit, buildDistance))
+        if (!Physics.Raycast(ray, out RaycastHit hit, range))
         {
             preview.Hide();
             return;
         }
 
-        Vector3Int originCell = GridMath.WorldToCell(hit.point);
+        // 1️⃣ Base position: SIEMPRE hit.point
+        Vector3 targetPos = hit.point;
 
-        StructureConfig structure = selector.Current;
-
-        //bool canBuild = CanBuild(originCell, structure, currentRotation);
-        bool canBuild =
-    CanBuild(originCell, structure, currentRotation)
-    && !preview.IsBlockedByCollision();
-
-
-        Vector3 worldPos = GridMath.CellToWorld(originCell);
-        Quaternion rotation = GetWorldRotation();
-
-        preview.Show(structure, worldPos, rotation, canBuild);
-
-        if (canBuild && Input.GetMouseButtonDown(0))
-        {
-            Place(originCell, structure, rotation);
-        }
-    }
-
-
-    void HandleRotationInput()
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            currentRotation = (StructureRotation)(((int)currentRotation + 1) % 4);
-        }
-    }
-
-    StructureRotation GetRotationFromPlayer()
-    {
-        float yaw = playerCamera.transform.eulerAngles.y;
-        int index = Mathf.RoundToInt(yaw / 90f) % 4;
-        return (StructureRotation)index;
-    }
-
-
-    bool CanBuild(
-        Vector3Int origin,
-        StructureConfig config,
-        StructureRotation rotation
-    )
-    {
-        foreach (var localCell in config.occupiedCells)
-        {
-            Vector3Int rotatedCell =
-                GridRotation.RotateCell(localCell, config.gridBounds, rotation);
-
-            Vector3Int cell = origin + rotatedCell;
-
-            if (occupiedCells.ContainsKey(cell))
-                return false;
-        }
-
-        return true;
-    }
-
-    void Place(
-        Vector3Int origin,
-        StructureConfig config,
-        Quaternion rotation
-    )
-    {
-        Vector3 worldPos = GridMath.CellToWorld(origin);
-
-        GameObject obj = Instantiate(
-            config.finalPrefab,
-            worldPos,
-            rotation
+        // 2️⃣ Rotación
+        Quaternion rot = Quaternion.Euler(
+            0,
+            Mathf.Round(cam.transform.eulerAngles.y / 90f) * 90f,
+            0
         );
 
-        foreach (var localCell in config.occupiedCells)
-        {
-            Vector3Int rotatedCell =
-                GridRotation.RotateCell(localCell, config.gridBounds, currentRotation);
+        // 3️⃣ Normal estable
+        Vector3 normal = hit.normal;
+        if (Vector3.Angle(normal, Vector3.up) < 45f)
+            normal = Vector3.up;
 
-            occupiedCells.Add(origin + rotatedCell, obj);
+        // 4️⃣ Snap a superficie (corrige pivot centrado)
+        targetPos = BuildSnapSurface.SnapToSurface(
+            Current.finalPrefab,
+            targetPos,
+            normal,
+            rot
+        );
+
+        // 5️⃣ Grid snap DETERMINISTA
+        if (Current.useGrid)
+        {
+            targetPos = grid.Snap(targetPos, ray.direction);
+        }
+
+        // 6️⃣ Validación (lógica)
+        bool valid = validator.CanPlace(Current, targetPos, rot, preview);
+
+        // 7️⃣ Suavizado SOLO visual
+        visualPos = Vector3.Lerp(
+            visualPos == Vector3.zero ? targetPos : visualPos,
+            targetPos,
+            Time.deltaTime * previewSmoothSpeed
+        );
+
+        // 8️⃣ Mostrar preview
+        preview.Show(Current, visualPos, rot, valid);
+
+        // 9️⃣ Construir
+        if (valid && Input.GetMouseButtonDown(0))
+        {
+            Place(targetPos, rot);
         }
     }
 
-    Quaternion GetWorldRotation()
+    void Place(Vector3 pos, Quaternion rot)
     {
-        return Quaternion.Euler(0, (int)currentRotation * 90f, 0);
+        GameObject obj = Instantiate(Current.finalPrefab, pos, rot);
+        var volume = obj.GetComponentInChildren<OccupancyVolume>();
+        occupancy.Register(volume.GetWorldBounds(), grid.cellSize);
+    }
+
+    public void ForceHidePreview()
+    {
+        preview.Hide();
+        visualPos = Vector3.zero;
     }
 }

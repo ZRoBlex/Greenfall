@@ -2,54 +2,39 @@ using UnityEngine;
 
 public class BuildPreview : MonoBehaviour
 {
-    GameObject previewInstance;
+    GameObject instance;
     Renderer[] renderers;
+    BuildPreviewCollision collision;
 
     public Material validMat;
     public Material invalidMat;
-    BuildPreviewCollision collision;
 
     void Awake()
     {
         collision = GetComponent<BuildPreviewCollision>();
     }
 
-    public void Show(
-        StructureConfig config,
-        Vector3 worldPos,
-        Quaternion rotation,
-        bool valid)
+    public void Show(StructureData data, Vector3 pos, Quaternion rot, bool valid)
     {
-        if (previewInstance == null ||
-            previewInstance.name != config.previewPrefab.name)
+        if (instance == null || instance.name != data.previewPrefab.name)
         {
-            Clear();
-            previewInstance = Instantiate(config.previewPrefab);
-            renderers = previewInstance.GetComponentsInChildren<Renderer>();
+            if (instance) Destroy(instance);
+            instance = Instantiate(data.previewPrefab);
+            renderers = instance.GetComponentsInChildren<Renderer>();
         }
 
-        previewInstance.transform.SetPositionAndRotation(worldPos, rotation);
+        instance.transform.SetPositionAndRotation(pos, rot);
 
         foreach (var r in renderers)
             r.material = valid ? validMat : invalidMat;
 
-        previewInstance.SetActive(true);
+        instance.SetActive(true);
     }
 
     public void Hide()
     {
-        if (previewInstance)
-            previewInstance.SetActive(false);
+        if (instance) instance.SetActive(false);
     }
 
-    void Clear()
-    {
-        if (previewInstance)
-            Destroy(previewInstance);
-    }
-
-    public bool IsBlockedByCollision()
-    {
-        return collision != null && collision.IsBlocked();
-    }
+    public bool Blocked() => collision != null && collision.IsBlocked();
 }

@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 5149631167837322144}
   - component: {fileID: 8210547243445086763}
   - component: {fileID: 7412523592756564361}
+  - component: {fileID: -4380763313362169283}
   m_Layer: 7
   m_Name: BasicWoodWall 1
-  m_TagString: Untagged
+  m_TagString: build
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -108,3 +109,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.875, y: 3.75, z: 0.1875}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-4380763313362169283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3962245478324999150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fe658aa1274f784a83001b01e8cc9bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
