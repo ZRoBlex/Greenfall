@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 3
   tags:
   - DeliveryZone
+  - BuildBlocker
+  - Enemy
+  - EnemyPerception
+  - build
+  - preview
   layers:
   - Default
   - TransparentFX
@@ -16,8 +21,8 @@ TagManager:
   - Obstacle
   - CaptureArea
   - Enemy
-  - 
-  - 
+  - EnemyPerception
+  - Structure
   - 
   - 
   - 
