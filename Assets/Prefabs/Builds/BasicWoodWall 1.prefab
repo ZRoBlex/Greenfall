@@ -204,7 +204,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 577f8ea72c30bd54b8408a01065dd1f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageNumberPrefab: {fileID: 0}
+  healthDamagePrefab: {fileID: 6767491470328235923, guid: 5663ad4348f734344a2eb31cdc3283dd, type: 3}
+  captureDamagePrefab: {fileID: 6767491470328235923, guid: 5663ad4348f734344a2eb31cdc3283dd, type: 3}
+  worldOffset: {x: 0, y: 1.5, z: 0}
 --- !u!114 &-1888321393575562148
 MonoBehaviour:
   m_ObjectHideFlags: 0

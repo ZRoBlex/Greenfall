@@ -5,6 +5,13 @@ public class StructureHealth : MonoBehaviour
     public StructureData data;
     public int CurrentHealth { get; private set; }
 
+    DamageHitRelay relay;
+
+    void Awake()
+    {
+        relay = GetComponent<DamageHitRelay>();
+    }
+
     void OnEnable()
     {
         ResetHealth();
@@ -19,17 +26,20 @@ public class StructureHealth : MonoBehaviour
     {
         if (!data.destructible) return;
 
-        float resistance = data.damageResistance;
-        int finalDamage = Mathf.RoundToInt(amount * (1f - resistance));
+        int finalDamage = Mathf.RoundToInt(
+            amount * (1f - data.damageResistance)
+        );
 
         CurrentHealth -= finalDamage;
 
-        // 🎯 FEEDBACK VISUAL
-        DamageIndicatorSpawner.Spawn(
-            finalDamage,
-            HitPointRelay.LastHitPoint,
-            HitPointRelay.LastHitNormal
-        );
+        if (relay != null)
+        {
+            DamageIndicatorSpawner.Spawn(
+                finalDamage,
+                relay.LastHitPoint,
+                Vector3.up
+            );
+        }
 
         if (CurrentHealth <= 0)
             DestroyStructure();
@@ -37,7 +47,6 @@ public class StructureHealth : MonoBehaviour
 
     void DestroyStructure()
     {
-        // DEVOLVER AL POOL
         StructurePool.Instance.Release(gameObject);
     }
 }

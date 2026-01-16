@@ -18,6 +18,9 @@ public class NonLethalHealth : MonoBehaviour
 
     EnemyController ec;
 
+    public event Action<float> OnCaptureTaken;
+
+
     void Awake()
     {
         ec = GetComponent<EnemyController>();
@@ -58,6 +61,9 @@ public class NonLethalHealth : MonoBehaviour
         {
             OnStunned?.Invoke();
         }
+
+        OnCaptureTaken?.Invoke(amount);
+
     }
 
     void BecomeUnconscious()

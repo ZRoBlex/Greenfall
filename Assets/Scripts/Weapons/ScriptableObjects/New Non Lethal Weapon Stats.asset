@@ -25,7 +25,7 @@ MonoBehaviour:
   damageTags:
   - Enemy
   - build
-  useCaptureDamage: 1
+  useCaptureDamage: 0
   lethalDamage: 10
   stunAmount: 15
   captureTick: 20

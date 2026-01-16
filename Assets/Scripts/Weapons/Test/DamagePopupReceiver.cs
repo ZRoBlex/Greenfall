@@ -2,26 +2,61 @@ using UnityEngine;
 
 public class DamagePopupReceiver : MonoBehaviour
 {
-    public GameObject damageNumberPrefab;
+    [Header("Prefabs")]
+    public GameObject healthDamagePrefab;
+    public GameObject captureDamagePrefab;
+
+    [Header("Popup Offset")]
+    public Vector3 worldOffset = new Vector3(0, 1.5f, 0);
 
     Health health;
+    NonLethalHealth nonLethal;
     DamageHitRelay relay;
 
     void Awake()
     {
-        health = GetComponent<Health>();
         relay = GetComponent<DamageHitRelay>();
 
-        health.OnDamageTaken += OnDamage;
+        health = GetComponent<Health>();
+        if (health != null)
+            health.OnDamageTaken += OnHealthDamage;
+
+        nonLethal = GetComponent<NonLethalHealth>();
+        if (nonLethal != null)
+            nonLethal.OnCaptureTaken += OnCaptureDamage;
     }
 
-    void OnDamage(float amount)
+    void OnDestroy()
     {
-        Vector3 pos = relay != null
-            ? relay.LastHitPoint
-            : transform.position + Vector3.up * 1.2f;
+        if (health != null)
+            health.OnDamageTaken -= OnHealthDamage;
 
-        var go = Instantiate(damageNumberPrefab, pos, Quaternion.identity);
-        go.GetComponent<DamageNumber>().SetValue(amount);
+        if (nonLethal != null)
+            nonLethal.OnCaptureTaken -= OnCaptureDamage;
+    }
+
+    void OnHealthDamage(float amount)
+    {
+        SpawnPopup(amount, healthDamagePrefab);
+    }
+
+    void OnCaptureDamage(float amount)
+    {
+        SpawnPopup(amount, captureDamagePrefab);
+    }
+
+    void SpawnPopup(float value, GameObject prefab)
+    {
+        if (prefab == null) return;
+
+        Vector3 basePos =
+            relay != null && relay.LastHitPoint != Vector3.zero
+            ? relay.LastHitPoint
+            : transform.position;
+
+        Vector3 finalPos = basePos + worldOffset;
+
+        var go = Instantiate(prefab, finalPos, Quaternion.identity);
+        go.GetComponent<DamageNumber>().SetValue(value);
     }
 }
