@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2551817257962211432}
   - component: {fileID: 5163102899111543117}
   - component: {fileID: 3229910863864520939}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_30
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95,9 +95,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 467559177070074785}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: HalfHorWallWindow
-  m_TagString: Untagged
+  m_TagString: build
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 1125741621562342353}
   - component: {fileID: 1128509177489006164}
   - component: {fileID: 6803571514189290193}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_29
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -217,7 +217,7 @@ GameObject:
   - component: {fileID: 1522119645702166417}
   - component: {fileID: 8258826173541754012}
   - component: {fileID: 2841273351341417580}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_28
   m_TagString: Untagged
   m_Icon: {fileID: 0}

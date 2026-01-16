@@ -21,10 +21,11 @@ MonoBehaviour:
   spreadAngle: 1.5
   hittableLayers:
     serializedVersion: 2
-    m_Bits: 640
+    m_Bits: 2688
   damageTags:
   - Enemy
-  useCaptureDamage: 0
+  - build
+  useCaptureDamage: 1
   lethalDamage: 10
   stunAmount: 15
   captureTick: 20

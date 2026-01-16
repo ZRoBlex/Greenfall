@@ -29,5 +29,6 @@ public class Health : MonoBehaviour
         OnDeath?.Invoke();
         // default: disable object; override if necessary
         gameObject.SetActive(false);
+        currentHealth = maxHealth;
     }
 }

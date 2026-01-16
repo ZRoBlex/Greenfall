@@ -213,6 +213,11 @@ public class NonLethalWeapon : MonoBehaviour
         Health health = hit.collider.GetComponentInParent<Health>();
         NonLethalHealth nonLethal = hit.collider.GetComponentInParent<NonLethalHealth>();
 
+        DamageHitRelay relay = hit.collider.GetComponentInParent<DamageHitRelay>();
+        if (relay != null)
+            relay.RegisterHit(hit.point);
+
+
         // Verificar TAG (una sola vez, no foreach)
         bool validTag = false;
         foreach (string tag in stats.damageTags)

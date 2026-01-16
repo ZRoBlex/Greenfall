@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 182315524584363833}
   - component: {fileID: 5753634955512207385}
   - component: {fileID: 3860660189140652648}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: quarterPartOfWoodWall
-  m_TagString: Untagged
+  m_TagString: build
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

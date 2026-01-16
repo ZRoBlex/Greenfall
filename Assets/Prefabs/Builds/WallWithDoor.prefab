@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2699021932079470685}
   - component: {fileID: 8255806632203425163}
   - component: {fileID: 1002828845419443541}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 4228260446028299108}
   - component: {fileID: 7811171726548931223}
   - component: {fileID: 2061736013159373782}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -183,7 +183,7 @@ GameObject:
   - component: {fileID: 6506870553859198282}
   - component: {fileID: 317302073568688450}
   - component: {fileID: 4004547710008494345}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -267,9 +267,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2923984430396587194}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: WallWithDoor
-  m_TagString: Untagged
+  m_TagString: build
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

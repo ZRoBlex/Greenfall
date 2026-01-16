@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 924711863484125999}
   - component: {fileID: 8269555484015608157}
   - component: {fileID: 3942372469427598797}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_20
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 5575062858683234376}
   - component: {fileID: 6937864971845654909}
   - component: {fileID: 4884817356565524552}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_22
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -181,9 +181,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 713701358573481625}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: HalfVerWallWindowUpper
-  m_TagString: Untagged
+  m_TagString: build
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -217,7 +217,7 @@ GameObject:
   - component: {fileID: 8908551344094062107}
   - component: {fileID: 8158146317858184103}
   - component: {fileID: 4795926078595618287}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_21
   m_TagString: Untagged
   m_Icon: {fileID: 0}

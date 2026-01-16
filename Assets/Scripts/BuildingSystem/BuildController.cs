@@ -72,9 +72,19 @@ public class BuildController : MonoBehaviour
 
     void Place(Vector3 pos, Quaternion rot)
     {
-        GameObject obj = Instantiate(Current.finalPrefab, pos, rot);
-        var volume = obj.GetComponentInChildren<OccupancyVolume>();
-        occupancy.Register(volume.GetWorldBounds(), grid.cellSize);
+        GameObject obj =
+    StructurePool.Instance.Get(Current.finalPrefab, pos, rot);
+
+        var instance = obj.GetComponent<StructureInstance>();
+        instance.prefab = Current.finalPrefab;
+
+        var health = obj.GetComponent<StructureHealth>();
+        health.data = Current;
+        health.ResetHealth();
+
+        //GameObject obj = Instantiate(Current.finalPrefab, pos, rot);
+        //var volume = obj.GetComponentInChildren<OccupancyVolume>();
+        //occupancy.Register(volume.GetWorldBounds(), grid.cellSize);
     }
 
     public void ForceHidePreview()

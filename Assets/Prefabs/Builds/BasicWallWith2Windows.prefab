@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1996354570387805975}
   - component: {fileID: 7907766763132434421}
   - component: {fileID: 7738599469464415395}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_26
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 1521612414605939269}
   - component: {fileID: 420608126656715349}
   - component: {fileID: 2355802524216387779}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_23
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -183,7 +183,7 @@ GameObject:
   - component: {fileID: 2448046731119769521}
   - component: {fileID: 4304138449521048148}
   - component: {fileID: 8894689326470706864}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_25
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -269,7 +269,7 @@ GameObject:
   - component: {fileID: 8015842097288885310}
   - component: {fileID: 6944250511883483157}
   - component: {fileID: 6985588070025503794}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_24
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -353,9 +353,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9222682755526756626}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: BasicWallWith2Windows
-  m_TagString: Untagged
+  m_TagString: build
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -391,7 +391,7 @@ GameObject:
   - component: {fileID: 5191319577492369136}
   - component: {fileID: 3993920879605956231}
   - component: {fileID: 853975739594064076}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: cube_27
   m_TagString: Untagged
   m_Icon: {fileID: 0}

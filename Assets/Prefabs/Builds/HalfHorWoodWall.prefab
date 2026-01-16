@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 6664484257473324529}
   - component: {fileID: 8612258676714082141}
   - component: {fileID: 4003704269027685951}
-  m_Layer: 7
+  m_Layer: 11
   m_Name: HalfHorWoodWall
-  m_TagString: Untagged
+  m_TagString: build
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
