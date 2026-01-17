@@ -53,6 +53,7 @@ public class Weapon : MonoBehaviour
 
     void Start()
     {
+        shootCamera = shootCamera ? shootCamera : Camera.main;
         // Instanciar UNA SOLA VEZ el muzzle flash
         if (stats.muzzleFlash && firePoint)
         {
