@@ -25,10 +25,14 @@ MonoBehaviour:
   damageTags:
   - Enemy
   - build
-  useCaptureDamage: 0
-  lethalDamage: 10
-  stunAmount: 15
-  captureTick: 20
+  useCaptureDamage: 1
+  minLethalDamage: 2
+  maxLethalDamage: 5
+  minCaptureDamage: 10
+  maxCaptureDamage: 20
+  allowCritical: 1
+  criticalChance: 0.2
+  criticalBonusPercent: 0.5
   linePrefab: {fileID: 2868811331770395856, guid: 1a8674e820b8f7f4daa0c6a17218bd9a, type: 3}
   normalLine: {fileID: 2100000, guid: 5fa7ff882c3f01f4688fa3932a8d7244, type: 2}
   hitLine: {fileID: 2100000, guid: cecf50ae743bf6b4f96d98e6fb23f11b, type: 2}
@@ -36,6 +40,6 @@ MonoBehaviour:
   metalImpact: {fileID: 0}
   dirtImpact: {fileID: 0}
   fleshImpact: {fileID: 0}
-  recoilKick: 1.2
+  recoilKick: 40
   recoilRandom: 0.5
   recoilReturnSpeed: 12

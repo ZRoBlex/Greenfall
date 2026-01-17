@@ -1,102 +1,4 @@
-//using UnityEngine;
-//using System.Collections;
-
-//public class NonLethalWeapon : MonoBehaviour
-//{
-//    public NonLethalWeaponStats stats;
-//    public Transform firePoint;
-
-//    float lastFire;
-//    bool isBursting = false;
-
-//    void Update()
-//    {
-//        switch (stats.fireMode)
-//        {
-//            case FireMode.SemiAuto:
-//                if (Input.GetButtonDown("Fire1"))
-//                    TryFire();
-//                break;
-
-//            case FireMode.FullAuto:
-//                if (Input.GetButton("Fire1"))
-//                    TryFire();
-//                break;
-
-//            case FireMode.Burst:
-//                if (Input.GetButtonDown("Fire1"))
-//                    TryBurst();
-//                break;
-//        }
-
-//        if (Input.GetButtonDown("Fire2"))
-//            TryTase();
-//    }
-
-//    // -----------------------------------
-//    // FIRE NORMAL
-//    // -----------------------------------
-//    void TryFire()
-//    {
-//        if (Time.time - lastFire < stats.cooldown) return;
-//        lastFire = Time.time;
-
-//        SpawnProjectile();
-//    }
-
-//    // -----------------------------------
-//    // BURST MODE
-//    // -----------------------------------
-//    void TryBurst()
-//    {
-//        if (isBursting) return;
-//        StartCoroutine(BurstRoutine());
-//    }
-
-//    IEnumerator BurstRoutine()
-//    {
-//        isBursting = true;
-
-//        for (int i = 0; i < stats.burstCount; i++)
-//        {
-//            TryFire();
-//            yield return new WaitForSeconds(stats.burstDelay);
-//        }
-
-//        isBursting = false;
-//    }
-
-//    // -----------------------------------
-//    // TASER
-//    // -----------------------------------
-//    void TryTase()
-//    {
-//        if (Time.time - lastFire < stats.cooldown) return;
-//        lastFire = Time.time;
-
-//        Ray r = new Ray(firePoint.position, firePoint.forward);
-
-//        if (Physics.Raycast(r, out RaycastHit hit, stats.taserRange))
-//        {
-//            var nonLethal = hit.collider.GetComponent<NonLethalHealth>();
-//            if (nonLethal != null)
-//            {
-//                //nonLethal.ApplyNonLethalHit(stats.taserStun, stats.taserCaptureTick);
-//            }
-//        }
-//    }
-
-//    // -----------------------------------
-//    // SPAWN PROJECTILE
-//    // -----------------------------------
-//    void SpawnProjectile()
-//    {
-//        if (stats.projectilePrefab == null || firePoint == null) return;
-
-//        Instantiate(stats.projectilePrefab, firePoint.position, firePoint.rotation);
-//    }
-//}
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 public class NonLethalWeapon : MonoBehaviour
@@ -108,6 +10,14 @@ public class NonLethalWeapon : MonoBehaviour
     float lastFire;
     bool isBursting;
     Vector3 recoilRotation;
+
+    //[Header("Critical Settings")]
+    //[SerializeField] bool enableCritical = true;
+    //[SerializeField] int criticalRollMax = 14;
+    //[SerializeField] float criticalMultiplier = 2f;
+
+
+
 
     void Update()
     {
@@ -209,7 +119,7 @@ public class NonLethalWeapon : MonoBehaviour
     // ------------------------------------------------
     void HandleHit(RaycastHit hit)
     {
-        // Buscar el objeto que realmente puede recibir daño
+        // Buscar el objeto que realmente puede recibir daÃ±o
         Health health = hit.collider.GetComponentInParent<Health>();
         NonLethalHealth nonLethal = hit.collider.GetComponentInParent<NonLethalHealth>();
 
@@ -231,23 +141,54 @@ public class NonLethalWeapon : MonoBehaviour
 
         if (!validTag) return;
 
-        // APLICAR DAÑO
-        if (stats.useCaptureDamage)
-        {
-            if (nonLethal != null)
-            {
-                nonLethal.ApplyCaptureTick(
-                    stats.captureTick
-                );
-            }
+        // APLICAR DAÃ‘O
+        bool isCritical;
+
+
+
+if (stats.useCaptureDamage)
+{
+    if (nonLethal != null)
+    {
+        float dmg = GenerateDamage(
+            stats.minCaptureDamage,
+            stats.maxCaptureDamage,
+            out isCritical
+        );
+
+                DamagePopupReceiver popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
+                if (popup != null)
+                {
+                    popup.SetLastHitCritical(isCritical);
+                }
+
+
+                nonLethal.ApplyCaptureTick(dmg);
+            SendDamagePopup(hit, dmg, isCritical);
         }
-        else
-        {
-            if (health != null)
-            {
-                health.ApplyDamage(stats.lethalDamage);
-            }
+    }
+else
+{
+    if (health != null)
+    {
+        float dmg = GenerateDamage(
+            stats.minLethalDamage,
+            stats.maxLethalDamage,
+            out isCritical
+        );
+
+                DamagePopupReceiver popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
+                if (popup != null)
+                {
+                    popup.SetLastHitCritical(isCritical);
+                }
+
+
+                health.ApplyDamage(dmg);
+            SendDamagePopup(hit, dmg, isCritical);
         }
+    }
+
 
         // FX
         SpawnImpact(hit);
@@ -308,4 +249,41 @@ public class NonLethalWeapon : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(recoilRotation);
     }
+
+    float GenerateDamage(float min, float max, out bool isCritical)
+    {
+        float damage = Random.Range(min, max);
+        isCritical = false;
+
+        if (stats.allowCritical && Random.value <= stats.criticalChance)
+        {
+            damage += damage * stats.criticalBonusPercent;
+            isCritical = true;
+        }
+
+        return damage;
+    }
+
+
+
+
+    //bool RollCritical()
+    //{
+    //    if (!enableCritical)
+    //        return false;
+
+    //    int roll = Random.Range(0, criticalRollMax + 1);
+    //    return roll == criticalRollMax;
+    //}
+
+
+    void SendDamagePopup(RaycastHit hit, float damage, bool isCritical)
+    {
+        DamagePopupReceiver popup =
+            hit.collider.GetComponentInParent<DamagePopupReceiver>();
+
+        //if (popup != null)
+            //popup.ShowExternalDamage(damage, isCritical, hit.point);
+    }
+
 }

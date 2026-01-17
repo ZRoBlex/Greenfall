@@ -18,8 +18,8 @@ GameObject:
   - component: {fileID: 8658819008780371942}
   - component: {fileID: 3171959804416473818}
   - component: {fileID: -2534392588972876192}
-  - component: {fileID: 8776721454858587176}
   - component: {fileID: -1888321393575562148}
+  - component: {fileID: 7212119747558946505}
   m_Layer: 11
   m_Name: BasicWoodWall 1
   m_TagString: build
@@ -192,21 +192,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9d9b3511763f384987fe276d2f15bef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &8776721454858587176
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3962245478324999150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 577f8ea72c30bd54b8408a01065dd1f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  healthDamagePrefab: {fileID: 6767491470328235923, guid: 5663ad4348f734344a2eb31cdc3283dd, type: 3}
-  captureDamagePrefab: {fileID: 6767491470328235923, guid: 5663ad4348f734344a2eb31cdc3283dd, type: 3}
-  worldOffset: {x: 0, y: 1.5, z: 0}
 --- !u!114 &-1888321393575562148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,3 +204,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fd1c6328839a1648b4201041291e598, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7212119747558946505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3962245478324999150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e57daaa484e0384385dc2b733598c82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 2bab78a92e9abe44b8c8f3c1dd9b7959, type: 2}
+  displayType: 0
