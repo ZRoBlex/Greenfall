@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24ed5e012be379543b9f8448157b4d8e, type: 3}
+  m_Name: Shotgun
+  m_EditorClassIdentifier: 
+  fireMode: 0
+  cooldown: 1.2
+  burstCount: 3
+  burstDelay: 0.08
+  range: 150
+  pellets: 8
+  spreadAngle: 8
+  hittableLayers:
+    serializedVersion: 2
+    m_Bits: 6784
+  damageTags:
+  - Enemy
+  - build
+  - Dirt
+  - Metal
+  useCaptureDamage: 0
+  minLethalDamage: 4
+  maxLethalDamage: 8
+  minCaptureDamage: 15
+  maxCaptureDamage: 25
+  allowCritical: 1
+  criticalChance: 0.05
+  criticalBonusPercent: 0.5
+  linePrefab: {fileID: 2868811331770395856, guid: 1a8674e820b8f7f4daa0c6a17218bd9a, type: 3}
+  normalLine: {fileID: 2100000, guid: 5fa7ff882c3f01f4688fa3932a8d7244, type: 2}
+  hitLine: {fileID: 2100000, guid: cecf50ae743bf6b4f96d98e6fb23f11b, type: 2}
+  lineDuration: 0.05
+  recoilKick: 30
+  recoilRandom: 0.5
+  recoilReturnSpeed: 6
+  muzzleFlash: {fileID: 7584322402289101294, guid: ebd1d53c9469db6409c4529d33ea8b44, type: 3}
+  metalImpactVFX: {fileID: 7584322402289101294, guid: ae2d1c8dfdf59b64cad5b905ef5085b1, type: 3}
+  dirtImpactVFX: {fileID: 7584322402289101294, guid: a086234b027c4e64589c97613a5726d9, type: 3}
+  fleshImpactVFX: {fileID: 1250442476904062941, guid: 08e8ece9f4fb3c44988a14669ecc37f3, type: 3}
+  critImpact: {fileID: 7584322402289101294, guid: 41f3a81546208664899e42d3c42459bf, type: 3}
+  decalLifeTime: 6
+  decalFadeTime: 1.5
+  defaultDecalPrefab: {fileID: -8784029089770287704, guid: fa076dbe797f74a4e90612524f3bd1a7, type: 3}
+  inventoryPositionOffset: {x: -0.21, y: 0.05, z: -0.11}
+  inventoryRotationOffset: {x: 0, y: 0, z: 0}

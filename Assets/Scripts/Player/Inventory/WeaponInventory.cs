@@ -102,9 +102,10 @@ public class WeaponInventory : MonoBehaviour
     void ApplyWeaponOffset(Weapon weapon)
     {
         weapon.transform.localPosition = weapon.GetInventoryPositionOffset();
-        weapon.transform.localRotation = Quaternion.Euler(
-            weapon.GetInventoryRotationOffset()
-        );
+        weapon.ApplyInventoryRotation(
+    weapon.GetInventoryRotationOffset()
+);
+
     }
 
     // -----------------------------

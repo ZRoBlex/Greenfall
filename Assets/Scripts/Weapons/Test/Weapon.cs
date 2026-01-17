@@ -11,6 +11,9 @@ public class Weapon : MonoBehaviour
     bool isBursting;
     Vector3 recoilRotation;
 
+    Quaternion baseLocalRotation;
+
+
     [Header("Damage Systems")]
     //[SerializeField] DistanceDamageScaler distanceScaler;
 
@@ -318,7 +321,10 @@ public class Weapon : MonoBehaviour
             stats.recoilReturnSpeed * Time.deltaTime
         );
 
-        transform.localRotation = Quaternion.Euler(recoilRotation);
+        //transform.localRotation = Quaternion.Euler(recoilRotation);
+        transform.localRotation =
+    baseLocalRotation * Quaternion.Euler(recoilRotation);
+
     }
 
     float GenerateDamage(float min, float max, out bool isCritical)
@@ -378,5 +384,10 @@ public class Weapon : MonoBehaviour
             : stats.inventoryRotationOffset;
     }
 
+    public void ApplyInventoryRotation(Vector3 euler)
+    {
+        baseLocalRotation = Quaternion.Euler(euler);
+        transform.localRotation = baseLocalRotation;
+    }
 
 }
