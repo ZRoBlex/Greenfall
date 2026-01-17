@@ -4504,6 +4504,10 @@ PrefabInstance:
       value: 4096
       objectReference: {fileID: 0}
     - target: {fileID: 2085366010476152706, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: distanceScalerSO
+      value: 
+      objectReference: {fileID: 11400000, guid: d66cc9e329a7d044c923a63ef757c765, type: 2}
+    - target: {fileID: 2085366010476152706, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: metalLayer.m_Bits
       value: 2176
       objectReference: {fileID: 0}

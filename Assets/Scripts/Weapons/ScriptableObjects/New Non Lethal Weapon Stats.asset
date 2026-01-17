@@ -28,8 +28,8 @@ MonoBehaviour:
   - Dirt
   - Metal
   useCaptureDamage: 0
-  minLethalDamage: 2
-  maxLethalDamage: 5
+  minLethalDamage: 90
+  maxLethalDamage: 100
   minCaptureDamage: 10
   maxCaptureDamage: 20
   allowCritical: 1

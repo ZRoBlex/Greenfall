@@ -12,7 +12,7 @@ public class NonLethalWeapon : MonoBehaviour
     Vector3 recoilRotation;
 
     [Header("Damage Systems")]
-    [SerializeField] DistanceDamageScaler distanceScaler;
+    //[SerializeField] DistanceDamageScaler distanceScaler;
 
 
     // 🔥 Muzzle flash instance
@@ -29,6 +29,9 @@ public class NonLethalWeapon : MonoBehaviour
 
     [Header("Audio")]
     [SerializeField] WeaponAudio weaponAudio;
+
+    [SerializeField] DistanceDamageScalerSO distanceScalerSO;
+
 
 
 
@@ -201,14 +204,14 @@ public class NonLethalWeapon : MonoBehaviour
             );
 
             // 📏 ESCALADO POR DISTANCIA
-            if (distanceScaler != null && shootCamera != null)
+            if (distanceScalerSO != null && shootCamera != null)
             {
                 float distance = Vector3.Distance(
                     shootCamera.transform.position,
                     hit.point
                 );
 
-                dmg *= distanceScaler.GetMultiplier(distance);
+                dmg *= distanceScalerSO.GetMultiplier(distance);
             }
 
             // 🎯 ZONA DEL CUERPO
