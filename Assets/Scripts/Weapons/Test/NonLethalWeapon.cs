@@ -11,18 +11,34 @@ public class NonLethalWeapon : MonoBehaviour
     bool isBursting;
     Vector3 recoilRotation;
 
-    //[Header("Critical Settings")]
-    //[SerializeField] bool enableCritical = true;
-    //[SerializeField] int criticalRollMax = 14;
-    //[SerializeField] float criticalMultiplier = 2f;
+    // 🔥 Muzzle flash instance
+    ParticleSystem muzzleFlashInstance;
 
-    [Header("Muzzle Flash")]
-    [SerializeField] WeaponMuzzleFlash muzzleFlash;
+    //[Header("Material Layers")]
+    //public LayerMask metalLayer;
+    //public LayerMask leatherMask;
+    //public LayerMask dirtLayer; 
+    [Header("Impact Tags")]
+    [SerializeField] string[] metalTags;
+    [SerializeField] string[] dirtTags;
+    [SerializeField] string[] fleshTags;
 
-    [SerializeField] WeaponMuzzleFlashPool muzzleFlashPool;
 
+    void Start()
+    {
+        // Instanciar UNA SOLA VEZ el muzzle flash
+        if (stats.muzzleFlash && firePoint)
+        {
+            muzzleFlashInstance = Instantiate(
+                stats.muzzleFlash,
+                firePoint.position,
+                firePoint.rotation,
+                firePoint
+            );
 
-
+            muzzleFlashInstance.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+    }
 
     void Update()
     {
@@ -89,29 +105,13 @@ public class NonLethalWeapon : MonoBehaviour
     // ------------------------------------------------
     void Shoot()
     {
-        // 🔥 MUZZLE FLASH
-        if (stats.muzzleFlash)
+        // 🔥 MUZZLE FLASH (PARTÍCULAS)
+        if (muzzleFlashInstance)
         {
-            ParticleSystem fx =
-                Instantiate(stats.muzzleFlash, firePoint.position, firePoint.rotation);
-
-            fx.Play();
-            Destroy(fx.gameObject, fx.main.duration);
+            muzzleFlashInstance.transform.position = firePoint.position;
+            muzzleFlashInstance.transform.rotation = firePoint.rotation;
+            muzzleFlashInstance.Play();
         }
-
-        // 🔥 FLASH VISUAL
-        if (muzzleFlash != null)
-            muzzleFlash.Play();
-
-        if (muzzleFlashPool != null)
-        {
-            muzzleFlashPool.PlayFlash(
-                firePoint.position,
-                shootCamera.transform.forward
-            );
-        }
-
-
 
         for (int i = 0; i < stats.pellets; i++)
         {
@@ -148,16 +148,13 @@ public class NonLethalWeapon : MonoBehaviour
     // ------------------------------------------------
     void HandleHit(RaycastHit hit)
     {
-        // Buscar el objeto que realmente puede recibir daño
         Health health = hit.collider.GetComponentInParent<Health>();
         NonLethalHealth nonLethal = hit.collider.GetComponentInParent<NonLethalHealth>();
 
         DamageHitRelay relay = hit.collider.GetComponentInParent<DamageHitRelay>();
-        if (relay != null)
+        if (relay)
             relay.RegisterHit(hit.point);
 
-
-        // Verificar TAG (una sola vez, no foreach)
         bool validTag = false;
         foreach (string tag in stats.damageTags)
         {
@@ -170,117 +167,67 @@ public class NonLethalWeapon : MonoBehaviour
 
         if (!validTag) return;
 
-        // APLICAR DAÑO
         bool isCritical = false;
 
+        if (stats.useCaptureDamage && nonLethal != null)
+        {
+            float dmg = GenerateDamage(stats.minCaptureDamage, stats.maxCaptureDamage, out isCritical);
 
+            var popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
+            if (popup) popup.SetLastHitCritical(isCritical);
 
-
-        if (stats.useCaptureDamage)
-{
-    if (nonLethal != null)
-    {
-        float dmg = GenerateDamage(
-            stats.minCaptureDamage,
-            stats.maxCaptureDamage,
-            out isCritical
-        );
-
-                DamagePopupReceiver popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
-                if (popup != null)
-                {
-                    popup.SetLastHitCritical(isCritical);
-                }
-
-
-                nonLethal.ApplyCaptureTick(dmg);
-            SendDamagePopup(hit, dmg, isCritical);
+            nonLethal.ApplyCaptureTick(dmg);
         }
-    }
-else
-{
-    if (health != null)
-    {
-        float dmg = GenerateDamage(
-            stats.minLethalDamage,
-            stats.maxLethalDamage,
-            out isCritical
-        );
+        else if (health != null)
+        {
+            float dmg = GenerateDamage(stats.minLethalDamage, stats.maxLethalDamage, out isCritical);
 
-                DamagePopupReceiver popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
-                if (popup != null)
-                {
-                    popup.SetLastHitCritical(isCritical);
-                }
+            var popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
+            if (popup) popup.SetLastHitCritical(isCritical);
 
-
-                health.ApplyDamage(dmg);
-            SendDamagePopup(hit, dmg, isCritical);
+            health.ApplyDamage(dmg);
         }
-    }
 
-
-        // FX
         SpawnImpact(hit, isCritical);
     }
-
 
     // ------------------------------------------------
     // IMPACT FX
     // ------------------------------------------------
-    //void SpawnImpact(RaycastHit hit)
-    //{
-    //    GameObject fx = null;
-
-    //    int layer = hit.collider.gameObject.layer;
-
-    //    if (layer == LayerMask.NameToLayer("Metal"))
-    //        fx = stats.metalImpact;
-    //    else if (layer == LayerMask.NameToLayer("Dirt"))
-    //        fx = stats.dirtImpact;
-    //    else if (hit.collider.CompareTag("Enemy"))
-    //        fx = stats.fleshImpact;
-
-    //    if (fx)
-    //        Instantiate(fx, hit.point, Quaternion.LookRotation(hit.normal));
-
-    //}
     void SpawnImpact(RaycastHit hit, bool isCritical)
     {
         ParticleSystem fx = null;
-
-        int layer = hit.collider.gameObject.layer;
+        Collider col = hit.collider;
 
         if (isCritical && stats.critImpact)
         {
             fx = stats.critImpact;
         }
-        else if (layer == LayerMask.NameToLayer("Metal"))
+        else if (HasAnyTag(col, metalTags))
         {
             fx = stats.metalImpactVFX;
         }
-        else if (layer == LayerMask.NameToLayer("Dirt"))
+        else if (HasAnyTag(col, dirtTags))
         {
             fx = stats.dirtImpactVFX;
         }
-        else if (hit.collider.CompareTag("Enemy"))
+        else if (HasAnyTag(col, fleshTags))
         {
             fx = stats.fleshImpactVFX;
         }
 
         if (!fx) return;
 
-        ParticleSystem ps =
-            Instantiate(fx, hit.point, Quaternion.LookRotation(hit.normal));
-
+        Quaternion rot = Quaternion.LookRotation(-hit.normal);
+        ParticleSystem ps = Instantiate(fx, hit.point, rot);
         ps.Play();
     }
 
 
-        // ------------------------------------------------
-        // LINE RENDERER
-        // ------------------------------------------------
-        void SpawnLine(Vector3 start, Vector3 end, bool hit)
+    // ------------------------------------------------
+    // LINE RENDERER
+    // ------------------------------------------------
+    void SpawnLine(Vector3 start, Vector3 end, bool hit)
     {
         if (!stats.linePrefab) return;
 
@@ -326,26 +273,18 @@ else
         return damage;
     }
 
-
-
-
-    //bool RollCritical()
-    //{
-    //    if (!enableCritical)
-    //        return false;
-
-    //    int roll = Random.Range(0, criticalRollMax + 1);
-    //    return roll == criticalRollMax;
-    //}
-
-
-    void SendDamagePopup(RaycastHit hit, float damage, bool isCritical)
+    bool HasAnyTag(Collider col, string[] tags)
     {
-        DamagePopupReceiver popup =
-            hit.collider.GetComponentInParent<DamagePopupReceiver>();
+        if (tags == null || tags.Length == 0)
+            return false;
 
-        //if (popup != null)
-            //popup.ShowExternalDamage(damage, isCritical, hit.point);
+        foreach (string tag in tags)
+        {
+            if (!string.IsNullOrEmpty(tag) && col.CompareTag(tag))
+                return true;
+        }
+
+        return false;
     }
 
 }

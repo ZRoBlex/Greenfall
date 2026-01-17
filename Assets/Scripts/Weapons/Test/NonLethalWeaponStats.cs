@@ -55,10 +55,10 @@ public class NonLethalWeaponStats : ScriptableObject
     public Material hitLine;
     public float lineDuration = 0.05f;
 
-    [Header("Impact FX")]
-    public GameObject metalImpact;
-    public GameObject dirtImpact;
-    public GameObject fleshImpact;
+    //[Header("Impact FX")]
+    //public GameObject metalImpact;
+    //public GameObject dirtImpact;
+    //public GameObject fleshImpact;
 
     [Header("Recoil")]
     public float recoilKick = 1.2f;

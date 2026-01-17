@@ -1,79 +1,54 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class MuzzleFlashInstance : MonoBehaviour
+public class MuzzleFlash : MonoBehaviour
 {
-    [Header("Scale")]
     public float startScale = 0.05f;
-    public float maxScale = 1.4f;
-    public float growTime = 0.025f;
-    public float shrinkTime = 0.045f;
+    public float maxScale = 1.3f;
+    public float duration = 0.06f;
 
+    float timer;
+    bool active;
     Transform cam;
-    Coroutine routine;
 
     void Awake()
     {
-        cam = Camera.main.transform;
+        cam = Camera.main ? Camera.main.transform : null;
         gameObject.SetActive(false);
     }
 
-    public void Play(Vector3 position, Vector3 fireDirection)
+    public void Play(Vector3 pos, Quaternion rot)
     {
-        transform.position = position;
-
-        // 👉 MIRAR A LA CÁMARA
-        Vector3 lookDir = transform.position - cam.position;
-        transform.rotation = Quaternion.LookRotation(lookDir);
-
-        RotateParticlesBackward(fireDirection);
-
-        if (routine != null)
-            StopCoroutine(routine);
-
-        routine = StartCoroutine(FlashRoutine());
-    }
-
-    IEnumerator FlashRoutine()
-    {
+        transform.position = pos;
+        transform.rotation = rot;
         transform.localScale = Vector3.one * startScale;
+
+        timer = 0f;
+        active = true;
         gameObject.SetActive(true);
-
-        float t = 0f;
-
-        // 🔼 CRECER
-        while (t < growTime)
-        {
-            t += Time.deltaTime;
-            transform.localScale = Vector3.one *
-                Mathf.Lerp(startScale, maxScale, t / growTime);
-            yield return null;
-        }
-
-        // 🔽 ENCOGER
-        t = 0f;
-        while (t < shrinkTime)
-        {
-            t += Time.deltaTime;
-            transform.localScale = Vector3.one *
-                Mathf.Lerp(maxScale, startScale, t / shrinkTime);
-            yield return null;
-        }
-
-        gameObject.SetActive(false);
     }
 
-    void RotateParticlesBackward(Vector3 fireDir)
+    void Update()
     {
-        ParticleSystem[] psList =
-            GetComponentsInChildren<ParticleSystem>(true);
+        if (!active) return;
 
-        foreach (var ps in psList)
+        if (cam)
         {
-            ps.transform.rotation =
-                Quaternion.LookRotation(-fireDir);
+            transform.rotation =
+                Quaternion.LookRotation(transform.position - cam.position);
+        }
 
-            ps.Play(true);
+        timer += Time.deltaTime;
+        float t = timer / duration;
+
+        if (t < 0.5f)
+            transform.localScale = Vector3.one * Mathf.Lerp(startScale, maxScale, t * 2f);
+        else
+            transform.localScale = Vector3.one * Mathf.Lerp(maxScale, startScale, (t - 0.5f) * 2f);
+
+        if (timer >= duration)
+        {
+            active = false;
+            gameObject.SetActive(false);
         }
     }
 }

@@ -1,31 +1,34 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class WeaponMuzzleFlashPool : MonoBehaviour
 {
-    [SerializeField] MuzzleFlashInstance flashPrefab;
-    [SerializeField] int poolSize = 10;
+    public static WeaponMuzzleFlashPool Instance;
 
-    readonly List<MuzzleFlashInstance> pool = new();
-    int index;
+    public MuzzleFlash prefab;
+    public int poolSize = 10;
+
+    Queue<MuzzleFlash> pool = new Queue<MuzzleFlash>();
 
     void Awake()
     {
+        Instance = this;
+
         for (int i = 0; i < poolSize; i++)
         {
-            MuzzleFlashInstance flash =
-                Instantiate(flashPrefab, transform);
-
+            MuzzleFlash flash = Instantiate(prefab, transform);
             flash.gameObject.SetActive(false);
-            pool.Add(flash);
+            pool.Enqueue(flash);
         }
     }
 
-    public void PlayFlash(Vector3 position, Vector3 fireDirection)
+    public void PlayFlash(Vector3 pos, Quaternion rot)
     {
-        MuzzleFlashInstance flash = pool[index];
-        index = (index + 1) % pool.Count;
+        if (pool.Count == 0)
+            return; // 🔒 NO crecer, NO crashear
 
-        flash.Play(position, fireDirection);
+        MuzzleFlash flash = pool.Dequeue();
+        flash.Play(pos, rot);
+        pool.Enqueue(flash);
     }
 }

@@ -21,7 +21,7 @@ MonoBehaviour:
   spreadAngle: 1.5
   hittableLayers:
     serializedVersion: 2
-    m_Bits: 2688
+    m_Bits: 6784
   damageTags:
   - Enemy
   - build
@@ -37,14 +37,11 @@ MonoBehaviour:
   normalLine: {fileID: 2100000, guid: 5fa7ff882c3f01f4688fa3932a8d7244, type: 2}
   hitLine: {fileID: 2100000, guid: cecf50ae743bf6b4f96d98e6fb23f11b, type: 2}
   lineDuration: 0.05
-  metalImpact: {fileID: 8227889731293147356, guid: ae2d1c8dfdf59b64cad5b905ef5085b1, type: 3}
-  dirtImpact: {fileID: 8227889731293147356, guid: a086234b027c4e64589c97613a5726d9, type: 3}
-  fleshImpact: {fileID: 8404840592521765450, guid: 08e8ece9f4fb3c44988a14669ecc37f3, type: 3}
   recoilKick: 40
   recoilRandom: 0.5
   recoilReturnSpeed: 12
-  muzzleFlash: {fileID: 0}
-  metalImpactVFX: {fileID: 0}
-  dirtImpactVFX: {fileID: 0}
-  fleshImpactVFX: {fileID: 0}
-  critImpact: {fileID: 0}
+  muzzleFlash: {fileID: 7584322402289101294, guid: ebd1d53c9469db6409c4529d33ea8b44, type: 3}
+  metalImpactVFX: {fileID: 7584322402289101294, guid: ae2d1c8dfdf59b64cad5b905ef5085b1, type: 3}
+  dirtImpactVFX: {fileID: 7584322402289101294, guid: a086234b027c4e64589c97613a5726d9, type: 3}
+  fleshImpactVFX: {fileID: 1250442476904062941, guid: 08e8ece9f4fb3c44988a14669ecc37f3, type: 3}
+  critImpact: {fileID: 7584322402289101294, guid: 41f3a81546208664899e42d3c42459bf, type: 3}
