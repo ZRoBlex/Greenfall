@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6e1191c024f09114687948f24e7b74c2
+timeCreated: 1471521655
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 127325
+  packageName: Particle Pack
+  packageVersion: 3.1
+  assetPath: Assets/UnityTechnologies/EffectExamples/FireExplosionEffects/Materials/Flame02.mat
+  uploadId: 691001
