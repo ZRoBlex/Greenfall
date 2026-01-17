@@ -3,7 +3,7 @@ using System.Collections;
 
 public class Weapon : MonoBehaviour
 {
-    public NonLethalWeaponStats stats;
+    public WeaponStats stats;
     public Transform firePoint;
     public Camera shootCamera;
 
@@ -31,6 +31,17 @@ public class Weapon : MonoBehaviour
     [SerializeField] WeaponAudio weaponAudio;
 
     [SerializeField] DistanceDamageScalerSO distanceScalerSO;
+
+
+    [Header("Inventory Offset Override")]
+    [SerializeField] bool overrideInventoryOffset = false;
+
+    [SerializeField] bool liveEditOffset = false; // 👈 ESTE ES EL NUEVO
+
+    [SerializeField] Vector3 inventoryPositionOffset;
+    [SerializeField] Vector3 inventoryRotationOffset;
+
+
 
 
 
@@ -337,5 +348,35 @@ public class Weapon : MonoBehaviour
 
         return false;
     }
+
+    void LateUpdate()
+    {
+        if (!liveEditOffset) return;
+        if (transform.parent == null) return;
+
+        ApplyInventoryOffset();
+    }
+
+    public void ApplyInventoryOffset()
+    {
+        transform.localPosition = GetInventoryPositionOffset();
+        transform.localRotation = Quaternion.Euler(GetInventoryRotationOffset());
+    }
+
+
+    public Vector3 GetInventoryPositionOffset()
+    {
+        return overrideInventoryOffset
+            ? inventoryPositionOffset
+            : stats.inventoryPositionOffset;
+    }
+
+    public Vector3 GetInventoryRotationOffset()
+    {
+        return overrideInventoryOffset
+            ? inventoryRotationOffset
+            : stats.inventoryRotationOffset;
+    }
+
 
 }

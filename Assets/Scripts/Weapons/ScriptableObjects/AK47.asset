@@ -27,7 +27,7 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
-  useCaptureDamage: 1
+  useCaptureDamage: 0
   minLethalDamage: 8
   maxLethalDamage: 12
   minCaptureDamage: 15
@@ -39,7 +39,7 @@ MonoBehaviour:
   normalLine: {fileID: 2100000, guid: 5fa7ff882c3f01f4688fa3932a8d7244, type: 2}
   hitLine: {fileID: 2100000, guid: cecf50ae743bf6b4f96d98e6fb23f11b, type: 2}
   lineDuration: 0.05
-  recoilKick: 1.2
+  recoilKick: 10
   recoilRandom: 0.5
   recoilReturnSpeed: 12
   muzzleFlash: {fileID: 7584322402289101294, guid: ebd1d53c9469db6409c4529d33ea8b44, type: 3}
@@ -50,3 +50,5 @@ MonoBehaviour:
   decalLifeTime: 6
   decalFadeTime: 1.5
   defaultDecalPrefab: {fileID: -8784029089770287704, guid: fa076dbe797f74a4e90612524f3bd1a7, type: 3}
+  inventoryPositionOffset: {x: 0, y: 0, z: -0.17}
+  inventoryRotationOffset: {x: 0, y: 0, z: 0}

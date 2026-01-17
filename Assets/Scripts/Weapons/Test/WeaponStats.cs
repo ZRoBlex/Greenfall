@@ -8,7 +8,7 @@ public enum FireMode
 }
 
 [CreateAssetMenu(menuName = "Greenfall/Weapons/NonLethal Weapon")]
-public class NonLethalWeaponStats : ScriptableObject
+public class WeaponStats : ScriptableObject
 {
     [Header("Fire Mode")]
     public FireMode fireMode = FireMode.SemiAuto;
@@ -79,6 +79,11 @@ public class NonLethalWeaponStats : ScriptableObject
     public float decalLifeTime = 6f;
     public float decalFadeTime = 1.5f;
     public BulletDecal defaultDecalPrefab;
+
+    [Header("Inventory View")]
+    public Vector3 inventoryPositionOffset;
+    public Vector3 inventoryRotationOffset;
+
 
 
 }
