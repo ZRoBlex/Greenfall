@@ -64,4 +64,14 @@ public class NonLethalWeaponStats : ScriptableObject
     public float recoilKick = 1.2f;
     public float recoilRandom = 0.5f;
     public float recoilReturnSpeed = 12f;
+
+    [Header("Shoot FX")]
+    public ParticleSystem muzzleFlash;
+
+    [Header("Impact FX")]
+    public ParticleSystem metalImpactVFX;
+    public ParticleSystem dirtImpactVFX;
+    public ParticleSystem fleshImpactVFX;
+    public ParticleSystem critImpact; // ⭐ opcional
+
 }

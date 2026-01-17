@@ -16,6 +16,11 @@ public class NonLethalWeapon : MonoBehaviour
     //[SerializeField] int criticalRollMax = 14;
     //[SerializeField] float criticalMultiplier = 2f;
 
+    [Header("Muzzle Flash")]
+    [SerializeField] WeaponMuzzleFlash muzzleFlash;
+
+    [SerializeField] WeaponMuzzleFlashPool muzzleFlashPool;
+
 
 
 
@@ -84,6 +89,30 @@ public class NonLethalWeapon : MonoBehaviour
     // ------------------------------------------------
     void Shoot()
     {
+        // 🔥 MUZZLE FLASH
+        if (stats.muzzleFlash)
+        {
+            ParticleSystem fx =
+                Instantiate(stats.muzzleFlash, firePoint.position, firePoint.rotation);
+
+            fx.Play();
+            Destroy(fx.gameObject, fx.main.duration);
+        }
+
+        // 🔥 FLASH VISUAL
+        if (muzzleFlash != null)
+            muzzleFlash.Play();
+
+        if (muzzleFlashPool != null)
+        {
+            muzzleFlashPool.PlayFlash(
+                firePoint.position,
+                shootCamera.transform.forward
+            );
+        }
+
+
+
         for (int i = 0; i < stats.pellets; i++)
         {
             Vector3 dir = GetSpreadDirection();
@@ -142,11 +171,12 @@ public class NonLethalWeapon : MonoBehaviour
         if (!validTag) return;
 
         // APLICAR DAÑO
-        bool isCritical;
+        bool isCritical = false;
 
 
 
-if (stats.useCaptureDamage)
+
+        if (stats.useCaptureDamage)
 {
     if (nonLethal != null)
     {
@@ -191,34 +221,66 @@ else
 
 
         // FX
-        SpawnImpact(hit);
+        SpawnImpact(hit, isCritical);
     }
 
 
     // ------------------------------------------------
     // IMPACT FX
     // ------------------------------------------------
-    void SpawnImpact(RaycastHit hit)
+    //void SpawnImpact(RaycastHit hit)
+    //{
+    //    GameObject fx = null;
+
+    //    int layer = hit.collider.gameObject.layer;
+
+    //    if (layer == LayerMask.NameToLayer("Metal"))
+    //        fx = stats.metalImpact;
+    //    else if (layer == LayerMask.NameToLayer("Dirt"))
+    //        fx = stats.dirtImpact;
+    //    else if (hit.collider.CompareTag("Enemy"))
+    //        fx = stats.fleshImpact;
+
+    //    if (fx)
+    //        Instantiate(fx, hit.point, Quaternion.LookRotation(hit.normal));
+
+    //}
+    void SpawnImpact(RaycastHit hit, bool isCritical)
     {
-        GameObject fx = null;
+        ParticleSystem fx = null;
 
         int layer = hit.collider.gameObject.layer;
 
-        if (layer == LayerMask.NameToLayer("Metal"))
-            fx = stats.metalImpact;
+        if (isCritical && stats.critImpact)
+        {
+            fx = stats.critImpact;
+        }
+        else if (layer == LayerMask.NameToLayer("Metal"))
+        {
+            fx = stats.metalImpactVFX;
+        }
         else if (layer == LayerMask.NameToLayer("Dirt"))
-            fx = stats.dirtImpact;
+        {
+            fx = stats.dirtImpactVFX;
+        }
         else if (hit.collider.CompareTag("Enemy"))
-            fx = stats.fleshImpact;
+        {
+            fx = stats.fleshImpactVFX;
+        }
 
-        if (fx)
+        if (!fx) return;
+
+        ParticleSystem ps =
             Instantiate(fx, hit.point, Quaternion.LookRotation(hit.normal));
+
+        ps.Play();
     }
 
-    // ------------------------------------------------
-    // LINE RENDERER
-    // ------------------------------------------------
-    void SpawnLine(Vector3 start, Vector3 end, bool hit)
+
+        // ------------------------------------------------
+        // LINE RENDERER
+        // ------------------------------------------------
+        void SpawnLine(Vector3 start, Vector3 end, bool hit)
     {
         if (!stats.linePrefab) return;
 
