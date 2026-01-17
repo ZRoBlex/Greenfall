@@ -169,6 +169,8 @@ public class NonLethalWeapon : MonoBehaviour
 
         bool isCritical = false;
 
+
+
         if (stats.useCaptureDamage && nonLethal != null)
         {
             float dmg = GenerateDamage(stats.minCaptureDamage, stats.maxCaptureDamage, out isCritical);
@@ -185,6 +187,13 @@ public class NonLethalWeapon : MonoBehaviour
             var popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
             if (popup) popup.SetLastHitCritical(isCritical);
 
+            DamageZone zone = hit.collider.GetComponent<DamageZone>();
+
+            if (zone != null)
+            {
+                dmg *= zone.damageMultiplier;
+            }
+
             health.ApplyDamage(dmg);
         }
 
@@ -196,32 +205,54 @@ public class NonLethalWeapon : MonoBehaviour
     // ------------------------------------------------
     void SpawnImpact(RaycastHit hit, bool isCritical)
     {
-        ParticleSystem fx = null;
+
+        if (BulletDecalPool.Instance != null)
+            BulletDecalPool.Instance?.Spawn(hit);
+
+        //// 🔴 DECAL (ANTES O DESPUÉS, DA IGUAL)
+        //if (BulletDecalSpawner.Instance != null)
+        //    BulletDecalSpawner.Instance.SpawnDecal(hit);
+
+        ParticleSystem prefab = null;
         Collider col = hit.collider;
 
         if (isCritical && stats.critImpact)
-        {
-            fx = stats.critImpact;
-        }
+            prefab = stats.critImpact;
         else if (HasAnyTag(col, metalTags))
-        {
-            fx = stats.metalImpactVFX;
-        }
+            prefab = stats.metalImpactVFX;
         else if (HasAnyTag(col, dirtTags))
-        {
-            fx = stats.dirtImpactVFX;
-        }
+            prefab = stats.dirtImpactVFX;
         else if (HasAnyTag(col, fleshTags))
-        {
-            fx = stats.fleshImpactVFX;
-        }
+            prefab = stats.fleshImpactVFX;
 
-        if (!fx) return;
+        if (!prefab || ParticlePool.Instance == null) return;
 
-        Quaternion rot = Quaternion.LookRotation(-hit.normal);
-        ParticleSystem ps = Instantiate(fx, hit.point, rot);
+        ParticleSystem ps = ParticlePool.Instance.Get(prefab);
+        if (!ps) return;
+
+        ps.transform.position = hit.point;
+        ps.transform.rotation = Quaternion.identity;
+
+        Vector3 dir =
+            (hit.point - shootCamera.transform.position).normalized;
+
+        var vel = ps.velocityOverLifetime;
+        vel.enabled = true;
+        vel.space = ParticleSystemSimulationSpace.World;
+        vel.x = dir.x * stats.impactParticleSpeed;
+        vel.y = dir.y * stats.impactParticleSpeed;
+        vel.z = dir.z * stats.impactParticleSpeed;
+
+        ps.Clear();
         ps.Play();
+
+        StartCoroutine(ReleaseAfter(ps, prefab, ps.main.duration));
     }
+
+
+
+
+
 
 
     // ------------------------------------------------
@@ -285,6 +316,15 @@ public class NonLethalWeapon : MonoBehaviour
         }
 
         return false;
+    }
+
+    IEnumerator ReleaseAfter(
+    ParticleSystem ps,
+    ParticleSystem prefab,
+    float time)
+    {
+        yield return new WaitForSeconds(time);
+        ParticlePool.Instance.Release(prefab, ps);
     }
 
 }

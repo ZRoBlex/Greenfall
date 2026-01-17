@@ -25,13 +25,15 @@ MonoBehaviour:
   damageTags:
   - Enemy
   - build
-  useCaptureDamage: 1
+  - Metal
+  - Dirt
+  useCaptureDamage: 0
   minLethalDamage: 2
   maxLethalDamage: 5
   minCaptureDamage: 10
   maxCaptureDamage: 20
   allowCritical: 1
-  criticalChance: 0.2
+  criticalChance: 0.1
   criticalBonusPercent: 0.5
   linePrefab: {fileID: 2868811331770395856, guid: 1a8674e820b8f7f4daa0c6a17218bd9a, type: 3}
   normalLine: {fileID: 2100000, guid: 5fa7ff882c3f01f4688fa3932a8d7244, type: 2}
@@ -45,3 +47,4 @@ MonoBehaviour:
   dirtImpactVFX: {fileID: 7584322402289101294, guid: a086234b027c4e64589c97613a5726d9, type: 3}
   fleshImpactVFX: {fileID: 1250442476904062941, guid: 08e8ece9f4fb3c44988a14669ecc37f3, type: 3}
   critImpact: {fileID: 7584322402289101294, guid: 41f3a81546208664899e42d3c42459bf, type: 3}
+  impactParticleSpeed: 10
