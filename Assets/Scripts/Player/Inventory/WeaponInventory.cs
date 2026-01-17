@@ -117,8 +117,19 @@ public class WeaponInventory : MonoBehaviour
         foreach (Collider c in w.GetComponentsInChildren<Collider>())
             c.enabled = false;
 
+        // 🔥 ACTIVAR SISTEMAS DEL ARMA
         w.enabled = true;
+
+        if (w.TryGetComponent(out WeaponAudio audio))
+            audio.enabled = true;
+
+        if (w.TryGetComponent(out AudioSource source))
+            source.enabled = true;
+
+        //if (w.TryGetComponent(out WeaponSwayController sway))
+        //    sway.enabled = true;
     }
+
 
     // -----------------------------
     void PrepareAsDropped(Weapon w)
@@ -129,8 +140,19 @@ public class WeaponInventory : MonoBehaviour
         foreach (Collider c in w.GetComponentsInChildren<Collider>())
             c.enabled = true;
 
+        // ❌ DESACTIVAR SISTEMAS DEL ARMA
         w.enabled = false;
+
+        if (w.TryGetComponent(out WeaponAudio audio))
+            audio.enabled = false;
+
+        if (w.TryGetComponent(out AudioSource source))
+            source.enabled = false;
+
+        //if (w.TryGetComponent(out WeaponSwayController sway))
+        //    sway.enabled = false;
     }
+
 
     // -----------------------------
     public void EquipNext()
@@ -144,4 +166,15 @@ public class WeaponInventory : MonoBehaviour
         if (slots.Count == 0) return;
         Equip((currentIndex - 1 + slots.Count) % slots.Count);
     }
+
+    public Weapon CurrentWeapon
+    {
+        get
+        {
+            if (currentIndex < 0 || currentIndex >= slots.Count)
+                return null;
+            return slots[currentIndex];
+        }
+    }
+
 }

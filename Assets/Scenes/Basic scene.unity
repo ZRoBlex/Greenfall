@@ -124,6 +124,38 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2318054450589285533, guid: fc95a902743b2f244bc1085196210a31, type: 3}
   m_PrefabInstance: {fileID: 4599216574446760533}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5140851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5140849}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce4f41d46c36c9b43b024d43a2d263f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableIdleSway: 1
+  enableMoveSway: 1
+  enableLookSway: 1
+  idleAmplitude: {x: 0.2, y: 0.2}
+  idleSpeed: 1.5
+  moveAmplitude: {x: 0.6, y: 0.6}
+  moveSpeed: 6
+  lookAmount: 1.5
+  lookSmooth: 8
+--- !u!114 &21876061 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8711086060796129389, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+  m_PrefabInstance: {fileID: 983793016}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce4f41d46c36c9b43b024d43a2d263f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &97051513
 GameObject:
   m_ObjectHideFlags: 0
@@ -3299,6 +3331,11 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1954068191 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+  m_PrefabInstance: {fileID: 4599216574446760533}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2000565235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3313,7 +3350,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3803764315050562060, guid: 826ce2d4e7c8de148b91031f0c1f590b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -1.9
       objectReference: {fileID: 0}
     - target: {fileID: 3803764315050562060, guid: 826ce2d4e7c8de148b91031f0c1f590b, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3895,7 +3932,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6861638465220344482, guid: fc95a902743b2f244bc1085196210a31, type: 3}
   m_PrefabInstance: {fileID: 4599216574446760533}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1954068191}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 020d78477a9bc23438a1709ab3845ccf, type: 3}
@@ -4651,6 +4688,22 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: cameraSway
+      value: 
+      objectReference: {fileID: 5140851}
+    - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: weaponSway
+      value: 
+      objectReference: {fileID: 21876061}
+    - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: cameraVisualSway
+      value: 
+      objectReference: {fileID: 5140851}
+    - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: weaponSwayBinder
+      value: 
+      objectReference: {fileID: 4599216574446760541}
+    - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: playerInputHandler
       value: 
       objectReference: {fileID: 516598947}
@@ -4665,6 +4718,18 @@ PrefabInstance:
     - target: {fileID: 2802726418778950849, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: randomAngularForce
       value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2802726418778950849, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: weaponCommonComponents.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2802726418778950849, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: weaponBehavioursToDisable.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2802726418778950849, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: 'weaponBehavioursToDisable.Array.data[0]'
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 2901331910473677088, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: interactionText
@@ -4726,8 +4791,39 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 2106144446810636739, guid: fc95a902743b2f244bc1085196210a31, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4599216574446760541}
+    - targetCorrespondingSourceObject: {fileID: 2318054450589285533, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5140851}
   m_SourcePrefab: {fileID: 100100000, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+--- !u!114 &4599216574446760541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954068191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c137e1941e2e6448bb972f9c78f7fd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inventory: {fileID: 4599216574446760542}
+  sway: {fileID: 5140851}
+--- !u!114 &4599216574446760542 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2802726418778950849, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+  m_PrefabInstance: {fileID: 4599216574446760533}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03b2887871dcbea488b20393c105729e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &5006488286698990125
 Transform:
   m_ObjectHideFlags: 0

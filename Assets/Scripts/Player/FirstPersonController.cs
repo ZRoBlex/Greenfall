@@ -20,6 +20,12 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] PlayerInputHandler playerInputHandler;
     [SerializeField] Animator playerAnimator;
 
+    [Header("Sway")]
+    [SerializeField] WeaponSwayBinder weaponSwayBinder;
+    [SerializeField] SwayController cameraVisualSway;
+
+
+
     private Vector3 currentMovment;
     private float verticalRotation;
     private float currentSpeed => walkSpeed * (playerInputHandler.SprintTrigger ? sprintMultiplier : 1);
@@ -34,15 +40,26 @@ public class FirstPersonController : MonoBehaviour
         HandleMovement();
         HandleRotation();
 
-        float movmentMagnitude = new Vector3(playerInputHandler.MovementInput.x, 0, playerInputHandler.MovementInput.y).magnitude;
+        Vector2 moveInput = playerInputHandler.MovementInput;
+        Vector2 lookInput = playerInputHandler.RotationInput;
 
+        Vector2 move = playerInputHandler.MovementInput;
+        Vector2 look = playerInputHandler.RotationInput;
+
+        cameraVisualSway?.SetMovementInput(move);
+        cameraVisualSway?.SetLookInput(look);
+
+        weaponSwayBinder?.SetInputs(move, look);
+
+
+        float movmentMagnitude = new Vector3(moveInput.x, 0, moveInput.y).magnitude;
         movmentMagnitude /= 2;
         if (playerInputHandler.SprintTrigger)
-        {
             movmentMagnitude *= 2;
-        }
+
         playerAnimator.SetFloat("Speed", movmentMagnitude);
     }
+
 
     private Vector3 CalculateWorldDirection()
     {
