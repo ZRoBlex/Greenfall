@@ -1655,6 +1655,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 877747765}
   m_CullTransparentMesh: 1
+--- !u!1 &890852169 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1856942166176024814, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+  m_PrefabInstance: {fileID: 4599216574446760533}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &983793016
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4698,7 +4703,7 @@ PrefabInstance:
     - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: cameraVisualSway
       value: 
-      objectReference: {fileID: 5140851}
+      objectReference: {fileID: 4599216574446760545}
     - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: weaponSwayBinder
       value: 
@@ -4795,6 +4800,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4599216574446760541}
+    - targetCorrespondingSourceObject: {fileID: 1856942166176024814, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4599216574446760545}
     - targetCorrespondingSourceObject: {fileID: 2318054450589285533, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5140851}
@@ -4818,12 +4826,31 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2802726418778950849, guid: fc95a902743b2f244bc1085196210a31, type: 3}
   m_PrefabInstance: {fileID: 4599216574446760533}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 890852169}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03b2887871dcbea488b20393c105729e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4599216574446760545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890852169}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4d927e3d85421b4487c52d91b956a31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableBob: 1
+  idleAmplitude: 0.08
+  idleSpeed: 0.5
+  walkAmplitude: 0.1
+  walkSpeed: 1.5
+  sprintMultiplier: 1.6
+  smoothSpeed: 8
 --- !u!4 &5006488286698990125
 Transform:
   m_ObjectHideFlags: 0

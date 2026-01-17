@@ -22,7 +22,10 @@ public class FirstPersonController : MonoBehaviour
 
     [Header("Sway")]
     [SerializeField] WeaponSwayBinder weaponSwayBinder;
-    [SerializeField] SwayController cameraVisualSway;
+    //[SerializeField] SwayController cameraVisualSway;
+    [SerializeField] CameraBobController cameraVisualSway;
+
+
 
 
 
@@ -37,6 +40,7 @@ public class FirstPersonController : MonoBehaviour
 
     void Update()
     {
+
         HandleMovement();
         HandleRotation();
 
@@ -46,8 +50,11 @@ public class FirstPersonController : MonoBehaviour
         Vector2 move = playerInputHandler.MovementInput;
         Vector2 look = playerInputHandler.RotationInput;
 
-        cameraVisualSway?.SetMovementInput(move);
-        cameraVisualSway?.SetLookInput(look);
+        //cameraVisualSway?.SetMovementInput(move);
+        //cameraVisualSway?.SetLookInput(look);
+        cameraVisualSway?.SetMovementInput(playerInputHandler.MovementInput);
+        cameraVisualSway?.SetSprint(playerInputHandler.SprintTrigger);
+
 
         weaponSwayBinder?.SetInputs(move, look);
 
