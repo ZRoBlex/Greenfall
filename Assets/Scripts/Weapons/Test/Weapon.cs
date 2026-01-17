@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class NonLethalWeapon : MonoBehaviour
+public class Weapon : MonoBehaviour
 {
     public NonLethalWeaponStats stats;
     public Transform firePoint;

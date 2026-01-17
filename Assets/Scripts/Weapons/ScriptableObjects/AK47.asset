@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24ed5e012be379543b9f8448157b4d8e, type: 3}
-  m_Name: New Non Lethal Weapon Stats
+  m_Name: AK47
   m_EditorClassIdentifier: 
   fireMode: 1
-  cooldown: 0.2
+  cooldown: 0.1
   burstCount: 3
   burstDelay: 0.08
   range: 150
@@ -27,19 +27,19 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
-  useCaptureDamage: 0
+  useCaptureDamage: 1
   minLethalDamage: 8
-  maxLethalDamage: 15
-  minCaptureDamage: 10
-  maxCaptureDamage: 20
+  maxLethalDamage: 12
+  minCaptureDamage: 15
+  maxCaptureDamage: 25
   allowCritical: 1
-  criticalChance: 0.2
+  criticalChance: 0.15
   criticalBonusPercent: 0.5
   linePrefab: {fileID: 2868811331770395856, guid: 1a8674e820b8f7f4daa0c6a17218bd9a, type: 3}
   normalLine: {fileID: 2100000, guid: 5fa7ff882c3f01f4688fa3932a8d7244, type: 2}
   hitLine: {fileID: 2100000, guid: cecf50ae743bf6b4f96d98e6fb23f11b, type: 2}
   lineDuration: 0.05
-  recoilKick: 40
+  recoilKick: 1.2
   recoilRandom: 0.5
   recoilReturnSpeed: 12
   muzzleFlash: {fileID: 7584322402289101294, guid: ebd1d53c9469db6409c4529d33ea8b44, type: 3}
