@@ -25,6 +25,8 @@ MonoBehaviour:
   damageTags:
   - Enemy
   - build
+  - Dirt
+  - Metal
   useCaptureDamage: 1
   minLethalDamage: 2
   maxLethalDamage: 5
