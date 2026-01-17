@@ -74,4 +74,11 @@ public class NonLethalWeaponStats : ScriptableObject
     public ParticleSystem fleshImpactVFX;
     public ParticleSystem critImpact; // ⭐ opcional
 
+
+    [Header("Decals")]
+    public float decalLifeTime = 6f;
+    public float decalFadeTime = 1.5f;
+    public BulletDecal defaultDecalPrefab;
+
+
 }

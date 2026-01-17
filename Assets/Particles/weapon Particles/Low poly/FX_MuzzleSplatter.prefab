@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8062182872160131224}
   - component: {fileID: 7584322402289101294}
   - component: {fileID: 6946279344359252942}
+  - component: {fileID: -2906907179784827092}
   m_Layer: 0
   m_Name: FX_MuzzleSplatter
   m_TagString: Untagged
@@ -4731,3 +4732,15 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &-2906907179784827092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8227889731293147356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 165ec40c6d54a434ab71dc85c6fa311e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -11,6 +11,10 @@ public class NonLethalWeapon : MonoBehaviour
     bool isBursting;
     Vector3 recoilRotation;
 
+    [Header("Damage Systems")]
+    [SerializeField] DistanceDamageScaler distanceScaler;
+
+
     // 🔥 Muzzle flash instance
     ParticleSystem muzzleFlashInstance;
 
@@ -22,6 +26,12 @@ public class NonLethalWeapon : MonoBehaviour
     [SerializeField] string[] metalTags;
     [SerializeField] string[] dirtTags;
     [SerializeField] string[] fleshTags;
+
+    [Header("Audio")]
+    [SerializeField] WeaponAudio weaponAudio;
+
+
+
 
 
     void Start()
@@ -105,6 +115,10 @@ public class NonLethalWeapon : MonoBehaviour
     // ------------------------------------------------
     void Shoot()
     {
+        if (weaponAudio != null)
+            weaponAudio.PlayShoot();
+
+
         // 🔥 MUZZLE FLASH (PARTÍCULAS)
         if (muzzleFlashInstance)
         {
@@ -180,13 +194,44 @@ public class NonLethalWeapon : MonoBehaviour
         }
         else if (health != null)
         {
-            float dmg = GenerateDamage(stats.minLethalDamage, stats.maxLethalDamage, out isCritical);
+            float dmg = GenerateDamage(
+                stats.minLethalDamage,
+                stats.maxLethalDamage,
+                out isCritical
+            );
+
+            // 📏 ESCALADO POR DISTANCIA
+            if (distanceScaler != null && shootCamera != null)
+            {
+                float distance = Vector3.Distance(
+                    shootCamera.transform.position,
+                    hit.point
+                );
+
+                dmg *= distanceScaler.GetMultiplier(distance);
+            }
+
+            // 🎯 ZONA DEL CUERPO
+            DamageZone zone = hit.collider.GetComponent<DamageZone>();
+            if (zone != null)
+                dmg *= zone.damageMultiplier;
 
             var popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
             if (popup) popup.SetLastHitCritical(isCritical);
 
             health.ApplyDamage(dmg);
         }
+
+        if (BulletDecalPool.Instance != null)
+        {
+            BulletDecalPool.Instance.Spawn(hit);
+        }
+
+
+
+
+
+
 
         SpawnImpact(hit, isCritical);
     }
@@ -219,8 +264,11 @@ public class NonLethalWeapon : MonoBehaviour
         if (!fx) return;
 
         Quaternion rot = Quaternion.LookRotation(-hit.normal);
-        ParticleSystem ps = Instantiate(fx, hit.point, rot);
-        ps.Play();
+        if (ParticlePool.Instance != null)
+        {
+            ParticlePool.Instance.Spawn(fx, hit.point, rot);
+        }
+
     }
 
 
