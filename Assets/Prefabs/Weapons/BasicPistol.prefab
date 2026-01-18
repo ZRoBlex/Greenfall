@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 4598127322584725019}
   - component: {fileID: 1865294895803028117}
   - component: {fileID: 7125722668929839443}
+  - component: {fileID: 3272319239197192356}
   - component: {fileID: 2778379104788097578}
   m_Layer: 13
   m_Name: BasicPistol
@@ -59,8 +60,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.03454436, y: 0.13668853, z: 0.20362}
-  m_Center: {x: -0.0005051266, y: -0.056068353, z: 0.062144585}
+  m_Size: {x: 0.20408231, y: 0.13668853, z: 0.03475947}
+  m_Center: {x: -0.064, y: -0.056068353, z: 0.00032661486}
 --- !u!54 &1216786880129576986
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -114,7 +115,7 @@ MonoBehaviour:
   overrideInventoryOffset: 0
   liveEditOffset: 0
   inventoryPositionOffset: {x: 0, y: 0.24, z: -0.12}
-  inventoryRotationOffset: {x: 0, y: 0, z: 0}
+  inventoryRotationOffset: {x: 0, y: 90, z: 0}
 --- !u!114 &1865294895803028117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -151,6 +152,35 @@ MonoBehaviour:
   moveSpeed: 6
   lookAmount: 0.3
   lookSmooth: 8
+--- !u!114 &3272319239197192356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1843873475995320653}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8726cd95c24a94990dede2d57f7b9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holdToAim: 0
+  weaponRoot: {fileID: 0}
+  aimLocalPosition: {x: 0.12, y: -0.26, z: 0.08}
+  aimLocalRotation: {x: 0, y: 90, z: 0}
+  aimSmoothSpeed: 10
+  zoomLevels:
+  - 40
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
+  useScopeUI: 0
+  hideWeaponModelWhenScoped: 0
+  weaponModel: {fileID: 2472224267989180579}
+  scaleSensitivityByFOV: 1
+  baseAimSensitivityMultiplier: 0.6
+  weaponStats: {fileID: 11400000, guid: 70e993a5ea785d24ba3f0c3ee93565ec, type: 2}
+  overrideSpreadOnAim: 1
+  swayController: {fileID: 7125722668929839443}
 --- !u!82 &2778379104788097578
 AudioSource:
   m_ObjectHideFlags: 0
@@ -274,13 +304,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2472224267989180579}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3803764315050562060}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!33 &7433700148110501848
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -359,7 +389,7 @@ Transform:
   m_GameObject: {fileID: 3913663106774508041}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.0085, z: 0.1653}
+  m_LocalPosition: {x: 0.17, y: -0.0085, z: 0.001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -391,13 +421,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8114761431203484257}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: -0.1027, z: -0.0062}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0.0066, y: -0.1027, z: 0.0001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3803764315050562060}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!33 &4083229680787683628
 MeshFilter:
   m_ObjectHideFlags: 0

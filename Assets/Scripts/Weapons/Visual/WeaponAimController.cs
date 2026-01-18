@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class WeaponAimController : MonoBehaviour
@@ -25,6 +25,24 @@ public class WeaponAimController : MonoBehaviour
     [SerializeField] bool hideWeaponModelWhenScoped = false;
     [SerializeField] GameObject weaponModel;
 
+    [Header("Sensitivity By Zoom")]
+    [SerializeField] bool scaleSensitivityByFOV = true;
+    [SerializeField] float baseAimSensitivityMultiplier = 0.6f;
+
+    [Header("SPREAD")]
+    public WeaponStats weaponStats;
+    public bool overrideSpreadOnAim = true;
+
+    private float initialSpread;
+
+
+    public bool IsAiming => isAiming;
+
+
+    [SerializeField] MonoBehaviour swayController;
+
+
+
     PlayerWeaponContext context;
     Camera cam;
 
@@ -33,6 +51,11 @@ public class WeaponAimController : MonoBehaviour
     float defaultFOV;
 
     bool isAiming;
+
+    private void Awake()
+    {
+        initialSpread = weaponStats.spreadAngle;
+    }
 
     // =========================
     public void InjectContext(PlayerWeaponContext ctx)
@@ -62,17 +85,26 @@ public class WeaponAimController : MonoBehaviour
     // =========================
     void HandleInput()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (holdToAim)
         {
-            if (!isAiming)
+            if (Input.GetMouseButtonDown(1))
                 StartAim();
-            else if (!holdToAim)
-                CycleZoom();
-        }
 
-        if (holdToAim && Input.GetMouseButtonUp(1))
-            StopAim();
+            if (Input.GetMouseButtonUp(1))
+                StopAim();
+        }
+        else
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                if (!isAiming)
+                    StartAim();
+                else
+                    CycleZoomOrStop();
+            }
+        }
     }
+
 
     // =========================
     void StartAim()
@@ -80,13 +112,22 @@ public class WeaponAimController : MonoBehaviour
         isAiming = true;
         currentZoomIndex = 0;
 
-        context.playerController.SetAimModifiers(true);
+        context.playerController.SetAimMoveMultiplier(moveMultiplier);
+        context.playerController.SetAimSensitivityMultiplier(
+            GetCurrentSensitivityMultiplier()
+        );
+
+        if (swayController)
+            swayController.enabled = false;
 
         if (useScopeUI)
             context.scopeUI?.SetActive(true);
 
         if (hideWeaponModelWhenScoped && weaponModel)
             weaponModel.SetActive(false);
+
+        if(overrideSpreadOnAim)
+            weaponStats.spreadAngle = 0;
     }
 
     void StopAim()
@@ -94,14 +135,21 @@ public class WeaponAimController : MonoBehaviour
         isAiming = false;
         currentZoomIndex = 0;
 
-        context.playerController.SetAimModifiers(false);
+        context.playerController.ResetAimModifiers();
+
+        if (swayController)
+            swayController.enabled = true;
 
         if (useScopeUI)
             context.scopeUI?.SetActive(false);
 
         if (weaponModel)
             weaponModel.SetActive(true);
+        weaponStats.spreadAngle = initialSpread;
+
     }
+
+
 
     void CycleZoom()
     {
@@ -126,12 +174,22 @@ public class WeaponAimController : MonoBehaviour
 
     void UpdateFOV()
     {
-        float target =
-            isAiming ? zoomLevels[currentZoomIndex] : defaultFOV;
+        float target = isAiming
+            ? zoomLevels[currentZoomIndex]
+            : defaultFOV;
 
         cam.fieldOfView =
             Mathf.Lerp(cam.fieldOfView, target, Time.deltaTime * 8f);
+
+        // 🔥 ACTUALIZAR SENSIBILIDAD DINÁMICAMENTE
+        if (isAiming && context?.playerController)
+        {
+            context.playerController.SetAimSensitivityMultiplier(
+                GetCurrentSensitivityMultiplier()
+            );
+        }
     }
+
 
     // =========================
     public void ForceStopAim()
@@ -157,4 +215,26 @@ public class WeaponAimController : MonoBehaviour
         if (weaponModel)
             weaponModel.SetActive(true);
     }
+
+    void CycleZoomOrStop()
+    {
+        if (zoomLevels.Count > 1 && currentZoomIndex < zoomLevels.Count - 1)
+        {
+            currentZoomIndex++;
+        }
+        else
+        {
+            StopAim();
+        }
+    }
+
+    float GetCurrentSensitivityMultiplier()
+    {
+        if (!scaleSensitivityByFOV || !cam)
+            return baseAimSensitivityMultiplier;
+
+        float fovRatio = cam.fieldOfView / defaultFOV;
+        return baseAimSensitivityMultiplier * fovRatio;
+    }
+
 }

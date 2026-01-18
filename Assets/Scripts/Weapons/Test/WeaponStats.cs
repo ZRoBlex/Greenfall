@@ -85,5 +85,10 @@ public class WeaponStats : ScriptableObject
     public Vector3 inventoryRotationOffset;
 
 
+    [Header("Camera Recoil")]
+    public float cameraRecoilVertical = 1.5f;
+    public float cameraRecoilHorizontal = 0.8f;
+
+
 
 }

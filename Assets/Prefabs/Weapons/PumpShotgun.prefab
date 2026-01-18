@@ -100,6 +100,7 @@ GameObject:
   - component: {fileID: 4960586557098612420}
   - component: {fileID: 6597110830552862324}
   - component: {fileID: 191489042753873131}
+  - component: {fileID: 5783091046433715182}
   - component: {fileID: 2524879747933190082}
   m_Layer: 13
   m_Name: PumpShotgun
@@ -236,6 +237,31 @@ MonoBehaviour:
   moveSpeed: 6
   lookAmount: 0.3
   lookSmooth: 8
+--- !u!114 &5783091046433715182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5376526998047005301}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8726cd95c24a94990dede2d57f7b9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holdToAim: 0
+  weaponRoot: {fileID: 0}
+  aimLocalPosition: {x: 0.17, y: -0.18, z: 0.06}
+  aimLocalRotation: {x: 0, y: 90, z: 0}
+  aimSmoothSpeed: 10
+  zoomLevels:
+  - 40
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
+  useScopeUI: 0
+  hideWeaponModelWhenScoped: 0
+  weaponModel: {fileID: 1624346531416499315}
+  swayController: {fileID: 4960586557098612420}
 --- !u!82 &2524879747933190082
 AudioSource:
   m_ObjectHideFlags: 0

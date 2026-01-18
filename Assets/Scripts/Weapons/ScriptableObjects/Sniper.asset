@@ -52,3 +52,5 @@ MonoBehaviour:
   defaultDecalPrefab: {fileID: -8784029089770287704, guid: fa076dbe797f74a4e90612524f3bd1a7, type: 3}
   inventoryPositionOffset: {x: 0.36, y: 0.13, z: -0.12}
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
+  cameraRecoilVertical: 20
+  cameraRecoilHorizontal: 20

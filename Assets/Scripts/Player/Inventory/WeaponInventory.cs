@@ -181,15 +181,18 @@ public class WeaponInventory : MonoBehaviour
     // -----------------------------
     public void EquipNext()
     {
+        if (!TryCancelAim()) return;
         if (slots.Count == 0) return;
         Equip((currentIndex + 1) % slots.Count);
     }
 
     public void EquipPrevious()
     {
+        if (!TryCancelAim()) return;
         if (slots.Count == 0) return;
         Equip((currentIndex - 1 + slots.Count) % slots.Count);
     }
+
 
     public Weapon CurrentWeapon
     {
@@ -200,5 +203,21 @@ public class WeaponInventory : MonoBehaviour
             return slots[currentIndex];
         }
     }
+
+    bool TryCancelAim()
+    {
+        Weapon current = CurrentWeapon;
+        if (!current) return true;
+
+        var aim = current.GetComponent<WeaponAimController>();
+        if (aim && aim.IsAiming)
+        {
+            aim.ForceStopAim();
+            return false; // 🚫 NO CAMBIES DE ARMA AÚN
+        }
+
+        return true;
+    }
+
 
 }

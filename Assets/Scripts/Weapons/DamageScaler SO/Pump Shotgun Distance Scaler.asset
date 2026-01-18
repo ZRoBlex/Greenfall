@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41dcb59771f67dd43bf4573c1cccba85, type: 3}
   m_Name: Pump Shotgun Distance Scaler
   m_EditorClassIdentifier: 
-  optimalDistance: 3
-  maxDistance: 5
+  optimalDistance: 5
+  maxDistance: 10
   minMultiplier: 0.1
   falloffCurve:
     serializedVersion: 2

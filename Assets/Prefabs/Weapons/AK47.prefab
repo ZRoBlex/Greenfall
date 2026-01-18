@@ -100,6 +100,7 @@ GameObject:
   - component: {fileID: 3421039222878667892}
   - component: {fileID: 750339304953804674}
   - component: {fileID: 8711086060796129389}
+  - component: {fileID: 1339573225908058217}
   - component: {fileID: 1738296960053349466}
   m_Layer: 13
   m_Name: AK47
@@ -237,6 +238,31 @@ MonoBehaviour:
   moveSpeed: 6
   lookAmount: 0.3
   lookSmooth: 8
+--- !u!114 &1339573225908058217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3190426564994398644}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8726cd95c24a94990dede2d57f7b9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holdToAim: 0
+  weaponRoot: {fileID: 0}
+  aimLocalPosition: {x: 0.17, y: -0.22, z: 0.25}
+  aimLocalRotation: {x: 0, y: 90, z: -2.21}
+  aimSmoothSpeed: 10
+  zoomLevels:
+  - 40
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
+  useScopeUI: 0
+  hideWeaponModelWhenScoped: 0
+  weaponModel: {fileID: 1316571152001396233}
+  swayController: {fileID: 8711086060796129389}
 --- !u!82 &1738296960053349466
 AudioSource:
   m_ObjectHideFlags: 0

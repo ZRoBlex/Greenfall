@@ -18,7 +18,7 @@ MonoBehaviour:
   burstDelay: 0.08
   range: 150
   pellets: 1
-  spreadAngle: 1.5
+  spreadAngle: 0
   hittableLayers:
     serializedVersion: 2
     m_Bits: 6784
@@ -51,4 +51,4 @@ MonoBehaviour:
   decalFadeTime: 1.5
   defaultDecalPrefab: {fileID: -8784029089770287704, guid: fa076dbe797f74a4e90612524f3bd1a7, type: 3}
   inventoryPositionOffset: {x: 0, y: 0.24, z: -0.12}
-  inventoryRotationOffset: {x: 0, y: -90, z: 0}
+  inventoryRotationOffset: {x: 0, y: 0, z: 0}

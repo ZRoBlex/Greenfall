@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 5911498127234084116}
   - component: {fileID: 1182407265306034592}
   - component: {fileID: 643887341500865830}
+  - component: {fileID: 4303421382973076351}
   - component: {fileID: 2538947309685454325}
   m_Layer: 13
   m_Name: Sniper3
@@ -268,6 +269,34 @@ MonoBehaviour:
   moveSpeed: 6
   lookAmount: 0.3
   lookSmooth: 8
+--- !u!114 &4303421382973076351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4512635321113299556}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8726cd95c24a94990dede2d57f7b9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  holdToAim: 0
+  weaponRoot: {fileID: 0}
+  aimLocalPosition: {x: 0.12, y: -0.245, z: 0.33}
+  aimLocalRotation: {x: 0, y: 90, z: 0}
+  aimSmoothSpeed: 10
+  zoomLevels:
+  - 30
+  - 20
+  - 10
+  - 2
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
+  useScopeUI: 0
+  hideWeaponModelWhenScoped: 1
+  weaponModel: {fileID: 4079321180783376138}
+  swayController: {fileID: 5911498127234084116}
 --- !u!82 &2538947309685454325
 AudioSource:
   m_ObjectHideFlags: 0

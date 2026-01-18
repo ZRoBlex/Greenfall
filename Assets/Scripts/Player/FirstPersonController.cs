@@ -33,7 +33,21 @@ public class FirstPersonController : MonoBehaviour
     float currentSensitivityMultiplier = 1f;
 
 
+    public void SetAimSensitivityMultiplier(float value)
+    {
+        currentSensitivityMultiplier = value;
+    }
 
+    public void SetAimMoveMultiplier(float value)
+    {
+        currentMoveMultiplier = value;
+    }
+
+    public void ResetAimModifiers()
+    {
+        currentMoveMultiplier = 1f;
+        currentSensitivityMultiplier = 1f;
+    }
 
 
 

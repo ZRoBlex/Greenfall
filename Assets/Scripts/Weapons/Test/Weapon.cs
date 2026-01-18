@@ -12,6 +12,9 @@ public class Weapon : MonoBehaviour
     Vector3 recoilRotation;
 
     Quaternion baseLocalRotation;
+    [Header("Camera Recoil")]
+    [SerializeField] CameraRecoilController cameraRecoil;
+
 
 
     [Header("Damage Systems")]
@@ -54,6 +57,9 @@ public class Weapon : MonoBehaviour
     void Start()
     {
         shootCamera = shootCamera ? shootCamera : Camera.main;
+
+        if (!cameraRecoil && shootCamera)
+            cameraRecoil = shootCamera.GetComponentInParent<CameraRecoilController>();
         // Instanciar UNA SOLA VEZ el muzzle flash
         if (stats.muzzleFlash && firePoint)
         {
@@ -166,6 +172,16 @@ public class Weapon : MonoBehaviour
         }
 
         ApplyRecoil();
+        ApplyCameraRecoil(); // 👈 ESTO ES NUEVO
+
+        //if (cameraRecoil)
+        //{
+        //    cameraRecoil.AddRecoil(
+        //        stats.cameraRecoilVertical,
+        //        stats.cameraRecoilHorizontal
+        //    );
+        //}
+
     }
 
     Vector3 GetSpreadDirection()
@@ -389,6 +405,17 @@ public class Weapon : MonoBehaviour
     {
         baseLocalRotation = Quaternion.Euler(euler);
         transform.localRotation = baseLocalRotation;
+    }
+
+
+    void ApplyCameraRecoil()
+    {
+        if (!cameraRecoil || stats == null) return;
+
+        cameraRecoil.AddRecoil(
+            stats.cameraRecoilVertical,
+            stats.cameraRecoilHorizontal
+        );
     }
 
 }
