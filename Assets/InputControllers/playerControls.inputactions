@@ -77,6 +77,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "CrouchTrigger",
+                    "type": "Button",
+                    "id": "45836c2c-009c-476f-9ef0-22d4b8b0fd82",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -209,6 +218,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Aim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ba99eb50-3ca5-44c4-a55a-4bcb2695b32f",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CrouchTrigger",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

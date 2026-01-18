@@ -26,6 +26,10 @@ public class DynamicCrosshair : MonoBehaviour
     // 🔹 fuentes independientes
     float movementGap;
     float weaponGap;
+    float airborneGap;
+    float crouchMultiplier = 1f;
+
+
 
     public static DynamicCrosshair Instance { get; private set; }
 
@@ -59,6 +63,21 @@ public class DynamicCrosshair : MonoBehaviour
         weaponGap = Mathf.Lerp(weaponGap, 0f, Time.deltaTime * profile.recoverSpeed);
 
         ApplyGap(currentGap);
+
+        float finalGap =
+    profile.baseGap +
+    movementGap +
+    weaponGap +
+    airborneGap;
+
+        finalGap *= crouchMultiplier;
+
+        targetGap = Mathf.Clamp(
+            finalGap,
+            profile.baseGap,
+            profile.maxGap
+        );
+
     }
 
     public void SetProfile(CrosshairProfile newProfile)
@@ -152,4 +171,16 @@ public class DynamicCrosshair : MonoBehaviour
             profile.maxGap
         );
     }
+
+    public void SetAirborne(bool airborne)
+    {
+        if (profile == null) return;
+
+        airborneGap = airborne ? profile.airborneGapIncrease : 0f;
+    }
+    public void SetCrouch(bool crouching)
+    {
+        crouchMultiplier = crouching ? profile.crouchGapMultiplier : 1f;
+    }
+
 }

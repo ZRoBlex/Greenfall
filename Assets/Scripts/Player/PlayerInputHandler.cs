@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerInputHandler : MonoBehaviour
@@ -14,16 +14,19 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] string rotation = "Rotation";
     [SerializeField] string Jump = "Jump";
     [SerializeField] string Sprint = "Sprint";
+    [SerializeField] string Crouch = "Crouch"; // 👈 NUEVO
 
     private InputAction movementAction;
     private InputAction rotationAction;
     private InputAction JumpAction;
     private InputAction SprintAction;
+    private InputAction CrouchAction; // 👈 NUEVO
 
     public Vector2 MovementInput { get; private set; }
     public Vector2 RotationInput { get; private set; }
     public bool JumpTrigger { get; private set; }
     public bool SprintTrigger { get; private set; }
+    public bool CrouchTrigger { get; private set; } // 👈 NUEVO
 
 
     private void Awake()
@@ -34,6 +37,7 @@ public class PlayerInputHandler : MonoBehaviour
         rotationAction = mapReference.FindAction(rotation);
         JumpAction = mapReference.FindAction(Jump);
         SprintAction = mapReference.FindAction(Sprint);
+        CrouchAction = mapReference.FindAction(Crouch); // 👈 NUEVO
 
         SuscribeActionValuesToInputEvents();
     }
@@ -51,6 +55,12 @@ public class PlayerInputHandler : MonoBehaviour
 
         SprintAction.performed += inputInfo => SprintTrigger = true;
         SprintAction.canceled += inputInfo => SprintTrigger = false;
+
+        // 👇 CROUCH
+        CrouchAction.performed += _ =>
+            CrouchTrigger = true;
+        CrouchAction.canceled += _ =>
+            CrouchTrigger = false;
     }
 
     private void OnEnable()

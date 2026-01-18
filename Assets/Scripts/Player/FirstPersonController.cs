@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class FirstPersonController : MonoBehaviour
 {
@@ -31,6 +31,35 @@ public class FirstPersonController : MonoBehaviour
 
     [SerializeField] DynamicCrosshair crosshair;
 
+    [Header("Crouch")]
+    [SerializeField] float crouchHeight = 1.0f;
+    [SerializeField] float standingHeight = 1.8f;
+    [SerializeField] float crouchSpeedMultiplier = 0.5f;
+    [SerializeField] float crouchTransitionSpeed = 8f;
+
+    //[SerializeField] LayerMask ceilingMask;
+    //[SerializeField] float ceilingCheckRadius = 0.25f;
+    [Header("Crouch Check")]
+    [SerializeField] LayerMask ceilingMask;
+    [SerializeField] float ceilingRayOffset = 0.05f;
+
+
+    bool isCrouching;
+    bool wantsToStand;
+
+
+    [Header("Camera Crouch")]
+    [SerializeField] float cameraStandingHeight = 1.6f;
+    [SerializeField] float cameraCrouchHeight = 1.0f;
+    [SerializeField] float cameraCrouchSpeed = 8f;
+
+    float cameraTargetHeight;
+
+
+    float targetHeight;
+
+
+
 
     float currentMoveMultiplier = 1f;
     float currentSensitivityMultiplier = 1f;
@@ -46,6 +75,7 @@ public class FirstPersonController : MonoBehaviour
         currentMoveMultiplier = value;
     }
 
+
     public void ResetAimModifiers()
     {
         currentMoveMultiplier = 1f;
@@ -58,13 +88,25 @@ public class FirstPersonController : MonoBehaviour
     private float verticalRotation;
     private float currentSpeed =>
     walkSpeed *
-    (playerInputHandler.SprintTrigger ? sprintMultiplier : 1f) *
+    (isCrouching ? crouchSpeedMultiplier : 1f) *
+    (playerInputHandler.SprintTrigger && !isCrouching ? sprintMultiplier : 1f) *
     currentMoveMultiplier;
+
 
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        targetHeight = standingHeight;
+        characterController.height = standingHeight;
+
+        cameraTargetHeight = cameraStandingHeight;
+        mainCamera.transform.localPosition = new Vector3(
+            mainCamera.transform.localPosition.x,
+            cameraStandingHeight,
+            mainCamera.transform.localPosition.z
+        );
     }
 
     void Update()
@@ -72,6 +114,7 @@ public class FirstPersonController : MonoBehaviour
 
         HandleMovement();
         HandleRotation();
+        //HandleCrouch();
 
         Vector2 moveInput = playerInputHandler.MovementInput;
         Vector2 lookInput = playerInputHandler.RotationInput;
@@ -97,6 +140,13 @@ public class FirstPersonController : MonoBehaviour
 
         UpdateCrosshairMovement();
 
+        Debug.DrawRay(
+    transform.position + Vector3.up * ceilingRayOffset,
+    Vector3.up * (standingHeight - ceilingRayOffset),
+    CanStandUp() ? Color.green : Color.red
+);
+
+
     }
 
 
@@ -114,6 +164,8 @@ public class FirstPersonController : MonoBehaviour
             playerAnimator.SetBool("isGrounded", true);
             currentMovment.y = -0.5f;
 
+            crosshair?.SetAirborne(false);
+
             if (playerInputHandler.JumpTrigger)
             {
                 currentMovment.y = jumpForce;
@@ -123,6 +175,8 @@ public class FirstPersonController : MonoBehaviour
         {
             currentMovment.y += Physics.gravity.y * gravityMultiplier * Time.deltaTime;
             playerAnimator.SetBool("isGrounded", false);
+
+            crosshair?.SetAirborne(true);
         }
     }
 
@@ -133,6 +187,7 @@ public class FirstPersonController : MonoBehaviour
         currentMovment.z = worldDirection.z * currentSpeed;
 
         HandleJumping();
+        HandleCrouch();
         characterController.Move(currentMovment * Time.deltaTime);
     }
 
@@ -166,9 +221,12 @@ public class FirstPersonController : MonoBehaviour
 
     public void SetAimModifiers(bool aiming)
     {
+        if (isCrouching) return;
+
         currentMoveMultiplier = aiming ? aimMoveMultiplier : 1f;
         currentSensitivityMultiplier = aiming ? aimSensitivityMultiplier : 1f;
     }
+
 
     void UpdateCrosshairMovement()
     {
@@ -176,7 +234,7 @@ public class FirstPersonController : MonoBehaviour
 
         Vector2 moveInput = playerInputHandler.MovementInput;
 
-        // Magnitud del input (0 quieto, 1 m�ximo)
+        // Magnitud del input (0 quieto, 1 máximo)
         float inputMagnitude = Mathf.Clamp01(moveInput.magnitude);
 
         // Sprint aumenta spread
@@ -188,5 +246,87 @@ public class FirstPersonController : MonoBehaviour
 
         crosshair.SetMovementSpread(inputMagnitude);
     }
+
+    void HandleCrouch()
+    {
+        bool crouchInput = playerInputHandler.CrouchTrigger;
+
+        if (crouchInput)
+        {
+            isCrouching = true;
+            targetHeight = crouchHeight;
+            cameraTargetHeight = cameraCrouchHeight;
+
+            crosshair?.SetCrouch(true);
+        }
+        else
+        {
+            if (isCrouching && !CanStandUp())
+            {
+                // ❌ Hay techo → no puede levantarse
+                isCrouching = true;
+                targetHeight = crouchHeight;
+                cameraTargetHeight = cameraCrouchHeight;
+            }
+            else
+            {
+                if (!CanStandUp())
+                {
+                    // ❌ Hay techo → mantenerse agachado
+                    isCrouching = true;
+                    targetHeight = crouchHeight;
+                    cameraTargetHeight = cameraCrouchHeight;
+                }
+                else
+                {
+                    // ✅ Espacio libre
+                    isCrouching = false;
+                    targetHeight = standingHeight;
+                    cameraTargetHeight = cameraStandingHeight;
+                    crosshair?.SetCrouch(false);
+                }
+            }
+
+        }
+
+        // 🔽 Collider suave
+        characterController.height = Mathf.Lerp(
+            characterController.height,
+            targetHeight,
+            Time.deltaTime * crouchTransitionSpeed
+        );
+
+        characterController.center = new Vector3(
+            0,
+            characterController.height / 2f,
+            0
+        );
+
+        // 🎥 Cámara sincronizada
+        Vector3 camPos = mainCamera.transform.localPosition;
+        camPos.y = Mathf.Lerp(
+            camPos.y,
+            cameraTargetHeight,
+            Time.deltaTime * cameraCrouchSpeed
+        );
+        mainCamera.transform.localPosition = camPos;
+    }
+
+
+    bool CanStandUp()
+    {
+        Vector3 rayOrigin = transform.position + Vector3.up * ceilingRayOffset;
+
+        float rayLength = standingHeight - ceilingRayOffset;
+
+        return !Physics.Raycast(
+            rayOrigin,
+            Vector3.up,
+            rayLength,
+            ceilingMask
+        );
+    }
+
+
 
 }

@@ -45,4 +45,9 @@ public class CrosshairProfile : ScriptableObject
     public bool lockGap = false;
     public float lockedGap = 0f;
 
+    [Header("Movement States")]
+    public float airborneGapIncrease = 12f;
+    public float crouchGapMultiplier = 0.65f;
+
+
 }
