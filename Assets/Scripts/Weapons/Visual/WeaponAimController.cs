@@ -1,13 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class WeaponAimController : MonoBehaviour
 {
     [Header("Aim Mode")]
     [SerializeField] bool holdToAim = true;
-
-    [Header("Aim Method")]
-    [SerializeField] bool usePositionAim = true;
-    [SerializeField] bool useAnimationAim = false;
 
     [Header("Position Aim")]
     [SerializeField] Transform weaponRoot;
@@ -15,144 +12,149 @@ public class WeaponAimController : MonoBehaviour
     [SerializeField] Vector3 aimLocalRotation;
     [SerializeField] float aimSmoothSpeed = 10f;
 
-    [Header("Animation Aim")]
-    [SerializeField] Animator animator;
-    [SerializeField] string aimBoolName = "IsAiming";
+    [Header("Camera Zoom Levels")]
+    [SerializeField] List<float> zoomLevels = new() { 40f, 20f };
+    int currentZoomIndex = 0;
 
-    [Header("Camera FOV")]
-    [SerializeField] bool changeFOV = true;
-    [SerializeField] float aimedFOV = 40f;
-    [SerializeField] float fovSmoothSpeed = 8f;
+    [Header("Aim Modifiers")]
+    [SerializeField] float moveMultiplier = 0.4f;
+    [SerializeField] float sensitivityMultiplier = 0.5f;
 
-    [Header("Sniper / Scope")]
+    [Header("Sniper")]
     [SerializeField] bool useScopeUI = false;
     [SerializeField] bool hideWeaponModelWhenScoped = false;
     [SerializeField] GameObject weaponModel;
 
-    // -------------------------
     PlayerWeaponContext context;
-    Camera targetCamera;
+    Camera cam;
 
-    Vector3 defaultLocalPos;
-    Quaternion defaultLocalRot;
+    Vector3 defaultPos;
+    Quaternion defaultRot;
     float defaultFOV;
 
     bool isAiming;
-    bool toggleState;
 
-    public bool IsAiming => isAiming;
-
-    // =========================
-    // INJECTION
     // =========================
     public void InjectContext(PlayerWeaponContext ctx)
     {
         context = ctx;
-        targetCamera = ctx.playerCamera;
+        cam = ctx.playerCamera;
 
         CacheDefaults();
-
-        if (useScopeUI && context.scopeUI)
-            context.scopeUI.SetActive(false);
+        ResetWeapon();
     }
 
     void CacheDefaults()
     {
-        if (weaponRoot)
-        {
-            defaultLocalPos = weaponRoot.localPosition;
-            defaultLocalRot = weaponRoot.localRotation;
-        }
-
-        if (targetCamera)
-            defaultFOV = targetCamera.fieldOfView;
+        defaultPos = weaponRoot.localPosition;
+        defaultRot = weaponRoot.localRotation;
+        defaultFOV = cam.fieldOfView;
     }
 
     // =========================
     void Update()
     {
         HandleInput();
-        HandlePositionAim();
-        HandleFOV();
+        UpdateAimTransform();
+        UpdateFOV();
     }
 
     // =========================
     void HandleInput()
     {
-        if (holdToAim)
+        if (Input.GetMouseButtonDown(1))
         {
-            if (Input.GetMouseButtonDown(1))
-                SetAim(true);
+            if (!isAiming)
+                StartAim();
+            else if (!holdToAim)
+                CycleZoom();
+        }
 
-            if (Input.GetMouseButtonUp(1))
-                SetAim(false);
-        }
-        else
-        {
-            if (Input.GetMouseButtonDown(1))
-            {
-                toggleState = !toggleState;
-                SetAim(toggleState);
-            }
-        }
+        if (holdToAim && Input.GetMouseButtonUp(1))
+            StopAim();
     }
 
     // =========================
-    void SetAim(bool state)
+    void StartAim()
     {
-        isAiming = state;
+        isAiming = true;
+        currentZoomIndex = 0;
 
-        if (useAnimationAim && animator)
-            animator.SetBool(aimBoolName, isAiming);
+        context.playerController.SetAimModifiers(true);
 
-        if (useScopeUI && context && context.scopeUI)
-            context.scopeUI.SetActive(isAiming);
+        if (useScopeUI)
+            context.scopeUI?.SetActive(true);
 
-        if (weaponModel && hideWeaponModelWhenScoped)
-            weaponModel.SetActive(!isAiming);
+        if (hideWeaponModelWhenScoped && weaponModel)
+            weaponModel.SetActive(false);
+    }
+
+    void StopAim()
+    {
+        isAiming = false;
+        currentZoomIndex = 0;
+
+        context.playerController.SetAimModifiers(false);
+
+        if (useScopeUI)
+            context.scopeUI?.SetActive(false);
+
+        if (weaponModel)
+            weaponModel.SetActive(true);
+    }
+
+    void CycleZoom()
+    {
+        if (zoomLevels.Count <= 1) return;
+        currentZoomIndex = (currentZoomIndex + 1) % zoomLevels.Count;
     }
 
     // =========================
-    void HandlePositionAim()
+    void UpdateAimTransform()
     {
-        if (!usePositionAim || !weaponRoot) return;
-
-        Vector3 targetPos = isAiming ? aimLocalPosition : defaultLocalPos;
-        Quaternion targetRot = isAiming
+        Vector3 pos = isAiming ? aimLocalPosition : defaultPos;
+        Quaternion rot = isAiming
             ? Quaternion.Euler(aimLocalRotation)
-            : defaultLocalRot;
+            : defaultRot;
 
-        weaponRoot.localPosition = Vector3.Lerp(
-            weaponRoot.localPosition,
-            targetPos,
-            Time.deltaTime * aimSmoothSpeed
-        );
+        weaponRoot.localPosition =
+            Vector3.Lerp(weaponRoot.localPosition, pos, Time.deltaTime * aimSmoothSpeed);
 
-        weaponRoot.localRotation = Quaternion.Slerp(
-            weaponRoot.localRotation,
-            targetRot,
-            Time.deltaTime * aimSmoothSpeed
-        );
+        weaponRoot.localRotation =
+            Quaternion.Slerp(weaponRoot.localRotation, rot, Time.deltaTime * aimSmoothSpeed);
     }
 
-    // =========================
-    void HandleFOV()
+    void UpdateFOV()
     {
-        if (!changeFOV || !targetCamera) return;
+        float target =
+            isAiming ? zoomLevels[currentZoomIndex] : defaultFOV;
 
-        float target = isAiming ? aimedFOV : defaultFOV;
-
-        targetCamera.fieldOfView = Mathf.Lerp(
-            targetCamera.fieldOfView,
-            target,
-            Time.deltaTime * fovSmoothSpeed
-        );
+        cam.fieldOfView =
+            Mathf.Lerp(cam.fieldOfView, target, Time.deltaTime * 8f);
     }
 
     // =========================
     public void ForceStopAim()
     {
-        toggleState = false;
-        SetAim(false);
+        StopAim();
+        ResetWeapon();
+    }
+
+    void ResetWeapon()
+    {
+        isAiming = false;
+        currentZoomIndex = 0;
+
+        weaponRoot.localPosition = defaultPos;
+        weaponRoot.localRotation = defaultRot;
+        cam.fieldOfView = defaultFOV;
+
+        context?.playerController.SetAimModifiers(false);
+
+        if (useScopeUI)
+            context?.scopeUI?.SetActive(false);
+
+        if (weaponModel)
+            weaponModel.SetActive(true);
     }
 }

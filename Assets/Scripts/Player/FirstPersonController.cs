@@ -25,13 +25,25 @@ public class FirstPersonController : MonoBehaviour
     //[SerializeField] SwayController cameraVisualSway;
     [SerializeField] CameraBobController cameraVisualSway;
 
+    [Header("Aim Modifiers")]
+    [SerializeField] float aimMoveMultiplier = 0.4f;
+    [SerializeField] float aimSensitivityMultiplier = 0.5f;
+
+    float currentMoveMultiplier = 1f;
+    float currentSensitivityMultiplier = 1f;
+
+
 
 
 
 
     private Vector3 currentMovment;
     private float verticalRotation;
-    private float currentSpeed => walkSpeed * (playerInputHandler.SprintTrigger ? sprintMultiplier : 1);
+    private float currentSpeed =>
+    walkSpeed *
+    (playerInputHandler.SprintTrigger ? sprintMultiplier : 1f) *
+    currentMoveMultiplier;
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -117,11 +129,26 @@ public class FirstPersonController : MonoBehaviour
 
     private void HandleRotation()
     {
-        float mouseXRotation = playerInputHandler.RotationInput.x * mouseSensitivity;
-        float mouseYRotation = playerInputHandler.RotationInput.y * mouseSensitivity;
+        float mouseXRotation =
+    playerInputHandler.RotationInput.x *
+    mouseSensitivity *
+    currentSensitivityMultiplier;
+
+        float mouseYRotation =
+            playerInputHandler.RotationInput.y *
+            mouseSensitivity *
+            currentSensitivityMultiplier;
+
 
         ApplyHorizontalRotation(mouseXRotation);
         ApplyVerticalRotation(mouseYRotation);
     }
+
+    public void SetAimModifiers(bool aiming)
+    {
+        currentMoveMultiplier = aiming ? aimMoveMultiplier : 1f;
+        currentSensitivityMultiplier = aiming ? aimSensitivityMultiplier : 1f;
+    }
+
 
 }

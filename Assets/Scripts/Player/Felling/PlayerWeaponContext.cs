@@ -7,4 +7,5 @@ public class PlayerWeaponContext : MonoBehaviour
     public Camera playerCamera;
     public Transform weaponHolder;
     public GameObject scopeUI;
+    public FirstPersonController playerController;
 }

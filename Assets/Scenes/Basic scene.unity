@@ -158,20 +158,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holdToAim: 0
-  usePositionAim: 1
-  useAnimationAim: 0
   weaponRoot: {fileID: 5140850}
   aimLocalPosition: {x: 0.17, y: -0.22, z: 0.25}
   aimLocalRotation: {x: 0, y: 90, z: -2.21}
   aimSmoothSpeed: 10
-  animator: {fileID: 0}
-  aimBoolName: IsAiming
-  changeFOV: 1
-  aimedFOV: 40
-  fovSmoothSpeed: 8
+  zoomLevels:
+  - 40
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
   useScopeUI: 0
   hideWeaponModelWhenScoped: 0
-  weaponModel: {fileID: 0}
+  weaponModel: {fileID: 150183602}
 --- !u!1 &97051513
 GameObject:
   m_ObjectHideFlags: 0
@@ -450,6 +447,11 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &150183602 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1316571152001396233, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+  m_PrefabInstance: {fileID: 983793016}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &235785935
 GameObject:
   m_ObjectHideFlags: 0
@@ -1026,20 +1028,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holdToAim: 0
-  usePositionAim: 1
-  useAnimationAim: 0
   weaponRoot: {fileID: 5140850}
   aimLocalPosition: {x: 0.12, y: -0.26, z: 0.08}
   aimLocalRotation: {x: 0, y: 90, z: 0}
   aimSmoothSpeed: 10
-  animator: {fileID: 0}
-  aimBoolName: IsAiming
-  changeFOV: 1
-  aimedFOV: 40
-  fovSmoothSpeed: 8
+  zoomLevels:
+  - 40
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
   useScopeUI: 0
   hideWeaponModelWhenScoped: 0
-  weaponModel: {fileID: 0}
+  weaponModel: {fileID: 2107398108}
 --- !u!1 &630553585
 GameObject:
   m_ObjectHideFlags: 0
@@ -1225,20 +1224,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holdToAim: 0
-  usePositionAim: 1
-  useAnimationAim: 0
   weaponRoot: {fileID: 5140850}
   aimLocalPosition: {x: 0.17, y: -0.18, z: 0.06}
   aimLocalRotation: {x: 0, y: 90, z: 0}
   aimSmoothSpeed: 10
-  animator: {fileID: 0}
-  aimBoolName: IsAiming
-  changeFOV: 1
-  aimedFOV: 40
-  fovSmoothSpeed: 8
+  zoomLevels:
+  - 40
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
   useScopeUI: 0
   hideWeaponModelWhenScoped: 0
-  weaponModel: {fileID: 0}
+  weaponModel: {fileID: 1232169992}
 --- !u!1 &693905707
 GameObject:
   m_ObjectHideFlags: 0
@@ -2087,6 +2083,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 352589311}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1232169992 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1624346531416499315, guid: 40c88282559bedc44bd970f530ed030f, type: 3}
+  m_PrefabInstance: {fileID: 546878362}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1377649305
 GameObject:
   m_ObjectHideFlags: 0
@@ -3072,17 +3073,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   holdToAim: 0
-  usePositionAim: 1
-  useAnimationAim: 0
   weaponRoot: {fileID: 5140850}
   aimLocalPosition: {x: 0.12, y: -0.245, z: 0.33}
   aimLocalRotation: {x: 0, y: 90, z: 0}
   aimSmoothSpeed: 10
-  animator: {fileID: 0}
-  aimBoolName: IsAiming
-  changeFOV: 1
-  aimedFOV: 2
-  fovSmoothSpeed: 8
+  zoomLevels:
+  - 30
+  - 20
+  - 10
+  - 2
+  moveMultiplier: 0.4
+  sensitivityMultiplier: 0.5
   useScopeUI: 0
   hideWeaponModelWhenScoped: 1
   weaponModel: {fileID: 105750206}
@@ -3602,6 +3603,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2060172914}
   m_CullTransparentMesh: 1
+--- !u!1 &2107398108 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2472224267989180579, guid: 826ce2d4e7c8de148b91031f0c1f590b, type: 3}
+  m_PrefabInstance: {fileID: 2000565235}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2121713098
 GameObject:
   m_ObjectHideFlags: 0
@@ -4847,7 +4853,7 @@ PrefabInstance:
     - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: weaponSwayBinder
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 4599216574446760547}
     - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: playerInputHandler
       value: 
@@ -4948,10 +4954,35 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4599216574446760543}
+    - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4599216574446760547}
     - targetCorrespondingSourceObject: {fileID: 1856942166176024814, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4599216574446760545}
   m_SourcePrefab: {fileID: 100100000, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+--- !u!114 &4599216574446760538 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+  m_PrefabInstance: {fileID: 4599216574446760533}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954068191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed59018410c2b154e82c58ad4ed7fe7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4599216574446760542 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2802726418778950849, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+  m_PrefabInstance: {fileID: 4599216574446760533}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890852169}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03b2887871dcbea488b20393c105729e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &4599216574446760543
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4968,6 +4999,7 @@ MonoBehaviour:
   playerCamera: {fileID: 992346207}
   weaponHolder: {fileID: 5140850}
   scopeUI: {fileID: 1736537477}
+  playerController: {fileID: 4599216574446760538}
 --- !u!114 &4599216574446760545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4987,6 +5019,20 @@ MonoBehaviour:
   walkSpeed: 1.5
   sprintMultiplier: 1.6
   smoothSpeed: 8
+--- !u!114 &4599216574446760547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954068191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c137e1941e2e6448bb972f9c78f7fd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inventory: {fileID: 4599216574446760542}
+  sway: {fileID: 0}
 --- !u!4 &5006488286698990125
 Transform:
   m_ObjectHideFlags: 0
