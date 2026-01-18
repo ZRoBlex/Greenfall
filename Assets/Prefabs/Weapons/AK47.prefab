@@ -203,6 +203,8 @@ MonoBehaviour:
   liveEditOffset: 0
   inventoryPositionOffset: {x: 0, y: 0, z: 0}
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
+  crosshair: {fileID: 0}
+  crosshairProfile: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
 --- !u!114 &750339304953804674
 MonoBehaviour:
   m_ObjectHideFlags: 0

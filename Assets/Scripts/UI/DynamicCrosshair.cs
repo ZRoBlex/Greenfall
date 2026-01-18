@@ -16,17 +16,19 @@ public class DynamicCrosshair : MonoBehaviour
     [SerializeField] Image leftImg;
     [SerializeField] Image rightImg;
 
+    [Header("Spread")]
+    public float virtualDistance = 15000f;
+
     CrosshairProfile profile;
 
     float currentGap;
-    float targetGap;
 
-    float recoilAccumulated;
-
+    // 🔹 fuentes independientes
+    float movementGap;
+    float weaponGap;
 
     public static DynamicCrosshair Instance { get; private set; }
 
-    // =========================
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -34,14 +36,18 @@ public class DynamicCrosshair : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
     }
 
-    // =========================
     void Update()
     {
         if (profile == null) return;
+
+        float targetGap = Mathf.Clamp(
+            profile.baseGap + movementGap + weaponGap,
+            profile.baseGap,
+            profile.maxGap
+        );
 
         currentGap = Mathf.Lerp(
             currentGap,
@@ -49,10 +55,12 @@ public class DynamicCrosshair : MonoBehaviour
             Time.deltaTime * profile.recoverSpeed
         );
 
+        // el spread del arma se disipa SOLO
+        weaponGap = Mathf.Lerp(weaponGap, 0f, Time.deltaTime * profile.recoverSpeed);
+
         ApplyGap(currentGap);
     }
 
-    // =========================
     public void SetProfile(CrosshairProfile newProfile)
     {
         profile = newProfile;
@@ -64,16 +72,15 @@ public class DynamicCrosshair : MonoBehaviour
         }
 
         gameObject.SetActive(true);
-
         ApplyVisuals();
 
         currentGap = profile.baseGap;
-        targetGap = profile.baseGap;
-
-        ApplyGap(currentGap);
+        movementGap = 0f;
+        weaponGap = 0f;
     }
 
-    // =========================
+    // ================= VISUALS =================
+
     void ApplyVisuals()
     {
         Color c = profile.crosshairColor;
@@ -109,13 +116,11 @@ public class DynamicCrosshair : MonoBehaviour
     void ResizeLine(RectTransform rt, bool vertical)
     {
         if (!rt) return;
-
         rt.sizeDelta = vertical
             ? new Vector2(profile.lineThickness, profile.lineLength)
             : new Vector2(profile.lineLength, profile.lineThickness);
     }
 
-    // =========================
     void ApplyGap(float gap)
     {
         top.anchoredPosition = new Vector2(0, gap);
@@ -124,79 +129,27 @@ public class DynamicCrosshair : MonoBehaviour
         right.anchoredPosition = new Vector2(gap, 0);
     }
 
-    // =========================
-    public void OnShoot()
-    {
-        if (profile == null) return;
+    // ================= MOVEMENT =================
 
-        targetGap = Mathf.Clamp(
-            targetGap + profile.shootGapIncrease,
-            profile.baseGap,
-            profile.maxGap
-        );
-    }
-
-    // =========================
     public void SetMovementSpread(float normalizedSpeed)
     {
         if (profile == null) return;
-
-        float moveGap = normalizedSpeed * profile.moveGapIncrease;
-
-        targetGap = Mathf.Clamp(
-            profile.baseGap + moveGap,
-            profile.baseGap,
-            profile.maxGap
-        );
+        movementGap = normalizedSpeed * profile.moveGapIncrease;
     }
 
-    // =========================
-    public void ResetSpread()
-    {
-        if (profile == null) return;
-        targetGap = profile.baseGap;
-    }
+    // ================= WEAPON =================
 
-    public void AddRecoil(float recoilAmount)
+    public void ApplyWeaponSpread(float spreadAngle)
     {
         if (profile == null) return;
 
-        recoilAccumulated += recoilAmount;
+        float radians = spreadAngle * Mathf.Deg2Rad;
+        float spreadRadius = Mathf.Tan(radians) * virtualDistance;
 
-        targetGap = Mathf.Clamp(
-            profile.baseGap + recoilAccumulated * profile.shootGapIncrease,
-            profile.baseGap,
+        weaponGap = Mathf.Clamp(
+            spreadRadius,
+            0f,
             profile.maxGap
         );
     }
-
-    //void OnGUI()
-    //{
-    //    GUI.Label(new Rect(10, 10, 300, 20),
-    //        $"Recoil Accumulated: {recoilAccumulated:F2}");
-    //}
-
-
-    public void ApplyWeaponSpread(float spreadValue)
-    {
-        if (profile == null) return;
-
-        // EXACTAMENTE el mismo factor que usa el arma
-        float spreadStrength = spreadValue * 0.01f;
-
-        // Distancia virtual donde medimos el spread (en pixeles)
-        float virtualDistance = 15000f;
-
-        // Radio real del área donde puede caer una bala
-        float spreadRadius = spreadStrength * virtualDistance;
-
-        targetGap = Mathf.Clamp(
-            profile.baseGap + spreadRadius,
-            profile.baseGap,
-            profile.maxGap
-        );
-    }
-
-
-
 }

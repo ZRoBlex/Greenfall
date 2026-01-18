@@ -27,7 +27,7 @@ MonoBehaviour:
   shootGapIncrease: 200
   moveGapIncrease: 8
   recoverSpeed: 12
-  isADS: 0
+  isADS: 1
   hideLines: 0
   hideCenterDot: 0
   lockGap: 0

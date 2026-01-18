@@ -448,10 +448,6 @@ PrefabInstance:
       propertyPath: crosshair
       value: 
       objectReference: {fileID: 1736537481}
-    - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
-      propertyPath: crosshairProfile
-      value: 
-      objectReference: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3387,9 +3383,7 @@ MonoBehaviour:
   bottomImg: {fileID: 251578024}
   leftImg: {fileID: 477150967}
   rightImg: {fileID: 816538768}
-  referenceCamera: {fileID: 992346207}
-  referenceDistance: 10
-  maxVisualGap: 60
+  virtualDistance: 500
 --- !u!1 &1752518722
 GameObject:
   m_ObjectHideFlags: 0

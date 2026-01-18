@@ -54,4 +54,4 @@ MonoBehaviour:
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
   cameraRecoilVertical: 2
   cameraRecoilHorizontal: 2
-  crosshairProfile: {fileID: 0}
+  crosshairProfile: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
