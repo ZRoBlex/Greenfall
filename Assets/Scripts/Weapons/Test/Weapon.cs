@@ -182,13 +182,20 @@ public class Weapon : MonoBehaviour
 
         ApplyRecoil();
         ApplyCameraRecoil(); // 👈 ESTO ES NUEVO
-        DynamicCrosshair.Instance?.OnShoot();
 
         float recoilAmount =
     stats.recoilKick +
     Random.Range(-stats.recoilRandom, stats.recoilRandom);
 
-        DynamicCrosshair.Instance?.AddRecoil(recoilAmount);
+
+        if (DynamicCrosshair.Instance)
+        {
+            DynamicCrosshair.Instance.ApplyWeaponSpread(stats.spreadAngle);
+        }
+
+        //DynamicCrosshair.Instance?.OnShoot();
+
+        //DynamicCrosshair.Instance?.AddRecoil(recoilAmount);
 
 
 

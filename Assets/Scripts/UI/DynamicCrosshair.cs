@@ -176,4 +176,27 @@ public class DynamicCrosshair : MonoBehaviour
     //        $"Recoil Accumulated: {recoilAccumulated:F2}");
     //}
 
+
+    public void ApplyWeaponSpread(float spreadValue)
+    {
+        if (profile == null) return;
+
+        // EXACTAMENTE el mismo factor que usa el arma
+        float spreadStrength = spreadValue * 0.01f;
+
+        // Distancia virtual donde medimos el spread (en pixeles)
+        float virtualDistance = 15000f;
+
+        // Radio real del área donde puede caer una bala
+        float spreadRadius = spreadStrength * virtualDistance;
+
+        targetGap = Mathf.Clamp(
+            profile.baseGap + spreadRadius,
+            profile.baseGap,
+            profile.maxGap
+        );
+    }
+
+
+
 }

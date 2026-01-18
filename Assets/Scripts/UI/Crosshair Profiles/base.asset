@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   showCrosshair: 1
   hideWhenAiming: 1
-  showCenterDot: 1
+  showCenterDot: 0
   crosshairColor: {r: 1, g: 0, b: 0, a: 1}
   alpha: 1
   baseGap: 1
-  maxGap: 35
+  maxGap: 200000
   lineLength: 6
   lineThickness: 3
   centerDotSize: 3
