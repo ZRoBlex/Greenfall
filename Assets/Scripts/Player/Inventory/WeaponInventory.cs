@@ -147,6 +147,10 @@ public class WeaponInventory : MonoBehaviour
         if (w.TryGetComponent(out WeaponAimController aim))
             aim.enabled = true;
 
+        WeaponSpawner spawner = GetComponentInParent<WeaponSpawner>();
+        //if (spawner)
+        //    spawner.NotifyWeaponPicked();
+
         //if (w.TryGetComponent(out WeaponSwayController sway))
         //    sway.enabled = true;
     }
