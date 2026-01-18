@@ -189,6 +189,7 @@ MonoBehaviour:
   stats: {fileID: 11400000, guid: f792204bbfd881b4e838efee22f3ce78, type: 2}
   firePoint: {fileID: 7090167295284126093}
   shootCamera: {fileID: 0}
+  cameraRecoil: {fileID: 0}
   metalTags:
   - Metal
   dirtTags:
@@ -233,7 +234,7 @@ MonoBehaviour:
   enableLookSway: 1
   idleAmplitude: {x: 1, y: 1}
   idleSpeed: 1.5
-  moveAmplitude: {x: 7, y: 7}
+  moveAmplitude: {x: 2, y: 2}
   moveSpeed: 6
   lookAmount: 0.3
   lookSmooth: 8
@@ -261,7 +262,11 @@ MonoBehaviour:
   useScopeUI: 0
   hideWeaponModelWhenScoped: 0
   weaponModel: {fileID: 1624346531416499315}
-  swayController: {fileID: 4960586557098612420}
+  scaleSensitivityByFOV: 1
+  baseAimSensitivityMultiplier: 0.6
+  weaponStats: {fileID: 11400000, guid: f792204bbfd881b4e838efee22f3ce78, type: 2}
+  overrideSpreadOnAim: 0
+  swayController: {fileID: 191489042753873131}
 --- !u!82 &2524879747933190082
 AudioSource:
   m_ObjectHideFlags: 0

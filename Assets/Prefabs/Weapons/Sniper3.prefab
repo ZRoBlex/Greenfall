@@ -221,6 +221,7 @@ MonoBehaviour:
   stats: {fileID: 11400000, guid: f8d8cd56c60dcf247ac6529de6e17317, type: 2}
   firePoint: {fileID: 2427367388643605470}
   shootCamera: {fileID: 0}
+  cameraRecoil: {fileID: 0}
   metalTags:
   - Metal
   dirtTags:
@@ -296,7 +297,11 @@ MonoBehaviour:
   useScopeUI: 0
   hideWeaponModelWhenScoped: 1
   weaponModel: {fileID: 4079321180783376138}
-  swayController: {fileID: 5911498127234084116}
+  scaleSensitivityByFOV: 1
+  baseAimSensitivityMultiplier: 0.6
+  weaponStats: {fileID: 11400000, guid: f8d8cd56c60dcf247ac6529de6e17317, type: 2}
+  overrideSpreadOnAim: 1
+  swayController: {fileID: 643887341500865830}
 --- !u!82 &2538947309685454325
 AudioSource:
   m_ObjectHideFlags: 0

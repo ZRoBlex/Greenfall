@@ -52,10 +52,10 @@ public class WeaponAimController : MonoBehaviour
 
     bool isAiming;
 
-    private void Awake()
-    {
-        initialSpread = weaponStats.spreadAngle;
-    }
+    //private void Awake()
+    //{
+    //    initialSpread = weaponStats.spreadAngle;
+    //}
 
     // =========================
     public void InjectContext(PlayerWeaponContext ctx)
@@ -63,16 +63,33 @@ public class WeaponAimController : MonoBehaviour
         context = ctx;
         cam = ctx.playerCamera;
 
+        // 🔥 ASIGNAR WEAPON ROOT AUTOMÁTICAMENTE
+        if (weaponRoot == null)
+            weaponRoot = transform.parent; // weaponHolder
+
+        // 🔥 CACHEAR VALORES REALES (YA EN INVENTARIO)
         CacheDefaults();
+
+        // 🔥 CACHEAR SPREAD REAL
+        if (weaponStats != null)
+            initialSpread = weaponStats.spreadAngle;
+
+        // 🔥 FORZAR ESTADO CORRECTO
         ResetWeapon();
     }
 
+
     void CacheDefaults()
     {
+        if (!weaponRoot) return;
+
         defaultPos = weaponRoot.localPosition;
         defaultRot = weaponRoot.localRotation;
-        defaultFOV = cam.fieldOfView;
+
+        if (cam)
+            defaultFOV = cam.fieldOfView;
     }
+
 
     // =========================
     void Update()
@@ -203,18 +220,27 @@ public class WeaponAimController : MonoBehaviour
         isAiming = false;
         currentZoomIndex = 0;
 
-        weaponRoot.localPosition = defaultPos;
-        weaponRoot.localRotation = defaultRot;
-        cam.fieldOfView = defaultFOV;
+        if (weaponRoot)
+        {
+            weaponRoot.localPosition = defaultPos;
+            weaponRoot.localRotation = defaultRot;
+        }
 
-        context?.playerController.SetAimModifiers(false);
+        if (cam)
+            cam.fieldOfView = defaultFOV;
+
+        context?.playerController.ResetAimModifiers();
 
         if (useScopeUI)
             context?.scopeUI?.SetActive(false);
 
         if (weaponModel)
             weaponModel.SetActive(true);
+
+        if (overrideSpreadOnAim && weaponStats != null)
+            weaponStats.spreadAngle = initialSpread;
     }
+
 
     void CycleZoomOrStop()
     {
