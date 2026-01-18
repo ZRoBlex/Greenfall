@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class WeaponInventory : MonoBehaviour
 {
@@ -14,6 +16,10 @@ public class WeaponInventory : MonoBehaviour
     [SerializeField] Vector3 randomRotationMax = new Vector3(60f, 360f, 60f);
 
     [SerializeField] float randomAngularForce = 4f;
+
+    [SerializeField] PlayerInput playerInput;
+    [SerializeField] PlayerWeaponContext playerContext;
+
 
 
     readonly List<Weapon> slots = new();
@@ -52,6 +58,12 @@ public class WeaponInventory : MonoBehaviour
 
         Weapon w = slots[currentIndex];
         ApplyWeaponOffset(w);
+
+        var aim = w.GetComponent<WeaponAimController>();
+        if (aim)
+            aim.InjectContext(playerContext);
+
+
         w.gameObject.SetActive(true);
     }
 
@@ -63,6 +75,12 @@ public class WeaponInventory : MonoBehaviour
 
         Weapon w = slots[currentIndex];
         slots.RemoveAt(currentIndex);
+
+        var aim = w.GetComponent<WeaponAimController>();
+        if (aim)
+            aim.ForceStopAim();
+
+
 
         PrepareAsDropped(w);
 
@@ -126,6 +144,9 @@ public class WeaponInventory : MonoBehaviour
         if (w.TryGetComponent(out AudioSource source))
             source.enabled = true;
 
+        if (w.TryGetComponent(out WeaponAimController aim))
+            aim.enabled = true;
+
         //if (w.TryGetComponent(out WeaponSwayController sway))
         //    sway.enabled = true;
     }
@@ -148,6 +169,9 @@ public class WeaponInventory : MonoBehaviour
 
         if (w.TryGetComponent(out AudioSource source))
             source.enabled = false;
+
+        if(w.TryGetComponent(out WeaponAimController aim))
+            aim.enabled = false;
 
         //if (w.TryGetComponent(out WeaponSwayController sway))
         //    sway.enabled = false;
