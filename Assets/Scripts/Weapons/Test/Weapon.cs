@@ -47,7 +47,7 @@ public class Weapon : MonoBehaviour
     [SerializeField] Vector3 inventoryPositionOffset;
     [SerializeField] Vector3 inventoryRotationOffset;
 
-
+    [SerializeField] DynamicCrosshair crosshair;
 
 
 
@@ -173,6 +173,8 @@ public class Weapon : MonoBehaviour
 
         ApplyRecoil();
         ApplyCameraRecoil(); // 👈 ESTO ES NUEVO
+        DynamicCrosshair.Instance?.OnShoot();
+
 
         //if (cameraRecoil)
         //{

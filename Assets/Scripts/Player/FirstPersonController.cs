@@ -29,6 +29,9 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] float aimMoveMultiplier = 0.4f;
     [SerializeField] float aimSensitivityMultiplier = 0.5f;
 
+    [SerializeField] DynamicCrosshair crosshair;
+
+
     float currentMoveMultiplier = 1f;
     float currentSensitivityMultiplier = 1f;
 
@@ -91,6 +94,9 @@ public class FirstPersonController : MonoBehaviour
             movmentMagnitude *= 2;
 
         playerAnimator.SetFloat("Speed", movmentMagnitude);
+
+        UpdateCrosshairMovement();
+
     }
 
 
@@ -164,5 +170,23 @@ public class FirstPersonController : MonoBehaviour
         currentSensitivityMultiplier = aiming ? aimSensitivityMultiplier : 1f;
     }
 
+    void UpdateCrosshairMovement()
+    {
+        if (crosshair == null) return;
+
+        Vector2 moveInput = playerInputHandler.MovementInput;
+
+        // Magnitud del input (0 quieto, 1 máximo)
+        float inputMagnitude = Mathf.Clamp01(moveInput.magnitude);
+
+        // Sprint aumenta spread
+        if (playerInputHandler.SprintTrigger)
+            inputMagnitude *= 1.5f;
+
+        // Apuntar reduce spread
+        inputMagnitude *= currentMoveMultiplier;
+
+        crosshair.SetMovementSpread(inputMagnitude);
+    }
 
 }

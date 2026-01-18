@@ -22,6 +22,19 @@ public class DynamicCrosshair : MonoBehaviour
     float currentGap;
     float targetGap;
 
+
+    public static DynamicCrosshair Instance { get; private set; }
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+    }
     // =========================
     void Start()
     {
