@@ -49,10 +49,19 @@ public class Weapon : MonoBehaviour
 
     [SerializeField] DynamicCrosshair crosshair;
 
+    [Header("Crosshair")]
+    [SerializeField] CrosshairProfile crosshairProfile;
+
+    float recoilAccumulated;
 
 
 
 
+    void OnEnable()
+    {
+        if (DynamicCrosshair.Instance)
+            DynamicCrosshair.Instance.SetProfile(crosshairProfile);
+    }
 
     void Start()
     {
@@ -174,6 +183,14 @@ public class Weapon : MonoBehaviour
         ApplyRecoil();
         ApplyCameraRecoil(); // 👈 ESTO ES NUEVO
         DynamicCrosshair.Instance?.OnShoot();
+
+        float recoilAmount =
+    stats.recoilKick +
+    Random.Range(-stats.recoilRandom, stats.recoilRandom);
+
+        DynamicCrosshair.Instance?.AddRecoil(recoilAmount);
+
+
 
 
         //if (cameraRecoil)

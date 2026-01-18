@@ -90,5 +90,7 @@ public class WeaponStats : ScriptableObject
     public float cameraRecoilHorizontal = 0.8f;
 
 
+    [Header("Crosshair")]
+    public CrosshairProfile crosshairProfile;
 
 }
