@@ -53,6 +53,9 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] float cameraCrouchHeight = 1.0f;
     [SerializeField] float cameraCrouchSpeed = 8f;
 
+    [Header("Default Crosshair")]
+    [SerializeField] CrosshairProfile defaultCrosshairProfile;
+
     float cameraTargetHeight;
 
 
@@ -107,7 +110,17 @@ public class FirstPersonController : MonoBehaviour
             cameraStandingHeight,
             mainCamera.transform.localPosition.z
         );
+
         playerInputHandler.enabled = true;
+
+        // 🔹 ASIGNAR CROSSHAIR POR DEFECTO SI NO HAY PROFILE
+        if (DynamicCrosshair.Instance != null)
+        {
+            if (DynamicCrosshair.Instance.Profile == null && defaultCrosshairProfile != null)
+            {
+                DynamicCrosshair.Instance.SetProfile(defaultCrosshairProfile);
+            }
+        }
     }
 
     void Update()

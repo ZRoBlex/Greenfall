@@ -20,6 +20,12 @@ public class DynamicCrosshair : MonoBehaviour
     public float virtualDistance = 15000f;
 
     CrosshairProfile profile;
+    public CrosshairProfile Profile
+    {
+        get => profile;
+        set => profile = value;
+    }
+
 
     float currentGap;
 

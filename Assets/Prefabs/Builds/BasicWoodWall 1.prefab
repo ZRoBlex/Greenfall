@@ -216,5 +216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e57daaa484e0384385dc2b733598c82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 11400000, guid: 2bab78a92e9abe44b8c8f3c1dd9b7959, type: 2}
-  displayType: 0
+  healthSettings:
+  - {fileID: 11400000, guid: 2bab78a92e9abe44b8c8f3c1dd9b7959, type: 2}
+  captureSettings:
+  - {fileID: 11400000, guid: 2bab78a92e9abe44b8c8f3c1dd9b7959, type: 2}

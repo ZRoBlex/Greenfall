@@ -5109,6 +5109,10 @@ PrefabInstance:
       propertyPath: cameraStandingHeight
       value: 1.9
       objectReference: {fileID: 0}
+    - target: {fileID: 2182634869688164872, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: defaultCrosshairProfile
+      value: 
+      objectReference: {fileID: 11400000, guid: 0f8deabf89b08e94fb6864a13c339268, type: 2}
     - target: {fileID: 2687249738426710550, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: interactText
       value: 
