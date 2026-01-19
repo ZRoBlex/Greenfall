@@ -12,6 +12,7 @@ TagManager:
   - preview
   - Metal
   - Dirt
+  - Obstacle
   layers:
   - Default
   - TransparentFX

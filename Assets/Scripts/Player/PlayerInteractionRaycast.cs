@@ -15,7 +15,7 @@ public class PlayerInteractRaycast : MonoBehaviour
     public Camera cam;
     public PlayerInput input;
 
-    EnemyController detectedEnemy;
+    private EnemyController detectedEnemy;
 
     void Awake()
     {
@@ -43,13 +43,12 @@ public class PlayerInteractRaycast : MonoBehaviour
         EnemyController ec = hit.collider.GetComponentInParent<EnemyController>();
         if (ec == null) return;
 
-        NonLethalHealth nl = ec.nonLethalHealth;
+        NonLethalHealth nl = ec.GetComponent<NonLethalHealth>();
         if (nl == null) return;
 
-        bool ko = nl.IsUnconscious();
+        bool ko = nl.IsStunned();
         bool fullCapture = nl.currentCapture >= nl.maxCapture;
 
-        // Mostrar "CAPTURE" si está KO o a 100%
         if (ko || fullCapture)
         {
             interactionText.text = "CAPTURE";
@@ -61,17 +60,22 @@ public class PlayerInteractRaycast : MonoBehaviour
     {
         if (detectedEnemy == null) return;
 
-        NonLethalHealth nl = detectedEnemy.nonLethalHealth;
+        NonLethalHealth nl = detectedEnemy.GetComponent<NonLethalHealth>();
         if (nl == null) return;
 
         bool fullCapture = nl.currentCapture >= nl.maxCapture;
 
-        // SOLO interactuar si está al 100%
         if (!fullCapture) return;
 
-        // Cambia estado a Friendly
-        detectedEnemy.ChangeState(new FriendlyFollowState());
+        detectedEnemy.SetType(CannibalType.Friendly);
+
+        if (detectedEnemy.Motor != null)
+            detectedEnemy.Motor.enabled = true;
+
+        detectedEnemy.FSM.ChangeState(new FollowingState());
 
         interactionText.text = "";
+
+        nl.currentCapture = 0f;
     }
 }

@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14aa9e27ea01a5a47a9ff308f40e5298, type: 3}
+  m_Name: Base
+  m_EditorClassIdentifier: 
+  displayName: Enemy
+  moveSpeed: 3.5
+  runSpeed: 6
+  turnSpeed: 8
+  perceptionRange: 12
+  fieldOfView: 120
+  closeDetectionRadius: 2
+  attackRange: 2
+  attackDamage: 10
+  attackCooldown: 1.2
+  wanderRadius: 8
+  wanderWaitTime: 2
+  maxHealth: 100
+  captureMeterMax: 100
+  captureDecayPerSecond: 5
+  capturePerHit: 20
+  team: 0
+  obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 2176
+  obstacleTags:
+  - Obstacle
+  - build
+  obstacleCheckHeight: 1
+  followMinDistance: 1
+  followMaxDistance: 1
+  scaredSafeDistance: 6
+  scaredRepathTime: 1.5
+  scaredSearchRadius: 8
+  lookDuration: 3
+  idleAnim: Idle
+  walkAnim: Walk
+  chaseAnim: Chase
+  scaredAnim: Scared
+  lookAnim: Look
+  attackAnim: Attack
+  stunnedAnim: Stunned
+  passiveSafeDistance: 3

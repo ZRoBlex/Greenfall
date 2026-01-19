@@ -14,20 +14,22 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] string rotation = "Rotation";
     [SerializeField] string Jump = "Jump";
     [SerializeField] string Sprint = "Sprint";
+    [SerializeField] string Interact = "Interact"; // 👈 NUEVO
     [SerializeField] string Crouch = "Crouch"; // 👈 NUEVO
 
     private InputAction movementAction;
     private InputAction rotationAction;
     private InputAction JumpAction;
     private InputAction SprintAction;
+    private InputAction interactAction; // 👈 NUEVO
     private InputAction CrouchAction; // 👈 NUEVO
 
     public Vector2 MovementInput { get; private set; }
     public Vector2 RotationInput { get; private set; }
     public bool JumpTrigger { get; private set; }
     public bool SprintTrigger { get; private set; }
+    public bool InteractTrigger { get; private set; } // 👈 NUEVO
     public bool CrouchTrigger { get; private set; } // 👈 NUEVO
-
 
     private void Awake()
     {
@@ -37,6 +39,7 @@ public class PlayerInputHandler : MonoBehaviour
         rotationAction = mapReference.FindAction(rotation);
         JumpAction = mapReference.FindAction(Jump);
         SprintAction = mapReference.FindAction(Sprint);
+        interactAction = mapReference.FindAction(Interact); // 👈 NUEVO
         CrouchAction = mapReference.FindAction(Crouch); // 👈 NUEVO
 
         SuscribeActionValuesToInputEvents();
@@ -56,6 +59,10 @@ public class PlayerInputHandler : MonoBehaviour
         SprintAction.performed += inputInfo => SprintTrigger = true;
         SprintAction.canceled += inputInfo => SprintTrigger = false;
 
+        // Interact
+        interactAction.performed += _ => InteractTrigger = true;
+        interactAction.canceled += _ => InteractTrigger = false;
+
         // 👇 CROUCH
         CrouchAction.performed += _ =>
             CrouchTrigger = true;
@@ -71,5 +78,10 @@ public class PlayerInputHandler : MonoBehaviour
     private void OnDisable()
     {
         playerControls.FindActionMap(actionMapName).Disable();
+    }
+
+    public void ResetInteractTrigger()
+    {
+        InteractTrigger = false;
     }
 }
