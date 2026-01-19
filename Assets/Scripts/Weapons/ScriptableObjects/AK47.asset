@@ -27,7 +27,7 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
-  useCaptureDamage: 0
+  useCaptureDamage: 1
   minLethalDamage: 8
   maxLethalDamage: 12
   minCaptureDamage: 15

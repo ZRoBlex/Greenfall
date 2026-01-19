@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 97051514}
   m_Layer: 7
   m_Name: Obstacle_2
-  m_TagString: Metal
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -617,7 +617,7 @@ GameObject:
   - component: {fileID: 348952951}
   m_Layer: 7
   m_Name: Obstacle_3
-  m_TagString: Metal
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1094,7 +1094,7 @@ GameObject:
   - component: {fileID: 561931790}
   m_Layer: 7
   m_Name: Obstacle
-  m_TagString: Metal
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1840,7 +1840,7 @@ GameObject:
   - component: {fileID: 871149208}
   m_Layer: 7
   m_Name: Obstacle_1
-  m_TagString: Metal
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3133,7 +3133,7 @@ GameObject:
   - component: {fileID: 1546369480}
   m_Layer: 7
   m_Name: Obstacle_4
-  m_TagString: Metal
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3236,9 +3236,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1573074816}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Obstacles
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3407,7 +3407,7 @@ MonoBehaviour:
   shakeSpeed: 25
   fadeSpeed: 4
   hp: {fileID: 6876470412052677813}
-  nl: {fileID: 0}
+  nl: {fileID: 6876470412052677819}
 --- !u!1 &1736537477
 GameObject:
   m_ObjectHideFlags: 0
@@ -3915,8 +3915,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 6876470412052677806}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2141750523
@@ -5226,12 +5225,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 985c4c1a7a17c9244a3c533bac03b5ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stats: {fileID: 11400000, guid: 894262848c446134597b8e5c4575b091, type: 2}
-  targetMask:
-    m_Bits: 64
-  obstacleMask:
-    m_Bits: 128
-  closeTrigger: {fileID: 0}
 --- !u!135 &5006488286698990127
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -5573,7 +5566,7 @@ Transform:
   m_Children:
   - {fileID: 5006488286698990125}
   - {fileID: 1574197030}
-  m_Father: {fileID: 2121713099}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
 --- !u!143 &6876470412052677807
 CharacterController:
@@ -5686,7 +5679,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 399cbec9320f99344a0e9f8d86533ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  profession: {fileID: 0}
+  profession: {fileID: 11400000, guid: 0f7ce94dbe0878046a56275b98a8afcf, type: 2}
   currentModel: {fileID: 6063518299592990228}
   anim: {fileID: 6876470412052677808}
 --- !u!114 &6876470412052677821
@@ -5768,7 +5761,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stats: {fileID: 11400000, guid: 9cb8592ac2b786a4284b0f8dd5c6f700, type: 2}
-  currentType: 0
+  currentType: 2
   currentTeam: 
 --- !u!1 &6904984116965439410
 GameObject:
@@ -6022,7 +6015,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62488db2f8959304db6e430291ef2119, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetNonLethal: {fileID: 0}
+  targetNonLethal: {fileID: 6876470412052677819}
   text: {fileID: 698715859214898295}
   textColor: {r: 1, g: 0, b: 0, a: 1}
   fadeSpeed: 4
@@ -6319,6 +6312,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 1377649306}
   - {fileID: 4599216574446760533}
+  - {fileID: 6876470412052677806}
   - {fileID: 2121713099}
   - {fileID: 1936179961}
   - {fileID: 352589311}

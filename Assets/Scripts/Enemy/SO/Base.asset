@@ -23,7 +23,7 @@ MonoBehaviour:
   attackDamage: 10
   attackCooldown: 1.2
   wanderRadius: 8
-  wanderWaitTime: 2
+  wanderWaitTime: 10
   maxHealth: 100
   captureMeterMax: 100
   captureDecayPerSecond: 5
@@ -41,7 +41,7 @@ MonoBehaviour:
   scaredSafeDistance: 6
   scaredRepathTime: 1.5
   scaredSearchRadius: 8
-  lookDuration: 3
+  lookDuration: 10
   idleAnim: Idle
   walkAnim: Walk
   chaseAnim: Chase

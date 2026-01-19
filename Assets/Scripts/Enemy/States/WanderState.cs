@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class WanderState : State<EnemyController>
 {
+    float waitTimer = 0f;
+    float waitDuration; // Tiempo que espera al llegar al destino
+
     public override void Enter(EnemyController o)
     {
         PickNewDestination(o);
@@ -9,6 +12,10 @@ public class WanderState : State<EnemyController>
         AnimatorBridge ab = o.GetComponent<AnimatorBridge>();
         if (ab != null)
             ab.PlayWalk(); // Animación de caminar
+
+        waitTimer = 0f; // reset del timer
+
+        waitDuration = o.stats.wanderWaitTime;
     }
 
     public override void Tick(EnemyController o)
@@ -18,8 +25,19 @@ public class WanderState : State<EnemyController>
 
         if (o.Motor.HasReachedDestination())
         {
-            // Al llegar, entrar a LookingState
-            o.FSM.ChangeState(new LookingState());
+            // Incrementar temporizador
+            waitTimer += Time.deltaTime;
+
+            // Mantener animación idle mientras espera
+            AnimatorBridge ab = o.GetComponent<AnimatorBridge>();
+            if (ab != null)
+                ab.PlayIdle();
+
+            // Una vez transcurrido el tiempo de espera, cambiar estado
+            if (waitTimer >= waitDuration)
+            {
+                o.FSM.ChangeState(new LookingState());
+            }
         }
     }
 

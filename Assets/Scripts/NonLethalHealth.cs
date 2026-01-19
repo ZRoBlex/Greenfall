@@ -8,7 +8,7 @@ public class NonLethalHealth : MonoBehaviour
     public float maxCapture = 100f;
     public float currentCapture = 0f;
     public float decayPerSecond = 5f;
-    public float unconsciousDuration = 30f;
+    public float unconsciousDuration = 30f; // ahora funciona como stunDuration
 
     [Header("Manual Control")]
     [Tooltip("Forzar al enemigo a estar stuned manualmente")]
@@ -55,25 +55,14 @@ public class NonLethalHealth : MonoBehaviour
         {
             currentCapture = Mathf.Max(0f, currentCapture - decayPerSecond * Time.deltaTime);
         }
-
-        // Captura máxima → stun automático
-        if (!forceStunned && currentCapture >= maxCapture)
-        {
-            BecomeStunned();
-        }
-        // Captura a mitad → evento leve
-        else if (!forceStunned && currentCapture >= maxCapture * 0.5f)
-        {
-            OnStunned?.Invoke();
-        }
     }
 
     /// <summary>
-    /// Aplicar incremento de captura, solo si es captureDamage
+    /// Aplicar incremento de captura
     /// </summary>
-    public void ApplyCaptureTick(float amount, bool isCaptureDamage = true)
+    public void ApplyCaptureTick(float amount)
     {
-        if (!isCaptureDamage || isStunned) return; // Ignorar si no es captura o está stun
+        if (isStunned) return;
 
         currentCapture += amount;
         currentCapture = Mathf.Clamp(currentCapture, 0f, maxCapture);
@@ -90,6 +79,9 @@ public class NonLethalHealth : MonoBehaviour
         OnCaptureTaken?.Invoke(amount);
     }
 
+    /// <summary>
+    /// Activar stun y detener motor
+    /// </summary>
     void BecomeStunned()
     {
         if (isStunned) return;
@@ -99,7 +91,7 @@ public class NonLethalHealth : MonoBehaviour
 
         OnFullyStunned?.Invoke();
 
-        // Cambiar estado a StunnedState
+        // Cambiar estado a StunnedState en el FSM
         ec?.FSM.ChangeState(new StunnedState());
 
         // Detener motor mientras está stun
@@ -109,6 +101,9 @@ public class NonLethalHealth : MonoBehaviour
         Debug.Log($"[{ec.stats.displayName}] Entró en StunnedState. (StunTimer={stunTimer}s)");
     }
 
+    /// <summary>
+    /// Recuperación: reactiva motor y vuelve a WanderState
+    /// </summary>
     void Recover()
     {
         isStunned = false;
@@ -127,9 +122,12 @@ public class NonLethalHealth : MonoBehaviour
         Debug.Log($"[{ec.stats.displayName}] Salió de StunnedState.");
     }
 
+    /// <summary>
+    /// Verifica si está stun
+    /// </summary>
     public bool IsStunned() => isStunned;
 
-    // Compatibilidad scripts antiguos
+    // Compatibilidad con scripts antiguos
     public void KnockOut() => BecomeStunned();
     public void Revive() => Recover();
 }

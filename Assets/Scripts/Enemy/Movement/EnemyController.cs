@@ -51,7 +51,7 @@ public class EnemyController : MonoBehaviour
         FSM = new StateMachine<EnemyController>(this);
 
         // Inicializa tipo y equipo por defecto
-        currentType = CannibalType.Aggressive;
+        //currentType = CannibalType.Aggressive;
         currentTeam = "Enemy";
     }
 
