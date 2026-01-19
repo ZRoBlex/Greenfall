@@ -8,10 +8,17 @@ public class AnimatorBridge : MonoBehaviour
 
     void Awake()
     {
+        // 1. Primero intenta en este mismo objeto
         anim = GetComponent<Animator>();
-        if (anim == null)
-            Debug.LogError("[AnimatorBridge] No se encontró Animator en " + name);
 
+        // 2. Si no existe, búscalo en hijos
+        if (anim == null)
+            anim = GetComponentInChildren<Animator>();
+
+        if (anim == null)
+            Debug.LogError("[AnimatorBridge] No se encontró Animator en " + name + " ni en sus hijos");
+
+        // Tomar EnemyStats desde EnemyController del mismo objeto
         EnemyController ec = GetComponent<EnemyController>();
         if (ec != null)
             stats = ec.stats;
@@ -19,6 +26,7 @@ public class AnimatorBridge : MonoBehaviour
         if (stats == null)
             Debug.LogWarning("[AnimatorBridge] No se encontró EnemyStats en " + name);
     }
+
 
     // ---------------------------
     // MÉTODOS GENERALES
@@ -32,7 +40,7 @@ public class AnimatorBridge : MonoBehaviour
         Debug.Log($"[AnimatorBridge] Reproduciendo animación: {animName}");
 
         // Cuando tengas animaciones reales, descomenta:
-        // anim.Play(animName);
+         anim.Play(animName);
     }
 
     public void SetBool(string param, bool value)
