@@ -50,3 +50,6 @@ MonoBehaviour:
   attackAnim: Attack
   stunnedAnim: Stunned
   passiveSafeDistance: 3
+  cellSize: 1
+  gridRadius: 15
+  cellHeight: 5

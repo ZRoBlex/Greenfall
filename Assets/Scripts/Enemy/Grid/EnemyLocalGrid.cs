@@ -62,15 +62,16 @@ public class EnemyLocalGrid : MonoBehaviour
 
     bool IsBlockedByStats(Vector2Int cell)
     {
-        Vector3 center =
-            CellToWorld(cell) + Vector3.up * stats.obstacleCheckHeight * 0.5f;
+        EnemyStats enemyStats = stats;
+        // 🔹 Posición del centro del cubo de la celda
+        Vector3 center = CellToWorld(cell) + Vector3.up * (stats.cellHeight * 0.5f);
 
-        Vector3 halfExtents =
-            new Vector3(
-                cellSize * 0.45f,
-                stats.obstacleCheckHeight * 0.5f,
-                cellSize * 0.45f
-            );
+        // 🔹 Tamaño del cubo (x, y, z)
+        Vector3 halfExtents = new Vector3(
+            cellSize * 0.45f,
+            stats.cellHeight * 0.5f, // usamos la altura configurable
+            cellSize * 0.45f
+        );
 
         Collider[] hits = Physics.OverlapBox(
             center,
@@ -98,6 +99,7 @@ public class EnemyLocalGrid : MonoBehaviour
         return false;
     }
 
+
 #if UNITY_EDITOR
     void OnDrawGizmos()
     {
@@ -113,24 +115,26 @@ public class EnemyLocalGrid : MonoBehaviour
                 Vector2Int cell = center + new Vector2Int(x, y);
                 Vector3 pos = CellToWorld(cell);
 
-                bool blockedByStats =
-                    stats != null && IsBlockedByStats(cell);
+                // 🔹 Altura configurable
+                float height = stats != null ? stats.obstacleCheckHeight : 1f;
+
+                bool blockedByStats = stats != null && IsBlockedByStats(cell);
 
                 if (blocked.Contains(cell) || blockedByStats)
                 {
                     Gizmos.color = new Color(1, 0, 0, 0.35f);
-                    Gizmos.DrawCube(pos, Vector3.one * cellSize);
+                    Gizmos.DrawCube(pos + Vector3.up * height * 0.5f, new Vector3(cellSize, height, cellSize));
                 }
                 else
                 {
                     Gizmos.color = new Color(0, 1, 0, 0.1f);
-                    Gizmos.DrawWireCube(pos, Vector3.one * cellSize);
+                    Gizmos.DrawWireCube(pos + Vector3.up * height * 0.5f, new Vector3(cellSize, height, cellSize));
                 }
             }
         }
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(CellToWorld(center), 0.2f);
+        Gizmos.DrawSphere(CellToWorld(center) + Vector3.up * 0.1f, 0.2f);
     }
 #endif
 }

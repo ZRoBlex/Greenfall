@@ -16,6 +16,7 @@ public class PlayerCapture : MonoBehaviour
     {
         inputHandler = GetComponent<PlayerInputHandler>();
         playerTransform = transform;
+        inputHandler.enabled = true;
     }
 
     void Update()

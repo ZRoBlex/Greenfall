@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [CreateAssetMenu(menuName = "Enemies/Enemy Stats", fileName = "EnemyStats")]
 public class EnemyStats : ScriptableObject
@@ -11,7 +11,7 @@ public class EnemyStats : ScriptableObject
     public float runSpeed = 6f;
     public float turnSpeed = 8f;
 
-    [Header("Percepción")]
+    [Header("PercepciÃ³n")]
     public float perceptionRange = 12f;
     [Range(10, 180)] public float fieldOfView = 120f;
     public float closeDetectionRadius = 2f;
@@ -31,10 +31,10 @@ public class EnemyStats : ScriptableObject
     public float captureDecayPerSecond = 5f;
     public float capturePerHit = 20f;
 
-    [Header("Equipo / Facción")]
+    [Header("Equipo / FacciÃ³n")]
     public int team = 0;
 
-    [Header("Obstáculos")]
+    [Header("ObstÃ¡culos")]
     public LayerMask obstacleLayers;
     public string[] obstacleTags;
     public float obstacleCheckHeight = 1f;
@@ -63,4 +63,12 @@ public class EnemyStats : ScriptableObject
 
     [Header("EXTRAS")]
     public float passiveSafeDistance = 2;
+
+    [Header("Grid Settings")]
+    public float cellSize = 1f;
+    public int gridRadius = 15;
+
+    // ðŸ”¹ Altura del cubo que define si puede caminar
+    public float cellHeight = 2f;
+
 }
