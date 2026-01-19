@@ -43,6 +43,7 @@ public class PlayerInputHandler : MonoBehaviour
         CrouchAction = mapReference.FindAction(Crouch); // 👈 NUEVO
 
         SuscribeActionValuesToInputEvents();
+        enabled = true;
     }
 
     private void SuscribeActionValuesToInputEvents()

@@ -107,6 +107,7 @@ public class FirstPersonController : MonoBehaviour
             cameraStandingHeight,
             mainCamera.transform.localPosition.z
         );
+        playerInputHandler.enabled = true;
     }
 
     void Update()

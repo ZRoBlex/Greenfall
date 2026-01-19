@@ -2,8 +2,10 @@
 
 public class DamagePopupReceiver : MonoBehaviour
 {
-    public DamagePopupSettings settings;
-    public DamageDisplayType displayType;
+    [Header("Settings por tipo de daño")]
+    public DamagePopupSettings[] healthSettings;
+    public DamagePopupSettings[] captureSettings;
+    // public DamagePopupSettings[] stunSettings; // futuro: añadir otros tipos
 
     Health health;
     NonLethalHealth capture;
@@ -18,11 +20,11 @@ public class DamagePopupReceiver : MonoBehaviour
 
         health = GetComponent<Health>();
         if (health)
-            health.OnDamageTaken += OnDamage;
+            health.OnDamageTaken += OnHealthDamage;
 
         capture = GetComponent<NonLethalHealth>();
         if (capture)
-            capture.OnCaptureTaken += OnDamage;
+            capture.OnCaptureTaken += OnCaptureDamage;
     }
 
     // ------------------------------------------------
@@ -36,24 +38,47 @@ public class DamagePopupReceiver : MonoBehaviour
     // ------------------------------------------------
     // EVENTO DE VIDA
     // ------------------------------------------------
-    void OnDamage(float damage)
+    void OnHealthDamage(float damage)
     {
-        if (!settings || !settings.enabled)
+        if (healthSettings == null || healthSettings.Length == 0)
             return;
 
-        Spawn(damage, lastHitWasCritical);
+        foreach (var s in healthSettings)
+        {
+            if (s != null && s.enabled)
+                Spawn(damage, lastHitWasCritical, s, DamageDisplayType.Health);
+        }
 
-        // 🔁 reset para el siguiente golpe
         lastHitWasCritical = false;
     }
 
-    void Spawn(float value, bool crit)
+    // ------------------------------------------------
+    // EVENTO DE CAPTURE / NONLETHAL
+    // ------------------------------------------------
+    void OnCaptureDamage(float damage)
+    {
+        if (captureSettings == null || captureSettings.Length == 0)
+            return;
+
+        foreach (var s in captureSettings)
+        {
+            if (s != null && s.enabled)
+                Spawn(damage, lastHitWasCritical, s, DamageDisplayType.Capture);
+        }
+
+        lastHitWasCritical = false;
+    }
+
+    // ------------------------------------------------
+    // GENERA EL POPUP
+    // ------------------------------------------------
+    void Spawn(float value, bool crit, DamagePopupSettings s, DamageDisplayType type)
     {
         Vector3 pos = relay != null && relay.LastHitPoint != Vector3.zero
             ? relay.LastHitPoint
-            : transform.position + settings.worldOffset;
+            : transform.position + s.worldOffset;
 
         DamageNumber num = DamageNumberPool.Instance.Get();
-        num.Show(value, displayType, crit, settings, pos);
+        num.Show(value, type, crit, s, pos);
     }
 }

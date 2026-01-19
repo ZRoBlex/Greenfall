@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24ed5e012be379543b9f8448157b4d8e, type: 3}
-  m_Name: AK47
+  m_Name: AK47Capture
   m_EditorClassIdentifier: 
   fireMode: 1
   cooldown: 0.1
@@ -27,7 +27,7 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
-  useCaptureDamage: 0
+  useCaptureDamage: 1
   minLethalDamage: 8
   maxLethalDamage: 12
   minCaptureDamage: 15
