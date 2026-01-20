@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(GridPathfinder))]
 [RequireComponent(typeof(EnemyMotor))]
@@ -37,6 +38,11 @@ public class EnemyController : MonoBehaviour
     // -----------------------
     EnemyLOD currentLOD = EnemyLOD.Active;
     float semiActiveTimer;
+    public EnemyLOD CurrentLOD => currentLOD;
+
+
+    // 🔒 Lista de scripts a controlar
+    List<MonoBehaviour> controlledBehaviours = new List<MonoBehaviour>();
 
     void Awake()
     {
@@ -54,6 +60,17 @@ public class EnemyController : MonoBehaviour
         FSM = new StateMachine<EnemyController>(this);
 
         currentTeam = "Enemy";
+
+        // 🔥 Buscar automáticamente el UI del enemigo (hijo con Canvas)
+        var canvas = GetComponentInChildren<Canvas>(true);
+        if (canvas != null)
+        {
+            enemyUIRoot = canvas.gameObject;
+        }
+
+
+        // 🔥 Registrar TODOS los scripts que deben apagarse en Sleep
+        CacheControlledBehaviours();
     }
 
     void Start()
@@ -67,7 +84,7 @@ public class EnemyController : MonoBehaviour
 
     void Update()
     {
-        // 🔴 Sleep → no hacer nada
+        // 🔴 Sleep → no hacer absolutamente nada
         if (currentLOD == EnemyLOD.Sleep)
             return;
 
@@ -105,7 +122,8 @@ public class EnemyController : MonoBehaviour
     // -----------------------
     public void SetLOD(EnemyLOD lod)
     {
-        if (currentLOD == lod) return;
+        if (currentLOD == lod)
+            return;
 
         currentLOD = lod;
 
@@ -125,25 +143,81 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    // -----------------------
+    // ACTIVACIÓN POR LOD
+    // -----------------------
+
     void EnableFullAI()
     {
+        foreach (var b in controlledBehaviours)
+        {
+            if (b != null)
+                b.enabled = true;
+        }
+
+        if (enemyUIRoot != null)
+            enemyUIRoot.SetActive(true);
+
         enabled = true;
-        Motor.enabled = true;
-        Perception.enabled = true;
     }
+
+
+    // 🔹 UI del enemigo (barras de vida, texto, etc.)
+    GameObject enemyUIRoot;
+
 
     void EnableCheapAI()
     {
+        foreach (var b in controlledBehaviours)
+        {
+            if (b == null) continue;
+
+            if (b == Motor || b == Perception)
+                b.enabled = false;
+            else
+                b.enabled = true;
+        }
+
+        if (enemyUIRoot != null)
+            enemyUIRoot.SetActive(false);
+
         enabled = true;
-        Motor.enabled = false;        // no path
-        Perception.enabled = false;  // no raycasts
     }
+
 
     void EnableSleepAI()
     {
-        enabled = false;
-        Motor.enabled = false;
-        Perception.enabled = false;
+        foreach (var b in controlledBehaviours)
+        {
+            if (b != null)
+                b.enabled = false;
+        }
+
+        if (enemyUIRoot != null)
+            enemyUIRoot.SetActive(false);
+
+        enabled = true;
+    }
+
+
+    // -----------------------
+    // Cache automático de scripts
+    // -----------------------
+    void CacheControlledBehaviours()
+    {
+        controlledBehaviours.Clear();
+
+        // Tomamos TODOS los MonoBehaviour del enemigo
+        var all = GetComponents<MonoBehaviour>();
+
+        foreach (var b in all)
+        {
+            // Nunca nos desactivamos a nosotros mismos
+            if (b == this)
+                continue;
+
+            controlledBehaviours.Add(b);
+        }
     }
 
     // -----------------------

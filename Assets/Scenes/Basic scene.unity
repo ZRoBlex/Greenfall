@@ -445,6 +445,10 @@ PrefabInstance:
       value: AK47
       objectReference: {fileID: 0}
     - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+      propertyPath: stats
+      value: 
+      objectReference: {fileID: 11400000, guid: b902aca8ceb5c4e48b6a559579eacb23, type: 2}
+    - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
       propertyPath: crosshair
       value: 
       objectReference: {fileID: 1736537481}
@@ -1064,7 +1068,10 @@ MonoBehaviour:
   maxActiveEnemies: 50
   activeDistance: 30
   semiActiveDistance: 35
+  sleepDistance: 90
   maxRepathsPerFrame: 5
+  showDebugOverlay: 1
+  debugPosition: {x: 10, y: 10}
 --- !u!1 &561931789
 GameObject:
   m_ObjectHideFlags: 0

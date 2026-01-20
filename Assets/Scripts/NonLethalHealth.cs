@@ -8,7 +8,7 @@ public class NonLethalHealth : MonoBehaviour
     public float maxCapture = 100f;
     public float currentCapture = 0f;
     public float decayPerSecond = 5f;
-    public float unconsciousDuration = 30f; // ahora funciona como stunDuration
+    public float unconsciousDuration = 30f;
 
     [Header("Manual Control")]
     [Tooltip("Forzar al enemigo a estar stuned manualmente")]
@@ -37,6 +37,10 @@ public class NonLethalHealth : MonoBehaviour
 
     void Update()
     {
+        // 🔴 Si está en Sleep LOD → no procesar absolutamente nada
+        if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
+            return;
+
         // Forzar stun manual
         if (forceStunned && !isStunned)
             BecomeStunned();
@@ -47,7 +51,7 @@ public class NonLethalHealth : MonoBehaviour
             stunTimer -= Time.deltaTime;
             if (stunTimer <= 0f)
                 Recover();
-            return; // no decae ni actúa mientras está stun
+            return;
         }
 
         // Decaimiento de captura
@@ -62,6 +66,10 @@ public class NonLethalHealth : MonoBehaviour
     /// </summary>
     public void ApplyCaptureTick(float amount)
     {
+        // 🔴 Ignorar captura si está en Sleep
+        if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
+            return;
+
         if (isStunned) return;
 
         currentCapture += amount;
@@ -79,11 +87,12 @@ public class NonLethalHealth : MonoBehaviour
         OnCaptureTaken?.Invoke(amount);
     }
 
-    /// <summary>
-    /// Activar stun y detener motor
-    /// </summary>
     void BecomeStunned()
     {
+        // 🔴 No permitir stun en Sleep
+        if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
+            return;
+
         if (isStunned) return;
 
         isStunned = true;
@@ -101,11 +110,12 @@ public class NonLethalHealth : MonoBehaviour
         Debug.Log($"[{ec.stats.displayName}] Entró en StunnedState. (StunTimer={stunTimer}s)");
     }
 
-    /// <summary>
-    /// Recuperación: reactiva motor y vuelve a WanderState
-    /// </summary>
     void Recover()
     {
+        // 🔴 Si despertó estando en Sleep, no recuperar hasta salir de Sleep
+        if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
+            return;
+
         isStunned = false;
         currentCapture = 0f;
         forceStunned = false;
@@ -122,9 +132,6 @@ public class NonLethalHealth : MonoBehaviour
         Debug.Log($"[{ec.stats.displayName}] Salió de StunnedState.");
     }
 
-    /// <summary>
-    /// Verifica si está stun
-    /// </summary>
     public bool IsStunned() => isStunned;
 
     // Compatibilidad con scripts antiguos
