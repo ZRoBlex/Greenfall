@@ -920,7 +920,7 @@ MonoBehaviour:
   minRotation: {x: 0, y: 0, z: 0}
   maxRotation: {x: 0, y: 360, z: 0}
   randomAngularForce: 1
-  forceRespawnEvenIfPicked: 0
+  forceRespawnEvenIfPicked: 1
 --- !u!4 &463123190
 Transform:
   m_ObjectHideFlags: 0
@@ -5164,6 +5164,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3784181818818641501, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: verticalSnapHeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3784181818818641501, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: buildRayMask.m_Bits
+      value: 6144
+      objectReference: {fileID: 0}
+    - target: {fileID: 3784181818818641501, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: snapSurfaceMask.m_Bits
+      value: 2048
+      objectReference: {fileID: 0}
     - target: {fileID: 4210575207224780052, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: m_SkinWidth
       value: 0.0001
@@ -5446,13 +5458,13 @@ GameObject:
   - component: {fileID: 6876470412052677818}
   - component: {fileID: 6876470412052677808}
   - component: {fileID: 6876470412052677832}
+  - component: {fileID: 6876470412052677830}
   - component: {fileID: 6876470412052677813}
   - component: {fileID: 6876470412052677810}
   - component: {fileID: 6876470412052677833}
   - component: {fileID: 6876470412052677824}
   - component: {fileID: 6876470412052677825}
   - component: {fileID: 6876470412052677831}
-  - component: {fileID: 6876470412052677830}
   - component: {fileID: 6876470412052677829}
   - component: {fileID: 6876470412052677828}
   - component: {fileID: 6876470412052677827}
@@ -5728,6 +5740,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stats: {fileID: 11400000, guid: 9cb8592ac2b786a4284b0f8dd5c6f700, type: 2}
   localGrid: {fileID: 6876470412052677829}
+  rotateTowardsMovement: 1
+  stuckCheckInterval: 0.5
+  minMoveDistance: 0.1
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!114 &6876470412052677831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5753,7 +5771,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stats: {fileID: 11400000, guid: 9cb8592ac2b786a4284b0f8dd5c6f700, type: 2}
-  currentType: 0
+  currentType: 2
   currentTeam: 
 --- !u!114 &6876470412052677833
 MonoBehaviour:

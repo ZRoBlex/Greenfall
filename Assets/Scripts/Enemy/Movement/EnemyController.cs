@@ -112,6 +112,7 @@ public class EnemyController : MonoBehaviour
                 if (Perception.CurrentTarget != null)
                     FSM.ChangeState(new FollowingState());
                 break;
+
         }
 
         Debug.Log($"[EnemyController] {name} comportamiento aplicado según tipo {currentType}");
@@ -157,9 +158,12 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case CannibalType.Friendly:
-                if (Perception.CurrentTarget != null && !(FSM.CurrentState is FollowingState))
-                    FSM.ChangeState(new FollowingState());
+                if (Perception.CurrentTarget != null && !(FSM.CurrentState is FriendlyState))
+                    FSM.ChangeState(new FriendlyState());
+                else if (Perception.CurrentTarget == null && !(FSM.CurrentState is WanderState))
+                    FSM.ChangeState(new WanderState());
                 break;
+
         }
 
         FSM.Tick();

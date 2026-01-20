@@ -6,12 +6,24 @@ public class BuildController : MonoBehaviour
     public Camera cam;
     public float range = 6f;
 
+    [Header("Vertical Snap")]
+    public LayerMask snapSurfaceMask;
+    public float verticalSnapHeight = 5f;
+
+    [Header("Raycast")]
+    public LayerMask buildRayMask;
+    public bool ignoreTriggers = true;
+
     [Header("References")]
     public BuildSelector selector;
     public GridSystem grid;
     public BuildPreview preview;
     public BuildValidator validator;
     public WorldOccupancy occupancy;
+
+    [Header("Rotation")]
+    public float rotationStep = 90f;
+    float manualRotationOffset = 0f;   // Solo lo que agrega la tecla R
 
     [Header("Visual")]
     public float previewSmoothSpeed = 25f;
@@ -22,9 +34,31 @@ public class BuildController : MonoBehaviour
 
     void Update()
     {
+        // =========================
+        // 1. INPUT DE ROTACIÓN (R)
+        // =========================
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            manualRotationOffset += rotationStep;
+            if (manualRotationOffset >= 360f)
+                manualRotationOffset = 0f;
+        }
+
+        // =========================
+        // 2. RAYCAST PRINCIPAL
+        // =========================
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
 
-        if (!Physics.Raycast(ray, out RaycastHit hit, range))
+        QueryTriggerInteraction triggerMode =
+            ignoreTriggers ? QueryTriggerInteraction.Ignore
+                           : QueryTriggerInteraction.Collide;
+
+        if (!Physics.Raycast(
+                ray,
+                out RaycastHit hit,
+                range,
+                buildRayMask,
+                triggerMode))
         {
             preview.Hide();
             return;
@@ -32,31 +66,54 @@ public class BuildController : MonoBehaviour
 
         StructureData data = Current;
 
-        // 🔒 1. Obtener celda DETERMINISTA (NO hit.point directo)
+        // =========================
+        // 3. ROTACIÓN BASE POR CÁMARA
+        // =========================
+
+        // Snap de la cámara a 90°
+        float camYaw = cam.transform.eulerAngles.y;
+        float snappedCamYaw = Mathf.Round(camYaw / 90f) * 90f;
+
+        // Rotación final = cámara + offset manual con R
+        float finalYaw = snappedCamYaw + manualRotationOffset;
+        Quaternion rot = Quaternion.Euler(0f, finalYaw, 0f);
+
+        // =========================
+        // 4. POSICIÓN BASE POR GRID
+        // =========================
+
         Vector3Int cell = grid.WorldToCellStable(
             hit.point,
             ray.direction
         );
 
-        // 🔒 2. Celda → mundo (estable)
         Vector3 targetPos = grid.CellToWorld(cell);
 
-        // 🔒 3. Rotación snap 90°
-        Quaternion rot = Quaternion.Euler(
-            0,
-            Mathf.Round(cam.transform.eulerAngles.y / 90f) * 90f,
-            0
-        );
+        // =========================
+        // 5. SNAP VERTICAL
+        // =========================
 
-        // 🔒 4. Ajuste de pivote (una sola vez, estable)
+        targetPos = ApplyVerticalSnap(targetPos, rot, data);
+
+        // =========================
+        // 6. AJUSTE DE PIVOTE
+        // =========================
+
         targetPos += BuildSnapUtility.GetBottomOffset(
             data.finalPrefab,
             rot
         );
 
+        // =========================
+        // 7. VALIDACIÓN
+        // =========================
+
         bool valid = validator.CanPlace(data, targetPos, rot, preview);
 
-        // 🔒 5. Suavizado SOLO visual
+        // =========================
+        // 8. SUAVIZADO VISUAL
+        // =========================
+
         visualPos = Vector3.Lerp(
             visualPos == Vector3.zero ? targetPos : visualPos,
             targetPos,
@@ -65,15 +122,22 @@ public class BuildController : MonoBehaviour
 
         preview.Show(data, visualPos, rot, valid);
 
+        // =========================
+        // 9. COLOCAR
+        // =========================
+
         if (valid && Input.GetMouseButtonDown(0))
             Place(targetPos, rot);
     }
 
+    // =====================================================
+    // COLOCAR ESTRUCTURA
+    // =====================================================
 
     void Place(Vector3 pos, Quaternion rot)
     {
         GameObject obj =
-    StructurePool.Instance.Get(Current.finalPrefab, pos, rot);
+            StructurePool.Instance.Get(Current.finalPrefab, pos, rot);
 
         var instance = obj.GetComponent<StructureInstance>();
         instance.prefab = Current.finalPrefab;
@@ -81,15 +145,47 @@ public class BuildController : MonoBehaviour
         var health = obj.GetComponent<StructureHealth>();
         health.data = Current;
         health.ResetHealth();
-
-        //GameObject obj = Instantiate(Current.finalPrefab, pos, rot);
-        //var volume = obj.GetComponentInChildren<OccupancyVolume>();
-        //occupancy.Register(volume.GetWorldBounds(), grid.cellSize);
     }
 
     public void ForceHidePreview()
     {
         preview.Hide();
         visualPos = Vector3.zero;
+    }
+
+    // =====================================================
+    // SNAP VERTICAL LIMPIO
+    // =====================================================
+
+    Vector3 ApplyVerticalSnap(Vector3 basePos, Quaternion rot, StructureData data)
+    {
+        Vector3 origin = basePos + Vector3.up * verticalSnapHeight;
+
+        if (Physics.Raycast(
+                origin,
+                Vector3.down,
+                out RaycastHit hit,
+                verticalSnapHeight * 2f,
+                snapSurfaceMask,
+                QueryTriggerInteraction.Ignore))
+        {
+            float surfaceY = hit.point.y;
+
+            Vector3 offset = BuildSnapUtility.GetBottomOffset(
+                data.finalPrefab,
+                rot
+            );
+
+            Vector3 snapped = new Vector3(
+                basePos.x,
+                surfaceY,
+                basePos.z
+            );
+
+            snapped += offset;
+            return snapped;
+        }
+
+        return basePos;
     }
 }

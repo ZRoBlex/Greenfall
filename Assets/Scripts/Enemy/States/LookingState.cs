@@ -6,16 +6,17 @@ public class LookingState : State<EnemyController>
 
     public override void Enter(EnemyController o)
     {
-        if (o == null) return;
-
         timer = o.stats.lookDuration;
 
-        AnimatorBridge ab = o.GetComponent<AnimatorBridge>();
-        if (ab != null)
-            ab.PlayLook(); // Tomará lookAnim desde EnemyStats
+        if (o.AnimatorBridge != null)
+        {
+            o.AnimatorBridge.ResetSpecialBools();
+            o.AnimatorBridge.SetBool("IsIdle", true);
+        }
 
         Debug.Log($"[{o.stats.displayName}] Entró en LookingState por {timer} segundos.");
     }
+
 
     public override void Tick(EnemyController o)
     {

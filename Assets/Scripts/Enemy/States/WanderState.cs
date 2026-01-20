@@ -9,12 +9,13 @@ public class WanderState : State<EnemyController>
     {
         PickNewDestination(o);
 
-        AnimatorBridge ab = o.GetComponent<AnimatorBridge>();
-        if (ab != null)
-            ab.PlayWalk(); // Animación de caminar
+        if (o.AnimatorBridge != null)
+        {
+            o.AnimatorBridge.ResetSpecialBools();
+            // IsWalking lo pone el motor
+        }
 
-        waitTimer = 0f; // reset del timer
-
+        waitTimer = 0f;
         waitDuration = o.stats.wanderWaitTime;
     }
 
@@ -25,15 +26,11 @@ public class WanderState : State<EnemyController>
 
         if (o.Motor.HasReachedDestination())
         {
-            // Incrementar temporizador
             waitTimer += Time.deltaTime;
 
-            // Mantener animación idle mientras espera
-            AnimatorBridge ab = o.GetComponent<AnimatorBridge>();
-            if (ab != null)
-                ab.PlayIdle();
+            if (o.AnimatorBridge != null)
+                o.AnimatorBridge.SetBool("IsIdle", true);
 
-            // Una vez transcurrido el tiempo de espera, cambiar estado
             if (waitTimer >= waitDuration)
             {
                 o.FSM.ChangeState(new LookingState());

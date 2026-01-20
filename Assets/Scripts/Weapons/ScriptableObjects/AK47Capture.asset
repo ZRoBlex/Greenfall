@@ -27,6 +27,7 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
+  - Obstacle
   useCaptureDamage: 1
   minLethalDamage: 8
   maxLethalDamage: 12

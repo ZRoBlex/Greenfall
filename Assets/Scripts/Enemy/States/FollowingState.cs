@@ -4,9 +4,16 @@ public class FollowingState : State<EnemyController>
 {
     public override void Enter(EnemyController o)
     {
+        if (o.AnimatorBridge != null)
+        {
+            o.AnimatorBridge.ResetSpecialBools();
+            o.AnimatorBridge.SetBool("IsChasing", true);
+        }
+
         if (o.Perception.CurrentTarget != null)
             o.Motor.SetTarget(o.Perception.CurrentTarget);
     }
+
 
     public override void Tick(EnemyController o)
     {

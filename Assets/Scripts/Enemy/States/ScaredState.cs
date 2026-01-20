@@ -1,14 +1,35 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ScaredState : State<EnemyController>
 {
     float repathTimer;
+    bool isMovingAway;
 
     public override void Enter(EnemyController o)
     {
         repathTimer = 0f;
+        isMovingAway = false;
+
+        if (o.AnimatorBridge != null)
+        {
+            o.AnimatorBridge.ResetSpecialBools();
+            o.AnimatorBridge.SetBool("IsScared", true);
+            // IsWalking lo controla EnemyMotor
+        }
+
+        // Mientras esté asustado, NO rotar hacia el movimiento
+        o.Motor.rotateTowardsMovement = false;
+
+
         LookAtPlayer(o);
     }
+
+    public override void Exit(EnemyController o)
+    {
+        if (o != null && o.Motor != null)
+            o.Motor.rotateTowardsMovement = true;
+    }
+
 
     public override void Tick(EnemyController o)
     {
@@ -26,16 +47,43 @@ public class ScaredState : State<EnemyController>
 
         float dist = Vector3.Distance(o.transform.position, player.position);
 
+        // 🔹 Si ya está a distancia segura
         if (dist >= o.stats.passiveSafeDistance)
         {
+            // Se queda quieto, vuelve a estar asustado idle
+            if (isMovingAway)
+            {
+                isMovingAway = false;
+
+                if (o.AnimatorBridge != null)
+                {
+                    o.AnimatorBridge.SetBool("IsWalking", false);
+                    o.AnimatorBridge.SetBool("IsScared", true);
+                }
+            }
+
             Vector2Int myCell = o.Motor.localGrid.WorldToCell(o.transform.position);
             o.Motor.SetDestination(myCell);
             return;
         }
 
+        // 🔹 Recalcular huida cada cierto tiempo
         repathTimer -= Time.deltaTime;
         if (repathTimer <= 0f)
         {
+            // Empieza o continúa huyendo
+            if (!isMovingAway)
+            {
+                isMovingAway = true;
+
+                if (o.AnimatorBridge != null)
+                {
+                    // Deja de estar en animación de miedo quieto
+                    o.AnimatorBridge.SetBool("IsScared", false);
+                    o.AnimatorBridge.SetBool("IsWalking", true);
+                }
+            }
+
             MoveAway(o, player);
             repathTimer = o.stats.scaredRepathTime;
         }
@@ -52,7 +100,11 @@ public class ScaredState : State<EnemyController>
         if (direction.sqrMagnitude > 0.001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            o.transform.rotation = Quaternion.Slerp(o.transform.rotation, targetRotation, o.stats.turnSpeed * Time.deltaTime);
+            o.transform.rotation = Quaternion.Slerp(
+                o.transform.rotation,
+                targetRotation,
+                o.stats.turnSpeed * Time.deltaTime
+            );
         }
     }
 
@@ -94,5 +146,6 @@ public class ScaredState : State<EnemyController>
         }
 
         o.Motor.SetDestination(bestCell);
+        // IsWalking ya está forzado arriba
     }
 }

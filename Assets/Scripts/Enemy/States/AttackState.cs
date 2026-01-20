@@ -1,14 +1,22 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class AttackState : State<EnemyController>
 {
     float attackTimer;
 
     public override void Enter(EnemyController o)
+{
+    attackTimer = 0f;
+
+    if (o.AnimatorBridge != null)
     {
-        attackTimer = 0f;
-        Debug.Log($"[{o.stats.displayName}] Entr� en AttackState.");
+        o.AnimatorBridge.ResetSpecialBools();
+        o.AnimatorBridge.SetBool("IsChasing", true);
+        // IsWalking lo pone EnemyMotor
     }
+
+    Debug.Log($"[{o.stats.displayName}] Entró en AttackState.");
+}
 
     public override void Tick(EnemyController o)
     {
@@ -58,6 +66,9 @@ public class AttackState : State<EnemyController>
 
     void PerformAttack(EnemyController o, Transform player)
     {
-        Debug.Log($"[{o.stats.displayName}] Atac� al jugador causando {o.stats.attackDamage} de da�o.");
+        Debug.Log($"[{o.stats.displayName}] Atacó al jugador causando {o.stats.attackDamage} de daño.");
+
+        // 🔹 Cuando tengas animación de ataque:
+        // o.AnimatorBridge.SetBool("IsAttack", true);
     }
 }

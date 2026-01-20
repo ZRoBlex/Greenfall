@@ -64,6 +64,18 @@ public class AnimatorBridge : MonoBehaviour
         Debug.Log($"[AnimatorBridge] SetFloat({param}, {value})");
     }
 
+    public void ResetSpecialBools()
+    {
+        if (anim == null) return;
+
+        anim.SetBool("IsScared", false);
+        anim.SetBool("IsChasing", false);
+        anim.SetBool("IsIdle", false);
+        anim.SetBool("IsAttack", false);
+        // anim.SetBool("IsStunned", false); // futuro
+    }
+
+
     // ---------------------------
     // MÉTODOS POR ESTADO
     // ---------------------------
