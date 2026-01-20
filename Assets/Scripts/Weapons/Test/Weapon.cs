@@ -60,11 +60,31 @@ public class Weapon : MonoBehaviour
     [SerializeField] int currentAmmo = 30; // Por ahora solo contador interno
     [SerializeField] int maxAmmo = 30;
 
+    [Header("Ammo On Pickup")]
+    [SerializeField] int minAmmoOnPickup = 5;
+    [SerializeField] int maxAmmoOnPickup = 30;
+
+    // ------------------------------------------------
+    // AMMO TRANSFER FLAG
+    // ------------------------------------------------
+    private bool hasTransferredAmmo = false;
+
+
+
     void OnEnable()
     {
         if (DynamicCrosshair.Instance)
             DynamicCrosshair.Instance.SetProfile(crosshairProfile);
+
+        // 🔹 Generar munición aleatoria solo la primera vez que se activa el arma
+        if (!ammoInitialized)
+        {
+            currentAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
+            ammoInitialized = true;
+        }
     }
+
+
 
     void Start()
     {
@@ -456,6 +476,7 @@ public class Weapon : MonoBehaviour
     // AMMO MANAGEMENT
     // ------------------------------------------------
     [SerializeField] AmmoInventory ammoInventory;
+    private bool ammoInitialized = false;
 
     bool ConsumeAmmo()
     {
@@ -475,4 +496,55 @@ public class Weapon : MonoBehaviour
     {
         currentAmmo = Mathf.Min(currentAmmo + amount, maxAmmo);
     }
+
+    // Asigna el inventario del jugador al arma
+    public void AssignAmmoInventory(AmmoInventory inventory)
+    {
+        ammoInventory = inventory;
+
+        // ❌ Ya no generamos aleatorio aquí
+        // if (!ammoInitialized)
+        // {
+        //     currentAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
+        //     ammoInitialized = true;
+        // }
+
+        // Asegurarse de que exista el slot
+        if (stats.ammoType != null)
+        {
+            ammoInventory.AddAmmo(stats.ammoType, 0);
+        }
+    }
+
+
+    public int TransferAmmoToInventory()
+    {
+        if (stats.ammoType == null || ammoInventory == null)
+            return 0;
+
+        AmmoSlot slot = ammoInventory.GetSlot(stats.ammoType);
+        if (slot == null) return 0;
+
+        int spaceLeft = slot.maxAmount - slot.currentAmount;
+        if (spaceLeft <= 0) return 0;
+
+        int ammoToGive = Mathf.Min(currentAmmo, spaceLeft);
+
+        ammoInventory.AddAmmo(stats.ammoType, ammoToGive);
+        currentAmmo -= ammoToGive; // lo que sobra queda en el arma
+
+        return ammoToGive;
+    }
+
+
+    public void InitializeAmmo()
+    {
+        if (!ammoInitialized)
+        {
+            currentAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
+            ammoInitialized = true;
+        }
+    }
+
+
 }

@@ -20,6 +20,10 @@ public class WeaponInventory : MonoBehaviour
     [SerializeField] PlayerInput playerInput;
     [SerializeField] PlayerWeaponContext playerContext;
 
+    [Header("Player Ammo Inventory")]
+    [SerializeField] AmmoInventory playerAmmoInventory;
+
+
 
 
     readonly List<Weapon> slots = new();
@@ -33,6 +37,17 @@ public class WeaponInventory : MonoBehaviour
         if (IsFull || weapon == null) return;
 
         PrepareAsEquipped(weapon);
+
+        // Asignar el inventario de munición del jugador
+        if (playerAmmoInventory != null)
+            weapon.AssignAmmoInventory(playerAmmoInventory);
+
+
+        // 🔹 Transferir balas al inventario
+        int transferred = weapon.TransferAmmoToInventory();
+        Debug.Log($"{weapon.name} dio {transferred} balas al inventario");
+
+
 
         weapon.transform.SetParent(weaponHolder);
         ApplyWeaponOffset(weapon);
