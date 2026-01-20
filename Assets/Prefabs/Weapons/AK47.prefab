@@ -187,7 +187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 226b2d1a1c58a414fab336f324e7f908, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stats: {fileID: 11400000, guid: 5361fbcabc3db2f4abe14da4a6afe51a, type: 2}
+  stats: {fileID: 11400000, guid: b902aca8ceb5c4e48b6a559579eacb23, type: 2}
   firePoint: {fileID: 9068799539160850203}
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
@@ -205,6 +205,9 @@ MonoBehaviour:
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
   crosshair: {fileID: 0}
   crosshairProfile: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
+  currentAmmo: 30
+  maxAmmo: 30
+  ammoInventory: {fileID: 0}
 --- !u!114 &750339304953804674
 MonoBehaviour:
   m_ObjectHideFlags: 0

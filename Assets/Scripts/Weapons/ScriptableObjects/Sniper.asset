@@ -18,7 +18,7 @@ MonoBehaviour:
   burstDelay: 0.08
   range: 300
   pellets: 1
-  spreadAngle: 1.5
+  spreadAngle: 0
   hittableLayers:
     serializedVersion: 2
     m_Bits: 6784
@@ -27,6 +27,7 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
+  - Obstacle
   useCaptureDamage: 0
   minLethalDamage: 40
   maxLethalDamage: 80
@@ -54,3 +55,5 @@ MonoBehaviour:
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
   cameraRecoilVertical: 20
   cameraRecoilHorizontal: 20
+  crosshairProfile: {fileID: 11400000, guid: e46e4fb4aee8da145b5258c54e7f5a83, type: 2}
+  ammoType: {fileID: 11400000, guid: 6d46d82f8ef91f3488cfb06eedd8097e, type: 2}

@@ -55,7 +55,10 @@ public class Weapon : MonoBehaviour
     float recoilAccumulated;
 
 
-
+    // Agregar arriba del Start()
+    [Header("Ammo (Placeholder)")]
+    [SerializeField] int currentAmmo = 30; // Por ahora solo contador interno
+    [SerializeField] int maxAmmo = 30;
 
     void OnEnable()
     {
@@ -114,12 +117,14 @@ public class Weapon : MonoBehaviour
     }
 
     // ------------------------------------------------
-    // FIRE LOGIC
+    // FIRE LOGIC (modificación mínima)
     // ------------------------------------------------
     void TryFire()
     {
         if (Time.time - lastFire < stats.cooldown) return;
         lastFire = Time.time;
+
+        if (!ConsumeAmmo()) return; // 🔹 solo dispara si hay munición
 
         Shoot();
     }
@@ -136,6 +141,7 @@ public class Weapon : MonoBehaviour
 
         for (int i = 0; i < stats.burstCount; i++)
         {
+            if (!ConsumeAmmo()) break; // 🔹 no dispara si no hay munición
             Shoot();
             yield return new WaitForSeconds(stats.burstDelay);
         }
@@ -444,4 +450,29 @@ public class Weapon : MonoBehaviour
         );
     }
 
+
+
+    // ------------------------------------------------
+    // AMMO MANAGEMENT
+    // ------------------------------------------------
+    [SerializeField] AmmoInventory ammoInventory;
+
+    bool ConsumeAmmo()
+    {
+        if (ammoInventory == null || ammoInventory.ConsumeAmmo(stats.ammoType, 1) == false)
+        {
+            Debug.Log("Sin munición!");
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+    // 🔹 Método público para recargar
+    public void Reload(int amount)
+    {
+        currentAmmo = Mathf.Min(currentAmmo + amount, maxAmmo);
+    }
 }

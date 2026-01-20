@@ -27,6 +27,7 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
+  - Obstacle
   useCaptureDamage: 0
   minLethalDamage: 3
   maxLethalDamage: 5
@@ -52,3 +53,6 @@ MonoBehaviour:
   defaultDecalPrefab: {fileID: -8784029089770287704, guid: fa076dbe797f74a4e90612524f3bd1a7, type: 3}
   inventoryPositionOffset: {x: 0, y: 0.24, z: -0.12}
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
+  cameraRecoilVertical: 1.5
+  cameraRecoilHorizontal: 0.8
+  crosshairProfile: {fileID: 0}

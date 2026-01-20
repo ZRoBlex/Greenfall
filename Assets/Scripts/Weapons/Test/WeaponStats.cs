@@ -93,4 +93,9 @@ public class WeaponStats : ScriptableObject
     [Header("Crosshair")]
     public CrosshairProfile crosshairProfile;
 
+
+    [Header("Ammunition")]
+    public AmmoTypeSO ammoType;
+
+
 }

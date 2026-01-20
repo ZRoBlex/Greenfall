@@ -27,6 +27,7 @@ MonoBehaviour:
   - build
   - Dirt
   - Metal
+  - Obstacle
   useCaptureDamage: 0
   minLethalDamage: 4
   maxLethalDamage: 8
@@ -54,3 +55,5 @@ MonoBehaviour:
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
   cameraRecoilVertical: 8
   cameraRecoilHorizontal: 8
+  crosshairProfile: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
+  ammoType: {fileID: 11400000, guid: 9b55122d8c1a97f419080009adde4b48, type: 2}
