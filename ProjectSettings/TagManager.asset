@@ -13,6 +13,7 @@ TagManager:
   - Metal
   - Dirt
   - Obstacle
+  - AmmoBox
   layers:
   - Default
   - TransparentFX
