@@ -1,20 +1,18 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [RequireComponent(typeof(GridPathfinder))]
 [RequireComponent(typeof(EnemyMotor))]
-//[RequireComponent(typeof(EnemyPerception))]
 [RequireComponent(typeof(EnemyLocalGrid))]
 [RequireComponent(typeof(AnimatorBridge))]
 [RequireComponent(typeof(ProfessionController))]
 [RequireComponent(typeof(NonLethalHealth))]
 [RequireComponent(typeof(Health))]
-//[RequireComponent(typeof(NonLethalHealthAdapted))]
 public class EnemyController : MonoBehaviour
 {
     [Header("Stats")]
     public EnemyStats stats;
 
-    [Header("Tipo y Equipo dinámico")]
+    [Header("Tipo y Equipo dinÃ¡mico")]
     [SerializeField] private CannibalType currentType;
     [SerializeField] private string currentTeam;
 
@@ -34,9 +32,14 @@ public class EnemyController : MonoBehaviour
 
     public StateMachine<EnemyController> FSM { get; private set; }
 
+    // -----------------------
+    // LOD
+    // -----------------------
+    EnemyLOD currentLOD = EnemyLOD.Active;
+    float semiActiveTimer;
+
     void Awake()
     {
-        // Obtener todos los componentes (ya serán obligatorios por RequireComponent)
         Motor = GetComponent<EnemyMotor>();
         Perception = GetComponent<EnemyPerception>();
         Pathfinder = GetComponent<GridPathfinder>();
@@ -50,19 +53,43 @@ public class EnemyController : MonoBehaviour
 
         FSM = new StateMachine<EnemyController>(this);
 
-        // Inicializa tipo y equipo por defecto
-        //currentType = CannibalType.Aggressive;
         currentTeam = "Enemy";
     }
 
     void Start()
     {
         ApplyTypeBehavior();
+
+        // ðŸ”¹ Registrarse en el EnemyManager
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.Register(this);
     }
 
     void Update()
     {
-        // Prioridad: si está stun, solo tickea FSM
+        // ðŸ”´ Sleep â†’ no hacer nada
+        if (currentLOD == EnemyLOD.Sleep)
+            return;
+
+        // ðŸŸ¡ SemiActive â†’ FSM lenta
+        if (currentLOD == EnemyLOD.SemiActive)
+        {
+            semiActiveTimer -= Time.deltaTime;
+            if (semiActiveTimer <= 0f)
+            {
+                TickAI();
+                semiActiveTimer = 0.5f; // 2 veces por segundo
+            }
+            return;
+        }
+
+        // ðŸŸ¢ Active
+        TickAI();
+    }
+
+    void TickAI()
+    {
+        // Prioridad: stun
         if (Health != null && Health.IsStunned())
         {
             FSM.Tick();
@@ -74,7 +101,53 @@ public class EnemyController : MonoBehaviour
     }
 
     // -----------------------
-    // Métodos para cambiar tipo/equipo
+    // LOD API
+    // -----------------------
+    public void SetLOD(EnemyLOD lod)
+    {
+        if (currentLOD == lod) return;
+
+        currentLOD = lod;
+
+        switch (lod)
+        {
+            case EnemyLOD.Active:
+                EnableFullAI();
+                break;
+
+            case EnemyLOD.SemiActive:
+                EnableCheapAI();
+                break;
+
+            case EnemyLOD.Sleep:
+                EnableSleepAI();
+                break;
+        }
+    }
+
+    void EnableFullAI()
+    {
+        enabled = true;
+        Motor.enabled = true;
+        Perception.enabled = true;
+    }
+
+    void EnableCheapAI()
+    {
+        enabled = true;
+        Motor.enabled = false;        // no path
+        Perception.enabled = false;  // no raycasts
+    }
+
+    void EnableSleepAI()
+    {
+        enabled = false;
+        Motor.enabled = false;
+        Perception.enabled = false;
+    }
+
+    // -----------------------
+    // MÃ©todos para cambiar tipo/equipo
     // -----------------------
     public void SetType(CannibalType newType)
     {
@@ -102,40 +175,39 @@ public class EnemyController : MonoBehaviour
             case CannibalType.Aggressive:
                 FSM.ChangeState(new WanderState());
                 break;
+
             case CannibalType.Passive:
                 FSM.ChangeState(new ScaredState());
                 break;
+
             case CannibalType.Neutral:
                 FSM.ChangeState(new WanderState());
                 break;
+
             case CannibalType.Friendly:
                 if (Perception.CurrentTarget != null)
-                    FSM.ChangeState(new FollowingState());
+                    FSM.ChangeState(new FriendlyState());
                 break;
-
         }
-
-        Debug.Log($"[EnemyController] {name} comportamiento aplicado según tipo {currentType}");
     }
 
     public void UpdateBehavior()
     {
         if (FSM == null) return;
 
-        // Tick adicional si está stun
         if (Health != null && Health.IsStunned())
         {
             FSM.Tick();
             return;
         }
 
-        // Cambios de estado según tipo
         switch (currentType)
         {
             case CannibalType.Aggressive:
                 if (Perception.CurrentTarget != null)
                 {
                     float dist = Vector3.Distance(transform.position, Perception.CurrentTarget.position);
+
                     if (dist <= stats.attackRange && !(FSM.CurrentState is AttackState))
                         FSM.ChangeState(new AttackState());
                     else if (!(FSM.CurrentState is FollowingState))
@@ -163,7 +235,6 @@ public class EnemyController : MonoBehaviour
                 else if (Perception.CurrentTarget == null && !(FSM.CurrentState is WanderState))
                     FSM.ChangeState(new WanderState());
                 break;
-
         }
 
         FSM.Tick();

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class EnemyPerception : MonoBehaviour
 {
@@ -19,6 +19,10 @@ public class EnemyPerception : MonoBehaviour
 
     void Update()
     {
+        // 🔴 Si está desactivado por LOD, no procesar
+        if (!enabled)
+            return;
+
         CurrentTarget = null;
 
         if (player == null) return;
@@ -30,6 +34,7 @@ public class EnemyPerception : MonoBehaviour
         if (CanSeePlayer || IsPlayerClose || HeardPlayer)
             CurrentTarget = player;
     }
+
 
     void CheckDistance()
     {

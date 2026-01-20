@@ -92,12 +92,18 @@ public class EnemyMotor : MonoBehaviour
         if (localGrid == null || stats == null)
             return;
 
+        // 🔹 Limitar repaths globales
+        if (EnemyManager.Instance != null &&
+            !EnemyManager.Instance.CanRepath())
+            return;
+
         Vector2Int start = localGrid.WorldToCell(transform.position);
         path = pathfinder.FindPath(start, targetCell, stats);
 
         index = 0;
         repathTimer = REPATH_INTERVAL;
     }
+
 
     /* ===================== MOVEMENT ===================== */
 
@@ -299,6 +305,10 @@ public class EnemyMotor : MonoBehaviour
         if (localGrid == null || stats == null)
             return;
 
+        if (EnemyManager.Instance != null &&
+            !EnemyManager.Instance.CanRepath())
+            return;
+
         Vector2Int start = localGrid.WorldToCell(transform.position);
 
         if (target != null)
@@ -309,6 +319,7 @@ public class EnemyMotor : MonoBehaviour
         index = 0;
         repathTimer = REPATH_INTERVAL;
     }
+
 
 
 }

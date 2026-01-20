@@ -71,7 +71,7 @@ public class AnimatorBridge : MonoBehaviour
         anim.SetBool("IsScared", false);
         anim.SetBool("IsChasing", false);
         anim.SetBool("IsIdle", false);
-        anim.SetBool("IsAttack", false);
+        //anim.SetBool("IsAttack", false);
         // anim.SetBool("IsStunned", false); // futuro
     }
 
