@@ -10,6 +10,8 @@ public enum FireMode
 [CreateAssetMenu(menuName = "Greenfall/Weapons/NonLethal Weapon")]
 public class WeaponStats : ScriptableObject
 {
+    public Sprite weaponIcon;
+
     [Header("Fire Mode")]
     public FireMode fireMode = FireMode.SemiAuto;
     public float cooldown = 0.1f;

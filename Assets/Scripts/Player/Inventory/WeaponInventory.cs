@@ -78,9 +78,16 @@ public class WeaponInventory : MonoBehaviour
         if (aim)
             aim.InjectContext(playerContext);
 
-
         w.gameObject.SetActive(true);
+
+        // 🔔 AVISAR AL INVENTARIO DE MUNICIÓN
+        if (playerAmmoInventory != null && w.stats != null)
+        {
+            playerAmmoInventory.SetCurrentAmmoType(w.stats.ammoType);
+        }
     }
+
+
 
     // -----------------------------
     public void DropCurrent()
@@ -129,6 +136,24 @@ public class WeaponInventory : MonoBehaviour
 
         currentIndex = Mathf.Clamp(currentIndex, 0, slots.Count - 1);
         Equip(currentIndex);
+
+        if (slots.Count == 0)
+        {
+            currentIndex = -1;
+
+            // 🔥 limpiar UI
+            if (playerAmmoInventory != null)
+            {
+                AmmoUIController ui =
+                    playerAmmoInventory.GetComponentInChildren<AmmoUIController>();
+
+                if (ui)
+                    ui.SetCurrentWeapon(null);
+            }
+
+            return;
+        }
+
     }
 
     // -----------------------------

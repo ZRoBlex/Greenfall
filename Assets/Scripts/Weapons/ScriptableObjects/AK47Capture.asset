@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24ed5e012be379543b9f8448157b4d8e, type: 3}
   m_Name: AK47Capture
   m_EditorClassIdentifier: 
+  weaponIcon: {fileID: 7681201850867341242, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
   fireMode: 1
   cooldown: 0.1
   burstCount: 3
