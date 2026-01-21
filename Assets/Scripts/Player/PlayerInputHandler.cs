@@ -70,10 +70,10 @@ public class PlayerInputHandler : MonoBehaviour
         //interactAction.canceled += _ => InteractTrigger = false;
 
         // 👇 CROUCH
-        CrouchAction.performed += _ =>
-            CrouchTrigger = true;
-        CrouchAction.canceled += _ =>
-            CrouchTrigger = false;
+        //CrouchAction.performed += _ =>
+        //    CrouchTrigger = true;
+        //CrouchAction.canceled += _ =>
+        //    CrouchTrigger = false;
     }
 
     private void OnEnable()

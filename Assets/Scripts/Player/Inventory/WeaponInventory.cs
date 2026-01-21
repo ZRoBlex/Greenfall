@@ -23,13 +23,22 @@ public class WeaponInventory : MonoBehaviour
     [Header("Player Ammo Inventory")]
     [SerializeField] AmmoInventory playerAmmoInventory;
 
-
+    InputAction reloadAction;
 
 
     readonly List<Weapon> slots = new();
     int currentIndex = -1;
 
     public bool IsFull => slots.Count >= maxSlots;
+
+    void Awake()
+    {
+        if (playerInput != null)
+        {
+            reloadAction = playerInput.actions["Reload"];
+            reloadAction.performed += OnReload;
+        }
+    }
 
     // -----------------------------
     public void AddWeapon(Weapon weapon)
@@ -263,5 +272,18 @@ public class WeaponInventory : MonoBehaviour
         return true;
     }
 
+    void OnDestroy()
+    {
+        if (reloadAction != null)
+            reloadAction.performed -= OnReload;
+    }
 
+    void OnReload(InputAction.CallbackContext ctx)
+    {
+        Weapon w = CurrentWeapon;
+        if (w == null)
+            return;
+
+        w.ReloadFromInventory();
+    }
 }

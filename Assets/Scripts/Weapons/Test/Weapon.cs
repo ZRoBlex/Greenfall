@@ -15,6 +15,8 @@ public class Weapon : MonoBehaviour
     [Header("Camera Recoil")]
     [SerializeField] CameraRecoilController cameraRecoil;
 
+    public WeaponMagazine magazine;
+
 
 
     [Header("Damage Systems")]
@@ -69,7 +71,11 @@ public class Weapon : MonoBehaviour
     // ------------------------------------------------
     private bool hasTransferredAmmo = false;
 
-
+    private void Awake()
+    {
+        if (magazine == null)
+            magazine = GetComponent<WeaponMagazine>();
+    }
 
     void OnEnable()
     {
@@ -144,10 +150,9 @@ public class Weapon : MonoBehaviour
         if (Time.time - lastFire < stats.cooldown) return;
         lastFire = Time.time;
 
-        if (!ConsumeAmmo()) return; // 🔹 solo dispara si hay munición
-
         Shoot();
     }
+
 
     void TryBurst()
     {
@@ -161,7 +166,7 @@ public class Weapon : MonoBehaviour
 
         for (int i = 0; i < stats.burstCount; i++)
         {
-            if (!ConsumeAmmo()) break; // 🔹 no dispara si no hay munición
+            //if (!ConsumeAmmo()) break; // 🔹 no dispara si no hay munición
             Shoot();
             yield return new WaitForSeconds(stats.burstDelay);
         }
@@ -174,6 +179,16 @@ public class Weapon : MonoBehaviour
     // ------------------------------------------------
     void Shoot()
     {
+        if (magazine == null)
+            return;
+
+        if (!magazine.ConsumeBullet())
+        {
+            Debug.Log("🔴 Cargador vacío");
+            return;
+        }
+
+
         if (weaponAudio != null)
             weaponAudio.PlayShoot();
 
@@ -478,16 +493,16 @@ public class Weapon : MonoBehaviour
     [SerializeField] AmmoInventory ammoInventory;
     private bool ammoInitialized = false;
 
-    bool ConsumeAmmo()
-    {
-        if (ammoInventory == null || ammoInventory.ConsumeAmmo(stats.ammoType, 1) == false)
-        {
-            Debug.Log("Sin munición!");
-            return false;
-        }
+    //bool ConsumeAmmo()
+    //{
+    //    if (ammoInventory == null || ammoInventory.ConsumeAmmo(stats.ammoType, 1) == false)
+    //    {
+    //        Debug.Log("Sin munición!");
+    //        return false;
+    //    }
 
-        return true;
-    }
+    //    return true;
+    //}
 
 
 
@@ -561,5 +576,36 @@ public class Weapon : MonoBehaviour
         }
     }
 
+    public void ReloadFromInventory()
+    {
+        if (magazine == null || stats == null || stats.ammoType == null)
+            return;
+
+        if (magazine.IsFull)
+        {
+            Debug.Log("🟡 Cargador ya lleno");
+            return;
+        }
+
+        if (ammoInventory == null)
+        {
+            Debug.Log("❌ No hay inventario asignado al arma");
+            return;
+        }
+
+        int needed = magazine.maxBullets - magazine.currentBullets;
+
+        int taken = ammoInventory.RemoveAmmo(stats.ammoType, needed);
+
+        if (taken > 0)
+        {
+            magazine.AddBullets(taken);
+            Debug.Log($"🔄 Recargadas {taken} balas");
+        }
+        else
+        {
+            Debug.Log("🔴 No hay balas en el inventario");
+        }
+    }
 
 }

@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 8711086060796129389}
   - component: {fileID: 1339573225908058217}
   - component: {fileID: 1738296960053349466}
+  - component: {fileID: 5020257004308468083}
   m_Layer: 13
   m_Name: AK47
   m_TagString: Untagged
@@ -191,6 +192,7 @@ MonoBehaviour:
   firePoint: {fileID: 9068799539160850203}
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
+  magazine: {fileID: 5020257004308468083}
   metalTags:
   - Metal
   dirtTags:
@@ -207,6 +209,8 @@ MonoBehaviour:
   crosshairProfile: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
   currentAmmo: 30
   maxAmmo: 30
+  minAmmoOnPickup: 5
+  maxAmmoOnPickup: 30
   ammoInventory: {fileID: 0}
 --- !u!114 &750339304953804674
 MonoBehaviour:
@@ -370,6 +374,20 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5020257004308468083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3190426564994398644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d042f6e6814137443b8f2d880602a6ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentBullets: 0
+  maxBullets: 30
 --- !u!1 &3699121252197606731
 GameObject:
   m_ObjectHideFlags: 0

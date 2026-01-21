@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 191489042753873131}
   - component: {fileID: 5783091046433715182}
   - component: {fileID: 2524879747933190082}
+  - component: {fileID: 6787494192170779087}
   m_Layer: 13
   m_Name: PumpShotgun
   m_TagString: Untagged
@@ -190,6 +191,7 @@ MonoBehaviour:
   firePoint: {fileID: 7090167295284126093}
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
+  magazine: {fileID: 6787494192170779087}
   metalTags:
   - Metal
   dirtTags:
@@ -371,6 +373,20 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &6787494192170779087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5376526998047005301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d042f6e6814137443b8f2d880602a6ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentBullets: 0
+  maxBullets: 30
 --- !u!1 &6925551273715609402
 GameObject:
   m_ObjectHideFlags: 0

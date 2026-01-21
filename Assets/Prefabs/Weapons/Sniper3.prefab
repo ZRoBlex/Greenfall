@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 643887341500865830}
   - component: {fileID: 4303421382973076351}
   - component: {fileID: 2538947309685454325}
+  - component: {fileID: -5931439818923254374}
   m_Layer: 13
   m_Name: Sniper3
   m_TagString: Untagged
@@ -222,6 +223,7 @@ MonoBehaviour:
   firePoint: {fileID: 2427367388643605470}
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
+  magazine: {fileID: -5931439818923254374}
   metalTags:
   - Metal
   dirtTags:
@@ -406,3 +408,17 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-5931439818923254374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4512635321113299556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d042f6e6814137443b8f2d880602a6ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentBullets: 0
+  maxBullets: 30

@@ -96,5 +96,19 @@ public class AmmoInventory : MonoBehaviour
         }
     }
 
+    public int RemoveAmmo(AmmoTypeSO ammoType, int amount)
+    {
+        AmmoSlot slot = GetSlot(ammoType);
+        if (slot == null)
+            return 0;
+
+        int removed = Mathf.Min(slot.currentAmount, amount);
+        slot.currentAmount -= removed;
+
+        UpdateUI();
+        return removed;
+    }
+
+
 
 }

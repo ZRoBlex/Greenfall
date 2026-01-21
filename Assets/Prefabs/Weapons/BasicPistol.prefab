@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 7125722668929839443}
   - component: {fileID: 3272319239197192356}
   - component: {fileID: 2778379104788097578}
+  - component: {fileID: -4519761325770217165}
   m_Layer: 13
   m_Name: BasicPistol
   m_TagString: Untagged
@@ -105,6 +106,7 @@ MonoBehaviour:
   firePoint: {fileID: 8734321301334258635}
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
+  magazine: {fileID: -4519761325770217165}
   metalTags:
   - Metal
   dirtTags:
@@ -286,6 +288,20 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-4519761325770217165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1843873475995320653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d042f6e6814137443b8f2d880602a6ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentBullets: 0
+  maxBullets: 30
 --- !u!1 &2472224267989180579
 GameObject:
   m_ObjectHideFlags: 0
