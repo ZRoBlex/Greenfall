@@ -4041,6 +4041,7 @@ GameObject:
   - component: {fileID: 1936179960}
   - component: {fileID: 1936179959}
   - component: {fileID: 1936179958}
+  - component: {fileID: 1936179962}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -4134,6 +4135,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1936179962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936179957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d25d6fe3f97cb4a449bb881b48f8b3ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ammoPickupUIPrefab: {fileID: 5252178650969368100, guid: 3c31cf042e90dd5468488242d43f790d, type: 3}
+  uiParent: {fileID: 1936179961}
+  screenOffset: {x: 0, y: -150, z: 0}
 --- !u!1 &2060172914
 GameObject:
   m_ObjectHideFlags: 0
@@ -4734,7 +4750,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ammoSlots:
   - ammoType: {fileID: 11400000, guid: c294a371d2987e545b4caf46271fe76f, type: 2}
-    currentAmount: 0
+    currentAmount: 60
     maxAmount: 100
   - ammoType: {fileID: 11400000, guid: 9b55122d8c1a97f419080009adde4b48, type: 2}
     currentAmount: 30

@@ -18,4 +18,5 @@ public class AmmoTypeSO : ScriptableObject
     public string ammoName = "Default Ammo";
     public AmmoCategory category = AmmoCategory.Standard;
     public int defaultMaxStack = 100;
+    public Sprite icon; // 👈 opcional
 }

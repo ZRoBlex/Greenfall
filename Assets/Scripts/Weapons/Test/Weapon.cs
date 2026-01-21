@@ -533,6 +533,21 @@ public class Weapon : MonoBehaviour
         ammoInventory.AddAmmo(stats.ammoType, ammoToGive);
         currentAmmo -= ammoToGive; // lo que sobra queda en el arma
 
+        // 🔥 UI FEEDBACK
+        if (AmmoPickupUIManager.Instance)
+        {
+            Sprite icon = null;
+
+            // si luego tu ammoType tiene icon:
+            // icon = stats.ammoType.icon;
+
+            AmmoPickupUIManager.Instance.ShowAmmoPickup(
+                ammoToGive,
+                stats.ammoType.ammoName, // o .name
+                icon
+            );
+        }
+
         return ammoToGive;
     }
 
