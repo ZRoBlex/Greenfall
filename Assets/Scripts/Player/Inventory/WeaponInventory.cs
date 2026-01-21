@@ -23,6 +23,16 @@ public class WeaponInventory : MonoBehaviour
     [Header("Player Ammo Inventory")]
     [SerializeField] AmmoInventory playerAmmoInventory;
 
+    [Header("UI")]
+    [SerializeField] AmmoUIController ammoUI;
+
+    [Header("Default Weapon")]
+    [SerializeField] Weapon defaultWeaponPrefab;
+    [SerializeField] bool giveDefaultWeaponOnStart = true;
+
+
+
+
     InputAction reloadAction;
 
 
@@ -38,7 +48,15 @@ public class WeaponInventory : MonoBehaviour
             reloadAction = playerInput.actions["Reload"];
             reloadAction.performed += OnReload;
         }
+
+        if (giveDefaultWeaponOnStart && defaultWeaponPrefab != null)
+        {
+            SpawnAndAddDefaultWeapon();
+        }
+
+        //SpawnDefaultWeapon();
     }
+
 
     // -----------------------------
     public void AddWeapon(Weapon weapon)
@@ -94,6 +112,12 @@ public class WeaponInventory : MonoBehaviour
         {
             playerAmmoInventory.SetCurrentAmmoType(w.stats.ammoType);
         }
+
+        // 🔔 avisar al UI del arma actual
+        if (ammoUI != null)
+            ammoUI.SetCurrentWeapon(w);
+
+
     }
 
 
@@ -105,13 +129,23 @@ public class WeaponInventory : MonoBehaviour
         if (currentIndex < 0 || currentIndex >= slots.Count) return;
 
         Weapon w = slots[currentIndex];
+
+        // 🔒 BLOQUEAR DROP SI ES ARMA DEFAULT
+        if (w.isDefaultWeapon)
+        {
+            Debug.Log("🟡 No puedes soltar el arma default");
+            return;
+        }
+
+        // -------------------------
+        // flujo normal de drop
+        // -------------------------
+
         slots.RemoveAt(currentIndex);
 
         var aim = w.GetComponent<WeaponAimController>();
         if (aim)
             aim.ForceStopAim();
-
-
 
         PrepareAsDropped(w);
 
@@ -127,43 +161,32 @@ public class WeaponInventory : MonoBehaviour
 
         w.transform.rotation = Quaternion.Euler(randomEuler);
 
-
         Rigidbody rb = w.GetComponent<Rigidbody>();
         rb.AddForce(transform.forward * dropForce, ForceMode.Impulse);
 
         rb.AddTorque(
-    Random.insideUnitSphere * randomAngularForce,
-    ForceMode.Impulse
-);
+            Random.insideUnitSphere * randomAngularForce,
+            ForceMode.Impulse
+        );
 
+        // -------------------------
+        // re-equip
+        // -------------------------
 
         if (slots.Count == 0)
         {
             currentIndex = -1;
+
+            if (ammoUI != null)
+                ammoUI.SetCurrentWeapon(null);
+
             return;
         }
 
         currentIndex = Mathf.Clamp(currentIndex, 0, slots.Count - 1);
         Equip(currentIndex);
-
-        if (slots.Count == 0)
-        {
-            currentIndex = -1;
-
-            // 🔥 limpiar UI
-            if (playerAmmoInventory != null)
-            {
-                AmmoUIController ui =
-                    playerAmmoInventory.GetComponentInChildren<AmmoUIController>();
-
-                if (ui)
-                    ui.SetCurrentWeapon(null);
-            }
-
-            return;
-        }
-
     }
+
 
     // -----------------------------
     void ApplyWeaponOffset(Weapon weapon)
@@ -286,4 +309,68 @@ public class WeaponInventory : MonoBehaviour
 
         w.ReloadFromInventory();
     }
+
+    void SpawnDefaultWeapon()
+    {
+        if (defaultWeaponPrefab == null)
+        {
+            Debug.LogError("❌ No default weapon assigned in WeaponInventory");
+            return;
+        }
+
+        // Instanciar arma base
+        Weapon weaponInstance = Instantiate(defaultWeaponPrefab, weaponHolder);
+
+        // Reset local transform
+        weaponInstance.transform.localPosition = Vector3.zero;
+        weaponInstance.transform.localRotation = Quaternion.identity;
+
+        // Prepararla como equipada
+        PrepareAsEquipped(weaponInstance);
+
+        // Asignar inventario de munición
+        if (playerAmmoInventory != null)
+            weaponInstance.AssignAmmoInventory(playerAmmoInventory);
+
+        // ❗ NO transferimos ammo al inventario global
+        // porque esta arma es la base y debe quedarse con su cargador
+        // weaponInstance.TransferAmmoToInventory(); ❌
+
+        weaponInstance.gameObject.SetActive(false);
+
+        slots.Add(weaponInstance);
+        currentIndex = -1;
+
+        Equip(0);
+
+        // Marcarla como no dropeable
+        weaponInstance.isDefaultWeapon = true;
+    }
+
+    void SpawnAndAddDefaultWeapon()
+    {
+        Weapon w = Instantiate(defaultWeaponPrefab);
+
+        // 🔥 Forzar que sea default
+        w.isDefaultWeapon = true;
+
+        // 🔥 Forzar que se inicialice llena
+        if (w.magazine != null)
+        {
+            w.magazine.currentBullets = w.magazine.maxBullets;
+        }
+
+        // 🔥 Evitar que luego vuelva a randomizar
+        var weaponScript = w.GetComponent<Weapon>();
+        if (weaponScript != null)
+        {
+            weaponScript.SendMessage("MarkAmmoInitialized", SendMessageOptions.DontRequireReceiver);
+        }
+
+        // 👉 Meterla al inventario como cualquier otra
+        AddWeapon(w);
+
+        Debug.Log("🟢 Arma default instanciada y añadida al inventario");
+    }
+
 }

@@ -1,81 +1,63 @@
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class AmmoUIController : MonoBehaviour
 {
-    [Header("UI Refs")]
-    [SerializeField] Image weaponImage;
-    [SerializeField] TMP_Text ammoText;
+    [Header("UI References")]
+    [SerializeField] TextMeshProUGUI ammoText;
+    [SerializeField] Image ammoIconImage; // opcional
 
-    AmmoTypeSO currentAmmoType;
-    AmmoInventory ammoInventory;
+    private Weapon currentWeapon;
 
-    // ------------------------------------------------
-    public void Bind(AmmoInventory inventory)
-    {
-        ammoInventory = inventory;
-        Refresh();
-    }
-
-    // ------------------------------------------------
+    // 🔔 llamado por WeaponInventory al cambiar de arma
     public void SetCurrentWeapon(Weapon weapon)
     {
-        if (weapon == null || weapon.stats == null)
+        currentWeapon = weapon;
+        UpdateUI();
+    }
+
+    void Update()
+    {
+        // refresco barato por frame (seguro y simple)
+        if (currentWeapon != null)
+            UpdateUI();
+    }
+
+    void UpdateUI()
+    {
+        if (ammoText == null)
+            return;
+
+        if (currentWeapon == null || currentWeapon.magazine == null)
         {
-            currentAmmoType = null;
-            Clear();
+            ammoText.text = "-- / --";
+
+            if (ammoIconImage)
+                ammoIconImage.enabled = false;
+
             return;
         }
 
-        currentAmmoType = weapon.stats.ammoType;
+        int current = currentWeapon.magazine.currentBullets;
+        int max = currentWeapon.magazine.maxBullets;
 
-        // Imagen del arma (si existe)
-        if (weaponImage)
+        ammoText.text = $"{current} / {max}";
+
+        // imagen opcional (si luego existe)
+        if (ammoIconImage)
         {
-            if (weapon.stats.weaponIcon != null)
+            if (currentWeapon.stats != null &&
+                currentWeapon.stats.ammoType != null &&
+                currentWeapon.stats.ammoType.icon != null)
             {
-                weaponImage.sprite = weapon.stats.weaponIcon;
-                weaponImage.enabled = true;
+                ammoIconImage.sprite = currentWeapon.stats.ammoType.icon;
+                ammoIconImage.enabled = true;
             }
             else
             {
-                weaponImage.enabled = false;
+                ammoIconImage.enabled = false;
             }
         }
-
-
-        Refresh();
-    }
-
-    // ------------------------------------------------
-    public void Refresh()
-    {
-        if (ammoText == null) return;
-
-        if (ammoInventory == null || currentAmmoType == null)
-        {
-            ammoText.text = "--";
-            return;
-        }
-
-        AmmoSlot slot = ammoInventory.GetSlot(currentAmmoType);
-        if (slot == null)
-        {
-            ammoText.text = "0";
-            return;
-        }
-
-        ammoText.text = $"{slot.currentAmount}";
-    }
-
-    // ------------------------------------------------
-    void Clear()
-    {
-        if (weaponImage)
-            weaponImage.enabled = false;
-
-        if (ammoText)
-            ammoText.text = "--";
     }
 }

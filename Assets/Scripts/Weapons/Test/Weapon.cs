@@ -15,6 +15,10 @@ public class Weapon : MonoBehaviour
     [Header("Camera Recoil")]
     [SerializeField] CameraRecoilController cameraRecoil;
 
+    [Header("Default Weapon")]
+    public bool isDefaultWeapon = false;
+
+
     public WeaponMagazine magazine;
 
 
@@ -82,13 +86,27 @@ public class Weapon : MonoBehaviour
         if (DynamicCrosshair.Instance)
             DynamicCrosshair.Instance.SetProfile(crosshairProfile);
 
-        // 🔹 Generar munición aleatoria solo la primera vez que se activa el arma
-        if (!ammoInitialized)
+        if (magazine != null && !ammoInitialized)
         {
-            currentAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
+            if (isDefaultWeapon)
+            {
+                // 🔥 SOLO el arma base empieza llena
+                magazine.currentBullets = magazine.maxBullets;
+                Debug.Log($"🟢 {name} (default) inicia con cargador lleno");
+            }
+            else
+            {
+                // 🎲 Las demás siguen siendo aleatorias
+                int startAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
+                magazine.currentBullets = Mathf.Min(startAmmo, magazine.maxBullets);
+                Debug.Log($"🟡 {name} inicia con {magazine.currentBullets} balas");
+            }
+
             ammoInitialized = true;
         }
     }
+
+
 
 
 
@@ -606,6 +624,11 @@ public class Weapon : MonoBehaviour
         {
             Debug.Log("🔴 No hay balas en el inventario");
         }
+    }
+
+    public void MarkAmmoInitialized()
+    {
+        ammoInitialized = true;
     }
 
 }
