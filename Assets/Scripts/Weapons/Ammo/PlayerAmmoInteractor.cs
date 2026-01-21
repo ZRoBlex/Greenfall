@@ -100,7 +100,7 @@ public class PlayerAmmoInteractor : MonoBehaviour
 
         Debug.Log("💥 Interact ejecutado sobre: " + hoveredBox.name);
 
-        hoveredBox.Interact();
+        hoveredBox.Interact(this.gameObject);
         interactText.text = "";
         hoveredBox = null;
     }
