@@ -328,7 +328,6 @@ GameObject:
   - component: {fileID: 2687249738426710550}
   - component: {fileID: 5548497547250351738}
   - component: {fileID: 3458346225390306470}
-  - component: {fileID: 8556632345974550514}
   m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -477,6 +476,17 @@ MonoBehaviour:
   randomAngularForce: 0.1
   playerInput: {fileID: 7425685404970108599}
   playerContext: {fileID: 2855787289409667802}
+  playerAmmoInventory: {fileID: 1471498771686106519}
+  ammoUI: {fileID: 0}
+  defaultWeaponPrefab: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+  giveDefaultWeaponOnStart: 1
+  dropWarningText: {fileID: 0}
+  warningDuration: 2
+  fadeInTime: 0.15
+  fadeOutTime: 0.25
+  popScale: 1.25
+  popTime: 0.15
+  shakeAmount: 6
 --- !u!114 &2687249738426710550
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -528,24 +538,6 @@ MonoBehaviour:
   walkSpeed: 1.5
   sprintMultiplier: 1.6
   smoothSpeed: 8
---- !u!114 &8556632345974550514
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1856942166176024814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1883050816ebdc4e9e3fb62f48dca8f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  verticalKick: 2
-  horizontalKick: 1
-  kickSpeed: 25
-  returnSpeed: 18
-  scaleByFOV: 1
-  referenceFOV: 60
 --- !u!1 &1894517094133538007
 GameObject:
   m_ObjectHideFlags: 0
@@ -834,6 +826,10 @@ GameObject:
   - component: {fileID: 2901331910473677088}
   - component: {fileID: 2855787289409667802}
   - component: {fileID: 5351353275372135095}
+  - component: {fileID: 3516948539312001831}
+  - component: {fileID: 4355348936908640858}
+  - component: {fileID: 1471498771686106519}
+  - component: {fileID: 1402634791322434207}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -904,7 +900,7 @@ CharacterController:
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
-  m_SkinWidth: 0.08
+  m_SkinWidth: 0.0001
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1.1, z: 0}
 --- !u!114 &7425685404970108599
@@ -957,12 +953,25 @@ MonoBehaviour:
   upDownLookRange: 80
   characterController: {fileID: 4210575207224780052}
   mainCamera: {fileID: 6066487687454639800}
-  playerInputHandler: {fileID: 0}
+  playerInputHandler: {fileID: 3516948539312001831}
   playerAnimator: {fileID: 4228983600848612701}
   weaponSwayBinder: {fileID: 5351353275372135095}
   cameraVisualSway: {fileID: 3458346225390306470}
   aimMoveMultiplier: 0.4
   aimSensitivityMultiplier: 0.5
+  crosshair: {fileID: 0}
+  crouchHeight: 1
+  standingHeight: 2.1
+  crouchSpeedMultiplier: 0.5
+  crouchTransitionSpeed: 8
+  ceilingMask:
+    serializedVersion: 2
+    m_Bits: 2176
+  ceilingRayOffset: 0.05
+  cameraStandingHeight: 1.9
+  cameraCrouchHeight: 0
+  cameraCrouchSpeed: 8
+  defaultCrosshairProfile: {fileID: 11400000, guid: 0f8deabf89b08e94fb6864a13c339268, type: 2}
 --- !u!114 &6861638465220344482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -995,12 +1004,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactDistance: 4
-  enemyMask:
+  interactMask:
     serializedVersion: 2
     m_Bits: 512
   interactionText: {fileID: 0}
   cam: {fileID: 6066487687454639800}
-  input: {fileID: 7425685404970108599}
 --- !u!114 &2855787289409667802
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1032,6 +1040,89 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inventory: {fileID: 2802726418778950849}
   sway: {fileID: 0}
+--- !u!114 &3516948539312001831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3311313125817710361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ecff24de4d211f4587d60d6dd012a7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerControls: {fileID: -944628639613478452, guid: e26a3dc25e32cec49bc3797818765267, type: 3}
+  actionMapName: Player
+  movement: Movement
+  rotation: Rotation
+  Jump: Jump
+  Sprint: Sprint
+  Interact: Interact
+  Crouch: Crouch
+--- !u!114 &4355348936908640858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3311313125817710361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb756be157a2efc48b22bf420ca3ffb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactRange: 3
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 512
+--- !u!114 &1471498771686106519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3311313125817710361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e6b6581da69930489a61fb66b71aae6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ammoSlots:
+  - ammoType: {fileID: 11400000, guid: c294a371d2987e545b4caf46271fe76f, type: 2}
+    currentAmount: 60
+    maxAmount: 100
+  - ammoType: {fileID: 11400000, guid: 9b55122d8c1a97f419080009adde4b48, type: 2}
+    currentAmount: 30
+    maxAmount: 30
+  - ammoType: {fileID: 11400000, guid: 6d46d82f8ef91f3488cfb06eedd8097e, type: 2}
+    currentAmount: 15
+    maxAmount: 15
+  - ammoType: {fileID: 11400000, guid: eb20c3daed712264d978836062e802ce, type: 2}
+    currentAmount: 150
+    maxAmount: 200
+  ammoIconImage: {fileID: 0}
+  ammoCountText: {fileID: 0}
+--- !u!114 &1402634791322434207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3311313125817710361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d992083943550148a2c4fb675374cc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactDistance: 4
+  interactableTags:
+  - AmmoBox
+  interactText: {fileID: 0}
+  playerCamera: {fileID: 6066487687454639800}
+  playerInput: {fileID: 0}
+  actionMapName: Player
+  interactActionName: Interact
 --- !u!1 &3461654032919015010
 GameObject:
   m_ObjectHideFlags: 0
@@ -1506,11 +1597,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cam: {fileID: 6066487687454639800}
   range: 15
+  snapSurfaceMask:
+    serializedVersion: 2
+    m_Bits: 2048
+  verticalSnapHeight: 0
+  buildRayMask:
+    serializedVersion: 2
+    m_Bits: 6144
+  ignoreTriggers: 1
   selector: {fileID: 8212702742315600611}
   grid: {fileID: 2149252416935658808}
   preview: {fileID: 8307415937314261069}
   validator: {fileID: 6770003848683708564}
   occupancy: {fileID: 1423680891618070717}
+  rotationStep: 90
   previewSmoothSpeed: 25
 --- !u!114 &8307415937314261069
 MonoBehaviour:

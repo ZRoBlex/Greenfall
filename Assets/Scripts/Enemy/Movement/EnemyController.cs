@@ -172,10 +172,11 @@ public class EnemyController : MonoBehaviour
         {
             if (b == null) continue;
 
-            if (b == Motor || b == Perception)
+            if (b == Motor)
                 b.enabled = false;
             else
                 b.enabled = true;
+
         }
 
         if (enemyUIRoot != null)
