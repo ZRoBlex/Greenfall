@@ -62,23 +62,41 @@ public class ScaredState : State<EnemyController>
                 }
             }
 
-            Vector2Int myCell = o.Motor.localGrid.WorldToCell(o.transform.position);
-            o.Motor.SetDestination(myCell);
+            // Ya está a distancia segura → solo mirar al jugador y quedarse idle
+            if (isMovingAway)
+            {
+                isMovingAway = false;
+
+                if (o.AnimatorBridge != null)
+                {
+                    o.AnimatorBridge.SetBool("IsWalking", false);
+                    o.AnimatorBridge.SetBool("IsScared", true);
+                }
+            }
+
+            // ❌ NO vuelvas a setear destino aquí
             return;
+
         }
 
         // 🔹 Recalcular huida cada cierto tiempo
         repathTimer -= Time.deltaTime;
+        repathTimer -= Time.deltaTime;
+
+        // 🔹 Si no tiene path activo o llegó al final → fuerza huida inmediata
+        if (o.Motor.HasReachedDestination())
+        {
+            repathTimer = 0f;
+        }
+
         if (repathTimer <= 0f)
         {
-            // Empieza o continúa huyendo
             if (!isMovingAway)
             {
                 isMovingAway = true;
 
                 if (o.AnimatorBridge != null)
                 {
-                    // Deja de estar en animación de miedo quieto
                     o.AnimatorBridge.SetBool("IsScared", false);
                     o.AnimatorBridge.SetBool("IsWalking", true);
                 }
@@ -87,6 +105,7 @@ public class ScaredState : State<EnemyController>
             MoveAway(o, player);
             repathTimer = o.stats.scaredRepathTime;
         }
+
     }
 
     void LookAtPlayer(EnemyController o)

@@ -6810,7 +6810,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stats: {fileID: 11400000, guid: 9cb8592ac2b786a4284b0f8dd5c6f700, type: 2}
-  currentType: 1
+  currentType: 2
   currentTeam: 
 --- !u!114 &6876470412052677833
 MonoBehaviour:
