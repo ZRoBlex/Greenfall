@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 using Unity.Burst.Intrinsics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -30,6 +32,27 @@ public class WeaponInventory : MonoBehaviour
     [SerializeField] Weapon defaultWeaponPrefab;
     [SerializeField] bool giveDefaultWeaponOnStart = true;
 
+    [Header("Drop Warning UI")]
+    [SerializeField] TextMeshProUGUI dropWarningText;
+    [SerializeField] float warningDuration = 2f;
+
+    [Header("Fade Settings")]
+    [SerializeField] float fadeInTime = 0.15f;
+    [SerializeField] float fadeOutTime = 0.25f;
+
+    [Header("Scale Pop Settings")]
+    [SerializeField] float popScale = 1.25f;
+    [SerializeField] float popTime = 0.15f;
+
+    [Header("Shake Settings")]
+    [SerializeField] float shakeAmount = 6f;
+
+    Coroutine warningRoutine;
+
+
+    Vector3 warningOriginalScale;
+    Vector2 warningOriginalPos;
+    bool warningInitialized;
 
 
 
@@ -134,8 +157,12 @@ public class WeaponInventory : MonoBehaviour
         if (w.isDefaultWeapon)
         {
             Debug.Log("🟡 No puedes soltar el arma default");
+            ShowDropDefaultWarning();
             return;
         }
+
+
+
 
         // -------------------------
         // flujo normal de drop
@@ -372,5 +399,160 @@ public class WeaponInventory : MonoBehaviour
 
         Debug.Log("🟢 Arma default instanciada y añadida al inventario");
     }
+
+    void ShowDropDefaultWarning()
+    {
+        if (dropWarningText == null)
+            return;
+
+        RectTransform rect = dropWarningText.rectTransform;
+
+        if (!warningInitialized)
+        {
+            warningOriginalScale = rect.localScale;
+            warningOriginalPos = rect.anchoredPosition;
+            warningInitialized = true;
+        }
+
+        // 🔥 RESET VISUAL DURO
+        rect.localScale = warningOriginalScale;
+        rect.anchoredPosition = warningOriginalPos;
+
+        Color c = dropWarningText.color;
+        c.a = 0f;
+        dropWarningText.color = c;
+
+        dropWarningText.enabled = true;
+
+        if (warningRoutine != null)
+            StopCoroutine(warningRoutine);
+
+        warningRoutine = StartCoroutine(DropWarningRoutine());
+    }
+
+
+
+
+    IEnumerator DropWarningRoutine()
+    {
+        dropWarningText.text = "NO SE PUEDE DROPEAR EL ARMA DEFAULT";
+        dropWarningText.enabled = true;
+
+        RectTransform rect = dropWarningText.rectTransform;
+
+        Vector2 originalPos = warningOriginalPos;
+        Vector3 originalScale = warningOriginalScale;
+
+
+        Color baseColor = dropWarningText.color;
+        baseColor.a = 0f;
+        dropWarningText.color = baseColor;
+
+        // -------------------------
+        // 🔹 FADE IN + SCALE POP
+        // -------------------------
+        float t = 0f;
+
+        while (t < fadeInTime)
+        {
+            t += Time.deltaTime;
+            float p = t / fadeInTime;
+
+            float alpha = Mathf.Lerp(0f, 1f, p);
+            float scale = Mathf.Lerp(1f, popScale, p);
+
+            dropWarningText.color = new Color(
+                baseColor.r,
+                baseColor.g,
+                baseColor.b,
+                alpha
+            );
+
+            rect.localScale = originalScale * scale;
+
+            yield return null;
+        }
+
+        // volver a escala normal suavemente
+        t = 0f;
+        while (t < popTime)
+        {
+            t += Time.deltaTime;
+            float p = t / popTime;
+
+            float scale = Mathf.Lerp(popScale, 1f, p);
+            rect.localScale = originalScale * scale;
+
+            yield return null;
+        }
+
+        // -------------------------
+        // 🔹 HOLD + SHAKE
+        // -------------------------
+        float timer = 0f;
+
+        while (timer < warningDuration)
+        {
+            timer += Time.deltaTime;
+
+            float offsetX = Random.Range(-1f, 1f) * shakeAmount;
+            float offsetY = Random.Range(-1f, 1f) * shakeAmount;
+
+            rect.anchoredPosition = originalPos + new Vector2(offsetX, offsetY);
+
+            yield return null;
+        }
+
+        // restaurar posición
+        rect.anchoredPosition = originalPos;
+
+        // -------------------------
+        // 🔹 FADE OUT
+        // -------------------------
+        t = 0f;
+
+        Color currentColor = dropWarningText.color;
+
+        while (t < fadeOutTime)
+        {
+            t += Time.deltaTime;
+            float p = t / fadeOutTime;
+
+            float alpha = Mathf.Lerp(currentColor.a, 0f, p);
+
+            dropWarningText.color = new Color(
+                currentColor.r,
+                currentColor.g,
+                currentColor.b,
+                alpha
+            );
+
+            yield return null;
+        }
+
+        dropWarningText.enabled = false;
+        dropWarningText.text = "";
+        rect.localScale = originalScale;
+        dropWarningText.color = new Color(
+            baseColor.r,
+            baseColor.g,
+            baseColor.b,
+            1f
+        );
+
+        // 🔒 RESTORE HARD STATE
+        rect.localScale = warningOriginalScale;
+        rect.anchoredPosition = warningOriginalPos;
+
+        Color finalColor = dropWarningText.color;
+        finalColor.a = 1f;
+        dropWarningText.color = finalColor;
+
+        dropWarningText.enabled = false;
+        dropWarningText.text = "";
+
+    }
+
+
 
 }
