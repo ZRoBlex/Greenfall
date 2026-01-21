@@ -1774,6 +1774,7 @@ GameObject:
   - component: {fileID: 810775124}
   - component: {fileID: 810775123}
   - component: {fileID: 810775122}
+  - component: {fileID: 810775126}
   m_Layer: 13
   m_Name: ammoBox
   m_TagString: AmmoBox
@@ -1796,7 +1797,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1864,12 +1865,26 @@ Transform:
   m_GameObject: {fileID: 810775120}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -2, y: 0.6, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &810775126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 810775120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2926753d885adc43842e603428e3558, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minAmmo: 5
+  maxAmmo: 30
 --- !u!1 &816141843
 GameObject:
   m_ObjectHideFlags: 0
@@ -4713,36 +4728,14 @@ MonoBehaviour:
     currentAmount: 0
     maxAmount: 100
   - ammoType: {fileID: 11400000, guid: 9b55122d8c1a97f419080009adde4b48, type: 2}
-    currentAmount: 100
-    maxAmount: 100
+    currentAmount: 30
+    maxAmount: 30
   - ammoType: {fileID: 11400000, guid: 6d46d82f8ef91f3488cfb06eedd8097e, type: 2}
-    currentAmount: 100
-    maxAmount: 100
---- !u!114 &1039216098262650829 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2901331910473677088, guid: fc95a902743b2f244bc1085196210a31, type: 3}
-  m_PrefabInstance: {fileID: 4599216574446760533}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 435467281}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef7b250ed549c5845b531fd448958eed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1039216098262650830
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 435467281}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48c3b14a927345f45933912fed0c7adf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  interactRaycast: {fileID: 1039216098262650829}
-  inputHandler: {fileID: 1039216098262650821}
+    currentAmount: 15
+    maxAmount: 15
+  - ammoType: {fileID: 11400000, guid: eb20c3daed712264d978836062e802ce, type: 2}
+    currentAmount: 150
+    maxAmount: 200
 --- !u!114 &1039216098262650831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4756,10 +4749,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   interactDistance: 4
-  ammoLayer:
-    serializedVersion: 2
-    m_Bits: 16384
+  interactableTags:
+  - AmmoBox
   interactText: {fileID: 422969082}
+  playerCamera: {fileID: 992346207}
+  playerInput: {fileID: 0}
+  actionMapName: Player
+  interactActionName: Interact
 --- !u!4 &1131995436413937608
 Transform:
   m_ObjectHideFlags: 0
@@ -5550,7 +5546,7 @@ PrefabInstance:
       objectReference: {fileID: 693905709}
     - target: {fileID: 2901331910473677088, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: interactMask.m_Bits
-      value: 8704
+      value: 512
       objectReference: {fileID: 0}
     - target: {fileID: 3576829529139593658, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5612,6 +5608,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerObject
       objectReference: {fileID: 0}
+    - target: {fileID: 7469503220378386840, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 8556632345974550514, guid: fc95a902743b2f244bc1085196210a31, type: 3}
     m_RemovedGameObjects: []
@@ -5626,9 +5626,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1039216098262650822}
-    - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1039216098262650830}
     - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1039216098262650831}

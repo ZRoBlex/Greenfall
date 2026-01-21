@@ -117,6 +117,13 @@ MonoBehaviour:
   liveEditOffset: 0
   inventoryPositionOffset: {x: 0, y: 0.24, z: -0.12}
   inventoryRotationOffset: {x: 0, y: 90, z: 0}
+  crosshair: {fileID: 0}
+  crosshairProfile: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
+  currentAmmo: 30
+  maxAmmo: 30
+  minAmmoOnPickup: 5
+  maxAmmoOnPickup: 30
+  ammoInventory: {fileID: 0}
 --- !u!114 &1865294895803028117
 MonoBehaviour:
   m_ObjectHideFlags: 0

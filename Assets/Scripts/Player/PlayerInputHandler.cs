@@ -61,8 +61,13 @@ public class PlayerInputHandler : MonoBehaviour
         SprintAction.canceled += inputInfo => SprintTrigger = false;
 
         // Interact
-        interactAction.performed += _ => InteractTrigger = true;
-        interactAction.canceled += _ => InteractTrigger = false;
+        interactAction.performed += _ =>
+        {
+            InteractTrigger = true;
+            Debug.Log("🔥 Interact PERFORMED (Input System)");
+        };
+
+        //interactAction.canceled += _ => InteractTrigger = false;
 
         // 👇 CROUCH
         CrouchAction.performed += _ =>

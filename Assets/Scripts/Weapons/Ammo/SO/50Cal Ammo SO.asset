@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6938e01477202841a07b75bf8cc76b1, type: 3}
-  m_Name: Sniper
+  m_Name: 50Cal Ammo SO
   m_EditorClassIdentifier: 
-  ammoName: Default Ammo
-  category: 0
-  defaultMaxStack: 100
+  ammoName: '50Cal Ammo '
+  category: 4
+  defaultMaxStack: 15

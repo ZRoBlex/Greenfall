@@ -52,3 +52,7 @@ MonoBehaviour:
   defaultDecalPrefab: {fileID: -8784029089770287704, guid: fa076dbe797f74a4e90612524f3bd1a7, type: 3}
   inventoryPositionOffset: {x: -1, y: 0, z: 0}
   inventoryRotationOffset: {x: 0, y: 90, z: 0}
+  cameraRecoilVertical: 1.5
+  cameraRecoilHorizontal: 0.8
+  crosshairProfile: {fileID: 11400000, guid: 592feb1dd722ed943960f89957543077, type: 2}
+  ammoType: {fileID: 11400000, guid: c294a371d2987e545b4caf46271fe76f, type: 2}
