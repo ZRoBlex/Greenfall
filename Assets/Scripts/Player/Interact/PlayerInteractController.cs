@@ -18,7 +18,7 @@ public class PlayerInteractController : MonoBehaviour
             return;
 
         TryInteract();
-        inputHandler.ResetInteractTrigger(); // MUY IMPORTANTE
+        //inputHandler.ResetInteractTrigger(); // MUY IMPORTANTE
     }
 
     void TryInteract()

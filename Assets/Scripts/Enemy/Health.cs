@@ -44,14 +44,26 @@ public class Health : MonoBehaviour
 
     void Die()
     {
-        // 🔴 Si está en Sleep, no puede morir
         if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
             return;
 
         OnDeath?.Invoke();
 
-        // default: disable object; override if necessary
+        var sm = FindFirstObjectByType<EnemySpawnManager>();
+        if (sm != null && ec != null)
+            sm.NotifyEnemyDied(ec);
+
         gameObject.SetActive(false);
-        currentHealth = maxHealth;
     }
+
+
+
+    public void ResetHealth()
+    {
+        currentHealth = maxHealth;
+
+        // Opcional: podrías notificar algo si luego haces UI o efectos
+        // OnDamageTaken?.Invoke(0f);
+    }
+
 }

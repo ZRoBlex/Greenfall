@@ -20,6 +20,9 @@ public class NonLethalHealth : MonoBehaviour
     public event Action OnRecovered;
     public event Action<float> OnCaptureTaken;
 
+    public bool CanBeCaptured => ec == null || ec.CurrentType != CannibalType.Friendly;
+
+
     // Internos
     EnemyController ec;
     bool isStunned = false;
@@ -66,6 +69,10 @@ public class NonLethalHealth : MonoBehaviour
     /// </summary>
     public void ApplyCaptureTick(float amount)
     {
+
+        if (ec != null && ec.CurrentType == CannibalType.Friendly)
+            return;
+
         // 🔴 Ignorar captura si está en Sleep
         if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
             return;
@@ -137,4 +144,22 @@ public class NonLethalHealth : MonoBehaviour
     // Compatibilidad con scripts antiguos
     public void KnockOut() => BecomeStunned();
     public void Revive() => Recover();
+
+    public void ResetHealth()
+    {
+        currentCapture = 0f;
+        forceStunned = false;
+
+        // Si estaba stun cuando volvió al pool → forzar recuperación
+        if (isStunned)
+        {
+            isStunned = false;
+            stunTimer = 0f;
+
+            // Reactivar motor por seguridad
+            if (ec != null && ec.Motor != null)
+                ec.Motor.enabled = true;
+        }
+    }
+
 }

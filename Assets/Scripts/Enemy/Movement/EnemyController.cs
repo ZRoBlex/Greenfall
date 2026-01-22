@@ -314,4 +314,14 @@ public class EnemyController : MonoBehaviour
 
         FSM.Tick();
     }
+
+    void OnDisable()
+    {
+        if (EnemySpawner.Instance != null)
+            EnemySpawner.Instance.NotifyEnemyDespawned(this);
+
+        if (EnemyPool.Instance != null)
+            EnemyPool.Instance.Return(this);
+    }
+
 }

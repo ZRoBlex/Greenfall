@@ -1,71 +1,92 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(PlayerInputHandler))]
 public class PlayerCapture : MonoBehaviour
 {
-    [Header("Rango de Interacci�n")]
+    [Header("Rango de Interacción")]
     public float interactRange = 3f;
 
     [Header("Layer de Enemigos")]
     public LayerMask enemyLayer;
 
-    private PlayerInputHandler inputHandler;
-    private Transform playerTransform;
+    PlayerInputHandler input;
+    Transform playerTransform;
 
     void Awake()
     {
-        inputHandler = GetComponent<PlayerInputHandler>();
+        input = GetComponent<PlayerInputHandler>();
         playerTransform = transform;
-        inputHandler.enabled = true;
+
+        if (input == null)
+            Debug.LogError("[PlayerCapture] No se encontró PlayerInputHandler en el jugador.");
     }
 
     void Update()
     {
-        if (inputHandler.InteractTrigger)
+        if (input == null)
+            return;
+
+        if (input.InteractTrigger)
         {
             TryCapture();
-            inputHandler.ResetInteractTrigger(); // reset para evitar m�ltiples capturas en un solo frame
         }
     }
 
     void TryCapture()
     {
-        // Detectamos enemigos dentro del rango
-        Collider[] hits = Physics.OverlapSphere(playerTransform.position, interactRange, enemyLayer);
+        Collider[] hits = Physics.OverlapSphere(
+            playerTransform.position,
+            interactRange,
+            enemyLayer,
+            QueryTriggerInteraction.Ignore
+        );
 
-        foreach (Collider hit in hits)
+        for (int i = 0; i < hits.Length; i++)
         {
-            EnemyController enemy = hit.GetComponent<EnemyController>();
-            StunnedState stunnedState = enemy?.FSM.CurrentState as StunnedState;
+            EnemyController enemy = hits[i].GetComponent<EnemyController>();
+            if (enemy == null)
+                continue;
 
-            if (enemy != null && stunnedState != null)
-            {
-                // Cambiamos el tipo a Friendly
-                enemy.SetTypeAndTeam(CannibalType.Friendly, "Player");
+            // 🔹 Debe estar en StunnedState REAL
+            if (!(enemy.FSM.CurrentState is StunnedState))
+                continue;
 
-                // Reactivamos el motor en caso de que est� desactivado por stun
-                if (enemy.Motor != null)
-                    enemy.Motor.enabled = true;
-
-                // Opcional: asignar al jugador como target
-                if (enemy.Perception != null)
-                    enemy.Perception.SetExternalTarget(playerTransform);
-
-                // Cambiar inmediatamente al estado Following
-                enemy.FSM.ChangeState(new FollowingState());
-
-                Debug.Log($"[PlayerCapture] Enemigo {enemy.name} capturado y ahora es Friendly!");
-            }
+            CaptureEnemy(enemy);
+            break; // solo uno por pulsación
         }
     }
 
-    // Debug visual en editor
+    void CaptureEnemy(EnemyController enemy)
+    {
+        // 🔹 Resetear Non-Lethal Health
+        NonLethalHealth nl = enemy.GetComponent<NonLethalHealth>();
+        if (nl != null)
+        {
+            nl.ResetHealth();
+        }
+
+        // 🔹 Cambiar tipo y equipo
+        enemy.SetTypeAndTeam(CannibalType.Friendly, "Player");
+
+        // 🔹 Reactivar motor por seguridad
+        if (enemy.Motor != null && !enemy.Motor.enabled)
+            enemy.Motor.enabled = true;
+
+        // 🔹 Forzar target al jugador
+        if (enemy.Perception != null)
+            enemy.Perception.SetExternalTarget(playerTransform);
+
+        // 🔹 Cambiar inmediatamente al estado Following
+        enemy.FSM.ChangeState(new FollowingState());
+
+        Debug.Log($"[PlayerCapture] {enemy.name} capturado → ahora es Friendly");
+    }
+
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
-        if (playerTransform == null) return;
         Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(playerTransform.position, interactRange);
+        Gizmos.DrawWireSphere(transform.position, interactRange);
     }
 #endif
 }
