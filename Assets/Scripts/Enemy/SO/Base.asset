@@ -38,7 +38,7 @@ MonoBehaviour:
   obstacleCheckHeight: 1
   followMinDistance: 1
   followMaxDistance: 1
-  scaredSafeDistance: 6
+  scaredSafeDistance: 0
   scaredRepathTime: 1.5
   scaredSearchRadius: 8
   lookDuration: 10
@@ -49,7 +49,7 @@ MonoBehaviour:
   lookAnim: Look
   attackAnim: Attack
   stunnedAnim: Stunned
-  passiveSafeDistance: 3
+  passiveSafeDistance: 1.5
   cellSize: 1
   gridRadius: 15
   cellHeight: 5
