@@ -17,6 +17,8 @@ public class Weapon : MonoBehaviour
 
     [Header("Default Weapon")]
     public bool isDefaultWeapon = false;
+    [Header("UI")]
+    public Sprite icon;
 
 
     public WeaponMagazine magazine;

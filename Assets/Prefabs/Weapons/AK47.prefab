@@ -192,6 +192,7 @@ MonoBehaviour:
   firePoint: {fileID: 9068799539160850203}
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
+  isDefaultWeapon: 0
   magazine: {fileID: 5020257004308468083}
   metalTags:
   - Metal

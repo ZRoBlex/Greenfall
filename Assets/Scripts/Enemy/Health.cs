@@ -11,23 +11,32 @@ public class Health : MonoBehaviour
 
     EnemyController ec;
 
+    bool isDead = false; // 🔒 PROTECCIÓN CLAVE
+
     void Awake()
     {
         currentHealth = maxHealth;
         ec = GetComponent<EnemyController>();
+        isDead = false;
+    }
+
+    void OnEnable()
+    {
+        // 🔁 Reset cuando el enemigo vuelve del pool
+        currentHealth = maxHealth;
+        isDead = false;
     }
 
     public void ApplyDamage(float amount)
     {
         if (amount <= 0f) return;
+        if (isDead) return;
 
-        // 🔴 Si está en Sleep LOD → ignorar completamente el daño
         if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
             return;
 
         currentHealth -= amount;
 
-        // 🔒 Solo notificar si no está en Sleep
         OnDamageTaken?.Invoke(amount);
 
         if (currentHealth <= 0f)
@@ -36,6 +45,8 @@ public class Health : MonoBehaviour
 
     public void Heal(float amount)
     {
+        if (isDead) return;
+
         if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
             return;
 
@@ -44,26 +55,29 @@ public class Health : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return;   // 🔒 BLINDAJE TOTAL
+        isDead = true;
+
         if (ec != null && ec.CurrentLOD == EnemyLOD.Sleep)
             return;
 
+        // 🔔 Notificar muerte
         OnDeath?.Invoke();
 
         var sm = FindFirstObjectByType<EnemySpawnManager>();
         if (sm != null && ec != null)
             sm.NotifyEnemyDied(ec);
 
+        // 🎁 DROP (SOLO AQUÍ)
+        GetComponent<EnemyLootDrop>()?.DropLoot();
+
+        // ♻️ Volver al pool
         gameObject.SetActive(false);
     }
-
-
 
     public void ResetHealth()
     {
         currentHealth = maxHealth;
-
-        // Opcional: podrías notificar algo si luego haces UI o efectos
-        // OnDamageTaken?.Invoke(0f);
+        isDead = false;
     }
-
 }

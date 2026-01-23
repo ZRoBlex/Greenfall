@@ -109,6 +109,18 @@ public class AmmoInventory : MonoBehaviour
         return removed;
     }
 
+    public Dictionary<AmmoTypeSO, int> GetAllAmmo()
+    {
+        Dictionary<AmmoTypeSO, int> result = new();
+
+        foreach (var slot in ammoSlots)
+        {
+            if (slot.ammoType == null) continue;
+            result.Add(slot.ammoType, slot.currentAmount);
+        }
+
+        return result;
+    }
 
 
 }

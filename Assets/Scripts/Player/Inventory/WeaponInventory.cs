@@ -107,6 +107,7 @@ public class WeaponInventory : MonoBehaviour
 
         if (currentIndex == -1)
             Equip(0);
+
     }
 
     // -----------------------------
@@ -139,7 +140,6 @@ public class WeaponInventory : MonoBehaviour
         // 🔔 avisar al UI del arma actual
         if (ammoUI != null)
             ammoUI.SetCurrentWeapon(w);
-
 
     }
 
@@ -552,7 +552,5 @@ public class WeaponInventory : MonoBehaviour
         dropWarningText.text = "";
 
     }
-
-
 
 }
