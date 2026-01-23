@@ -47,6 +47,15 @@ public class WeaponInventory : MonoBehaviour
     [Header("Shake Settings")]
     [SerializeField] float shakeAmount = 6f;
 
+
+    [Header("Inventory UI")]
+    [SerializeField] WeaponInventoryUI inventoryUI;
+
+    float lastScrollTime;
+    [SerializeField] float scrollCooldown = 0.1f;
+
+    InputAction nextSlotAction;
+
     Coroutine warningRoutine;
 
 
@@ -68,17 +77,26 @@ public class WeaponInventory : MonoBehaviour
     {
         if (playerInput != null)
         {
+            // Reload
             reloadAction = playerInput.actions["Reload"];
             reloadAction.performed += OnReload;
+
+            // Inventory / NextSlot
+            var inventoryMap = playerInput.actions.FindActionMap("Inventory", true);
+            nextSlotAction = inventoryMap.FindAction("NextSlot", true);
+
+            nextSlotAction.performed += OnNextSlot;
+            nextSlotAction.Enable();
         }
 
         if (giveDefaultWeaponOnStart && defaultWeaponPrefab != null)
         {
             SpawnAndAddDefaultWeapon();
         }
-
-        //SpawnDefaultWeapon();
     }
+
+
+
 
 
     // -----------------------------
@@ -108,6 +126,11 @@ public class WeaponInventory : MonoBehaviour
         if (currentIndex == -1)
             Equip(0);
 
+        if (inventoryUI != null)
+            inventoryUI.Refresh();
+
+
+
     }
 
     // -----------------------------
@@ -131,17 +154,18 @@ public class WeaponInventory : MonoBehaviour
 
         w.gameObject.SetActive(true);
 
-        // 🔔 AVISAR AL INVENTARIO DE MUNICIÓN
         if (playerAmmoInventory != null && w.stats != null)
-        {
             playerAmmoInventory.SetCurrentAmmoType(w.stats.ammoType);
-        }
 
-        // 🔔 avisar al UI del arma actual
         if (ammoUI != null)
             ammoUI.SetCurrentWeapon(w);
 
+        // 🔥 ESTA ES LA LÍNEA QUE TE FALTA
+        if (inventoryUI != null)
+            inventoryUI.Refresh();
+
     }
+
 
 
 
@@ -162,6 +186,7 @@ public class WeaponInventory : MonoBehaviour
         }
 
 
+        inventoryUI?.Refresh();
 
 
         // -------------------------
@@ -273,7 +298,7 @@ public class WeaponInventory : MonoBehaviour
         if (w.TryGetComponent(out AudioSource source))
             source.enabled = false;
 
-        if(w.TryGetComponent(out WeaponAimController aim))
+        if (w.TryGetComponent(out WeaponAimController aim))
             aim.enabled = false;
 
         //if (w.TryGetComponent(out WeaponSwayController sway))
@@ -326,7 +351,12 @@ public class WeaponInventory : MonoBehaviour
     {
         if (reloadAction != null)
             reloadAction.performed -= OnReload;
+
+        if (nextSlotAction != null)
+            nextSlotAction.performed -= OnNextSlot;
     }
+
+
 
     void OnReload(InputAction.CallbackContext ctx)
     {
@@ -551,6 +581,129 @@ public class WeaponInventory : MonoBehaviour
         dropWarningText.enabled = false;
         dropWarningText.text = "";
 
+    }
+
+    // -----------------------------
+    // UI READ-ONLY
+    // -----------------------------
+    public int CurrentCount => slots.Count;
+    public int CurrentIndex => currentIndex;
+
+    public Weapon GetWeaponAtUI(int index)
+    {
+        if (index < 0 || index >= slots.Count)
+            return null;
+
+        return slots[index];
+    }
+
+    public void PickupWeapon(Weapon newWeapon)
+    {
+        if (newWeapon == null)
+            return;
+
+        // 🔒 Si el inventario NO está lleno → flujo normal
+        if (!IsFull)
+        {
+            AddWeapon(newWeapon);
+            Equip(slots.Count - 1);
+            return;
+        }
+
+        // 🔥 INVENTARIO LLENO → HACER SWAP
+        SwapCurrentWeapon(newWeapon);
+    }
+
+    void SwapCurrentWeapon(Weapon newWeapon)
+    {
+        if (currentIndex < 0 || currentIndex >= slots.Count)
+            return;
+
+        Weapon oldWeapon = slots[currentIndex];
+
+        // ❌ NO permitir swap si el arma actual es default
+        if (oldWeapon.isDefaultWeapon)
+        {
+            Debug.Log("🟡 No puedes reemplazar el arma default");
+            ShowDropDefaultWarning();
+            return;
+        }
+
+        // -------------------------
+        // SOLTAR ARMA ACTUAL
+        // -------------------------
+        slots.RemoveAt(currentIndex);
+
+        var aim = oldWeapon.GetComponent<WeaponAimController>();
+        if (aim)
+            aim.ForceStopAim();
+
+        PrepareAsDropped(oldWeapon);
+
+        oldWeapon.transform.SetParent(null);
+        oldWeapon.transform.position = transform.position + transform.forward;
+
+        oldWeapon.transform.rotation = Quaternion.Euler(
+            Random.Range(randomRotationMin.x, randomRotationMax.x),
+            Random.Range(randomRotationMin.y, randomRotationMax.y),
+            Random.Range(randomRotationMin.z, randomRotationMax.z)
+        );
+
+        Rigidbody rb = oldWeapon.GetComponent<Rigidbody>();
+        if (rb)
+        {
+            rb.AddForce(transform.forward * dropForce, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * randomAngularForce, ForceMode.Impulse);
+        }
+
+        // -------------------------
+        // AÑADIR NUEVA ARMA
+        // -------------------------
+        PrepareAsEquipped(newWeapon);
+
+        if (playerAmmoInventory != null)
+            newWeapon.AssignAmmoInventory(playerAmmoInventory);
+
+        newWeapon.TransferAmmoToInventory();
+
+        newWeapon.transform.SetParent(weaponHolder);
+        ApplyWeaponOffset(newWeapon);
+
+        newWeapon.gameObject.SetActive(false);
+
+        // 👉 insertar en el MISMO slot
+        slots.Insert(currentIndex, newWeapon);
+
+        // -------------------------
+        // EQUIPAR
+        // -------------------------
+        Equip(currentIndex);
+
+        inventoryUI?.Refresh();
+
+        Debug.Log($"🔁 Swap: {oldWeapon.name} → {newWeapon.name}");
+    }
+
+
+    void OnNextSlot(InputAction.CallbackContext ctx)
+    {
+        if (Time.time - lastScrollTime < scrollCooldown)
+            return;
+
+        Vector2 scroll = ctx.ReadValue<Vector2>();
+
+        if (scroll.y < 0f)
+        {
+            EquipNext();
+            lastScrollTime = Time.time;
+        }
+        else if (scroll.y > 0f)
+        {
+            EquipPrevious();
+            lastScrollTime = Time.time;
+        }
+
+        Debug.Log("SCROLL: " + scroll);
     }
 
 }

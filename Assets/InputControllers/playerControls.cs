@@ -346,7 +346,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""name"": ""NextSlot"",
                     ""type"": ""Value"",
                     ""id"": ""18c5e37e-19fc-4fdf-8248-0a55e755fa4a"",
-                    ""expectedControlType"": ""Axis"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -355,7 +355,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""name"": ""PrevSlot"",
                     ""type"": ""Value"",
                     ""id"": ""cc49c22c-2751-43f8-aa00-1dc2fdbfb27b"",
-                    ""expectedControlType"": ""Axis"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -454,7 +454,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""16ce5257-8050-4a0a-82e4-e1d68cc64f38"",
-                    ""path"": ""<Mouse>/scroll/up"",
+                    ""path"": ""<Mouse>/scroll"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

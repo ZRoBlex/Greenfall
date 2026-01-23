@@ -193,6 +193,7 @@ MonoBehaviour:
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
   isDefaultWeapon: 0
+  icon: {fileID: 21300016, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
   magazine: {fileID: 5020257004308468083}
   metalTags:
   - Metal

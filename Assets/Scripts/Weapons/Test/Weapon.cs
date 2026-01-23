@@ -119,8 +119,14 @@ public class Weapon : MonoBehaviour
         if (!cameraRecoil && shootCamera)
             cameraRecoil = shootCamera.GetComponentInParent<CameraRecoilController>();
         // Instanciar UNA SOLA VEZ el muzzle flash
-        if (stats.muzzleFlash && firePoint)
+        if (stats.muzzleFlash != null && firePoint != null)
         {
+            if (stats.muzzleFlash.GetComponent<ParticleSystem>() == null)
+            {
+                Debug.LogError("❌ MuzzleFlash prefab no tiene ParticleSystem válido");
+                return;
+            }
+
             muzzleFlashInstance = Instantiate(
                 stats.muzzleFlash,
                 firePoint.position,
@@ -130,6 +136,7 @@ public class Weapon : MonoBehaviour
 
             muzzleFlashInstance.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
+
     }
 
     void Update()

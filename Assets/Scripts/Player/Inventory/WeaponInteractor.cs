@@ -21,14 +21,14 @@ public class WeaponInteractor : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, pickupDistance, weaponLayer))
         {
             Weapon w = hit.collider.GetComponentInParent<Weapon>();
-            if (w && !inventory.IsFull)
+            if (w)
                 hoveredWeapon = w;
         }
 
         interactText.gameObject.SetActive(hoveredWeapon != null);
     }
 
-    public bool CanPickup => hoveredWeapon != null && !inventory.IsFull;
+    public bool CanPickup => hoveredWeapon != null;
 
     public void Pickup()
     {
@@ -38,6 +38,8 @@ public class WeaponInteractor : MonoBehaviour
         hoveredWeapon = null;
         interactText.gameObject.SetActive(false);
 
-        inventory.AddWeapon(w);
+        //inventory.AddWeapon(w);
+        inventory.PickupWeapon(w);
+
     }
 }
