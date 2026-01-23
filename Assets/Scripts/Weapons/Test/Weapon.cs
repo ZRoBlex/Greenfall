@@ -23,6 +23,9 @@ public class Weapon : MonoBehaviour
 
     public WeaponMagazine magazine;
 
+    [Header("UI")]
+    public string weaponName;
+
 
 
     [Header("Damage Systems")]

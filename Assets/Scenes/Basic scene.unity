@@ -553,6 +553,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1736537481}
     - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+      propertyPath: weaponName
+      value: ak letal
+      objectReference: {fileID: 0}
+    - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
       propertyPath: cameraRecoil
       value: 
       objectReference: {fileID: 30969741}
@@ -3722,9 +3726,17 @@ PrefabInstance:
       value: AK47_1
       objectReference: {fileID: 0}
     - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+      propertyPath: stats
+      value: 
+      objectReference: {fileID: 11400000, guid: 5361fbcabc3db2f4abe14da4a6afe51a, type: 2}
+    - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
       propertyPath: crosshair
       value: 
       objectReference: {fileID: 1736537481}
+    - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+      propertyPath: weaponName
+      value: ak No letal
+      objectReference: {fileID: 0}
     - target: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
       propertyPath: cameraRecoil
       value: 

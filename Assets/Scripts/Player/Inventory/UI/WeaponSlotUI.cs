@@ -3,40 +3,59 @@ using UnityEngine.UI;
 
 public class WeaponSlotUI : MonoBehaviour
 {
+    [Header("Icon")]
     [SerializeField] Image icon;
-    [SerializeField] GameObject selectedFrame;
 
-    // 🔹 Método que usa el inventario UI
-    public void Set(Weapon weapon, bool selected)
+    [Header("Lift Settings")]
+    [SerializeField] float liftPixels = 15f;
+    [SerializeField] float liftSpeed = 10f;
+
+    Vector2 basePos;
+    bool isSelected;
+    bool initialized;
+
+    void Update()
     {
-        SetWeapon(weapon, selected);
+        if (!initialized || icon == null || !icon.enabled)
+            return;
+
+        Vector2 targetPos = basePos +
+            (isSelected ? Vector2.up * liftPixels : Vector2.zero);
+
+        icon.rectTransform.anchoredPosition = Vector2.Lerp(
+            icon.rectTransform.anchoredPosition,
+            targetPos,
+            Time.deltaTime * liftSpeed
+        );
     }
 
-    // 🔹 Método para limpiar el slot
+    // -----------------------------
+    public void Set(Weapon weapon, bool selected)
+    {
+        if (weapon == null || weapon.icon == null)
+        {
+            Clear();
+            return;
+        }
+
+        icon.enabled = true;
+        icon.sprite = weapon.icon;
+
+        isSelected = selected;
+
+        // Guardamos la posición REAL solo una vez
+        if (!initialized)
+        {
+            basePos = icon.rectTransform.anchoredPosition;
+            initialized = true;
+        }
+    }
+
     public void Clear()
     {
         if (icon != null)
             icon.enabled = false;
 
-        if (selectedFrame != null)
-            selectedFrame.SetActive(false);
-    }
-
-    // 🔹 Tu método original (lo dejamos)
-    public void SetWeapon(Weapon weapon, bool selected)
-    {
-        if (weapon == null || weapon.icon == null)
-        {
-            if (icon != null)
-                icon.enabled = false;
-        }
-        else
-        {
-            icon.enabled = true;
-            icon.sprite = weapon.icon;
-        }
-
-        if (selectedFrame != null)
-            selectedFrame.SetActive(selected);
+        isSelected = false;
     }
 }
