@@ -4955,7 +4955,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '99/99
+  m_text: '999/999
 
 '
   m_isRightToLeft: 0
@@ -5633,6 +5633,10 @@ PrefabInstance:
       propertyPath: crosshair
       value: 
       objectReference: {fileID: 1736537481}
+    - target: {fileID: 2687249738426710550, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: playerInput
+      value: 
+      objectReference: {fileID: 1039216098262650837}
     - target: {fileID: 2687249738426710550, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: interactText
       value: 
