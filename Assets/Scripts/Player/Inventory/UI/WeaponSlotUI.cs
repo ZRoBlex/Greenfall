@@ -6,11 +6,15 @@ public class WeaponSlotUI : MonoBehaviour
     [Header("Icon")]
     [SerializeField] Image icon;
 
+    [Header("Background")]
+    [SerializeField] Image background; // ← NUEVO: la imagen de fondo
+
     [Header("Lift Settings")]
     [SerializeField] float liftPixels = 15f;
     [SerializeField] float liftSpeed = 10f;
 
-    Vector2 basePos;
+    Vector2 basePosIcon;
+    Vector2 basePosBg; // ← NUEVO: posición base del fondo
     bool isSelected;
     bool initialized;
 
@@ -19,14 +23,24 @@ public class WeaponSlotUI : MonoBehaviour
         if (!initialized || icon == null || !icon.enabled)
             return;
 
-        Vector2 targetPos = basePos +
-            (isSelected ? Vector2.up * liftPixels : Vector2.zero);
-
+        Vector2 targetPos = basePosIcon + (isSelected ? Vector2.up * liftPixels : Vector2.zero);
         icon.rectTransform.anchoredPosition = Vector2.Lerp(
             icon.rectTransform.anchoredPosition,
             targetPos,
             Time.deltaTime * liftSpeed
         );
+
+        // ----------------------------
+        // MOVEMOS EL FONDO JUNTOS
+        if (background != null)
+        {
+            Vector2 targetBgPos = basePosBg + (isSelected ? Vector2.up * liftPixels : Vector2.zero);
+            background.rectTransform.anchoredPosition = Vector2.Lerp(
+                background.rectTransform.anchoredPosition,
+                targetBgPos,
+                Time.deltaTime * liftSpeed
+            );
+        }
     }
 
     // -----------------------------
@@ -46,7 +60,11 @@ public class WeaponSlotUI : MonoBehaviour
         // Guardamos la posición REAL solo una vez
         if (!initialized)
         {
-            basePos = icon.rectTransform.anchoredPosition;
+            basePosIcon = icon.rectTransform.anchoredPosition;
+
+            if (background != null)
+                basePosBg = background.rectTransform.anchoredPosition;
+
             initialized = true;
         }
     }
