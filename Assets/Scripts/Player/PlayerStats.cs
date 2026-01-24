@@ -29,10 +29,26 @@ public class PlayerStats : MonoBehaviour
 
     private float energyRecoverTimer = 0f; // ⏱️ contador interno
 
+
+    [Header("Materials")]
+    public float maxMaterials = 100f;
+
+    private float currentMaterials;
+
+    [Header("UI References")]
+    public UIResource materialsUI;
+    public UIMaterialsPanel materialsPanel;
+
+
     void Start()
     {
         currentHunger = maxHunger;
         currentEnergy = maxEnergy;
+
+        currentMaterials = 0f; // normalmente empiezas sin materiales
+
+        materialsPanel?.SetMaterialAmount("Generic", currentMaterials, maxMaterials);
+
 
         hungerUI?.SetAmount(currentHunger, maxHunger);
         energyUI?.SetAmount(currentEnergy, maxEnergy);
@@ -134,5 +150,29 @@ public class PlayerStats : MonoBehaviour
 
         energyUI?.SetAmount(currentEnergy, maxEnergy);
     }
+
+    // 🧱 Agregar materiales desde pickups, crafting, recompensas, etc.
+    public void AddMaterials(float amount)
+    {
+        currentMaterials += amount;
+        currentMaterials = Mathf.Clamp(currentMaterials, 0, maxMaterials);
+
+        materialsPanel?.SetMaterialAmount("Generic", currentMaterials, maxMaterials);
+    }
+
+
+    // 🔨 Consumir materiales (crafting, construir, etc.)
+    public bool ConsumeMaterials(float amount)
+    {
+        if (currentMaterials < amount)
+            return false;
+
+        currentMaterials -= amount;
+        currentMaterials = Mathf.Clamp(currentMaterials, 0, maxMaterials);
+
+        materialsUI?.SetAmount(currentMaterials, maxMaterials);
+        return true;
+    }
+
 
 }
