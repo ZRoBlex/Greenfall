@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Warrior
   m_EditorClassIdentifier: 
   professionType: 0
-  displayName: New Profession
+  displayName: Warrior
   modelPrefab: {fileID: 0}
-  animatorController: {fileID: 0}
+  animatorController: {fileID: 9100000, guid: c3bba8254c64a3f44b0f094c523935c4, type: 2}
   attackAnim: Attack
   walkAnim: Walk
   idleAnim: Idle

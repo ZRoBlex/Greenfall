@@ -6749,6 +6749,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2121713099}
     m_Modifications:
+    - target: {fileID: 144183429619597909, guid: 2743d79568fafed4f98ab75609c77586, type: 3}
+      propertyPath: typeProbabilities.Array.data[0].weight
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 144183429619597909, guid: 2743d79568fafed4f98ab75609c77586, type: 3}
+      propertyPath: typeProbabilities.Array.data[1].weight
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 144183429619597909, guid: 2743d79568fafed4f98ab75609c77586, type: 3}
+      propertyPath: typeProbabilities.Array.data[2].weight
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 144183429619597909, guid: 2743d79568fafed4f98ab75609c77586, type: 3}
+      propertyPath: typeProbabilities.Array.data[3].weight
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 166456123365972604, guid: 2743d79568fafed4f98ab75609c77586, type: 3}
       propertyPath: m_Name
       value: Idle

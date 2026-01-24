@@ -25,6 +25,29 @@ public class EnemyController : MonoBehaviour
     public CannibalType CurrentType => currentType;
     public string CurrentTeam => currentTeam;
 
+    [Header("Random Type On Spawn")]
+    [SerializeField] bool randomizeTypeOnSpawn = true;
+
+    [SerializeField]
+    List<CannibalTypeProbability> typeProbabilities =
+        new List<CannibalTypeProbability>()
+        {
+        new CannibalTypeProbability { type = CannibalType.Aggressive, weight = 40f },
+        new CannibalTypeProbability { type = CannibalType.Passive,    weight = 30f },
+        new CannibalTypeProbability { type = CannibalType.Neutral,    weight = 20f },
+        new CannibalTypeProbability { type = CannibalType.Friendly,   weight = 10f },
+        };
+
+
+    [System.Serializable]
+    public class CannibalTypeProbability
+    {
+        public CannibalType type;
+        [Range(0f, 100f)]
+        public float weight;
+    }
+
+
     // -----------------------
     // Componentes internos
     // -----------------------
@@ -77,15 +100,39 @@ public class EnemyController : MonoBehaviour
         // 🔥 Registrar TODOS los scripts que deben apagarse en Sleep
         CacheControlledBehaviours();
     }
+    void OnEnable()
+    {
+        if (randomizeTypeOnSpawn)
+        {
+            CannibalType randomType = GetRandomTypeByWeight();
+            SetType(randomType);
+        }
+        else
+        {
+            ApplyTypeBehavior();
+        }
+
+        //ResetForSpawn();
+    }
+
+    void OnDisable()
+    {
+        if (EnemySpawner.Instance != null)
+            EnemySpawner.Instance.NotifyEnemyDespawned(this);
+
+        if (EnemyPool.Instance != null)
+            EnemyPool.Instance.Return(this);
+    }
+
+
 
     void Start()
     {
-        ApplyTypeBehavior();
-
-        // 🔹 Registrarse en el EnemyManager
         if (EnemyManager.Instance != null)
             EnemyManager.Instance.Register(this);
     }
+
+
 
     void Update()
     {
@@ -335,13 +382,66 @@ public class EnemyController : MonoBehaviour
         FSM.Tick();
     }
 
-    void OnDisable()
-    {
-        if (EnemySpawner.Instance != null)
-            EnemySpawner.Instance.NotifyEnemyDespawned(this);
+    //void OnDisable()
+    //{
+    //    if (EnemySpawner.Instance != null)
+    //        EnemySpawner.Instance.NotifyEnemyDespawned(this);
 
-        if (EnemyPool.Instance != null)
-            EnemyPool.Instance.Return(this);
+    //    if (EnemyPool.Instance != null)
+    //        EnemyPool.Instance.Return(this);
+    //}
+
+    CannibalType GetRandomTypeByWeight()
+    {
+        if (typeProbabilities == null || typeProbabilities.Count == 0)
+        {
+            Debug.LogWarning("[EnemyController] No hay probabilidades configuradas, usando Aggressive");
+            return CannibalType.Aggressive;
+        }
+
+        float totalWeight = 0f;
+
+        foreach (var entry in typeProbabilities)
+        {
+            if (entry.weight > 0f)
+                totalWeight += entry.weight;
+        }
+
+        if (totalWeight <= 0f)
+        {
+            Debug.LogWarning("[EnemyController] Pesos inválidos, usando Aggressive");
+            return CannibalType.Aggressive;
+        }
+
+        float roll = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+
+        foreach (var entry in typeProbabilities)
+        {
+            if (entry.weight <= 0f)
+                continue;
+
+            cumulative += entry.weight;
+            if (roll <= cumulative)
+                return entry.type;
+        }
+
+        // fallback ultra defensivo
+        return typeProbabilities[0].type;
     }
+
+    //void ResetForSpawn()
+    //{
+    //    attackCooldownTimer = 0f;
+
+    //    if (Health != null)
+    //        Health.ResetState(); // si tienes algo así
+
+    //    if (Perception != null)
+    //        Perception.ClearTarget(); // si tienes algo así
+
+    //    if (FSM != null)
+    //        FSM.ChangeState(new WanderState());
+    //}
 
 }
