@@ -223,14 +223,17 @@ MonoBehaviour:
   firePoint: {fileID: 2427367388643605470}
   shootCamera: {fileID: 0}
   cameraRecoil: {fileID: 0}
+  isDefaultWeapon: 0
+  icon: {fileID: 21300000, guid: d78869d5023047a468bb47e9b04de6d6, type: 3}
   magazine: {fileID: -5931439818923254374}
+  weaponName: sniper
   metalTags:
   - Metal
   dirtTags:
   - Dirt
   fleshTags:
   - Enemy
-  weaponAudio: {fileID: 0}
+  weaponAudio: {fileID: 1182407265306034592}
   distanceScalerSO: {fileID: 11400000, guid: cc3c27fcc5977e54e8c159b25fc80cd1, type: 2}
   overrideInventoryOffset: 0
   liveEditOffset: 0
@@ -238,10 +241,10 @@ MonoBehaviour:
   inventoryRotationOffset: {x: 0, y: 0, z: 0}
   crosshair: {fileID: 0}
   crosshairProfile: {fileID: 11400000, guid: e46e4fb4aee8da145b5258c54e7f5a83, type: 2}
-  currentAmmo: 30
-  maxAmmo: 30
+  currentAmmo: 15
+  maxAmmo: 15
   minAmmoOnPickup: 5
-  maxAmmoOnPickup: 30
+  maxAmmoOnPickup: 15
   ammoInventory: {fileID: 0}
 --- !u!114 &1182407265306034592
 MonoBehaviour:

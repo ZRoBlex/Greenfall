@@ -217,6 +217,7 @@ MonoBehaviour:
   stats: {fileID: 11400000, guid: 9cb8592ac2b786a4284b0f8dd5c6f700, type: 2}
   currentType: 0
   currentTeam: 
+  attackCooldownTimer: 0
 --- !u!114 &5789923454959943820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,7 +250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a4fc82bd517a684ca29da1fef069538, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 20
+  maxHealth: 100
   currentHealth: 0
 --- !u!114 &6322730724934558467
 MonoBehaviour:
@@ -393,10 +394,22 @@ MonoBehaviour:
     minAmount: 1
     maxAmount: 1
   ammoLoot:
-  - prefab: {fileID: 2371713473018072755, guid: aefb869c4a542794ca33287258c2d948, type: 3}
-    dropChance: 100
-    minAmount: 1
+  - prefab: {fileID: 8044657172167857094, guid: 9461729b46785d54a9c234d163493de4, type: 3}
+    dropChance: 25
+    minAmount: 2
     maxAmount: 5
+  - prefab: {fileID: 7945604543759123530, guid: 14244bed7db6b4f4e958ee8c60c78e99, type: 3}
+    dropChance: 25
+    minAmount: 0
+    maxAmount: 1
+  - prefab: {fileID: 7945604543759123530, guid: 71ae3dd6ef71de745898025ddbe1290d, type: 3}
+    dropChance: 25
+    minAmount: 0
+    maxAmount: 2
+  - prefab: {fileID: 604173391226047129, guid: 8123c5488aeaaf444b960311d3035dbb, type: 3}
+    dropChance: 25
+    minAmount: 0
+    maxAmount: 3
   extraLoot: []
   dropPoint: {fileID: 8582269155183573117}
   baseOffset: {x: 0, y: 1, z: 0}

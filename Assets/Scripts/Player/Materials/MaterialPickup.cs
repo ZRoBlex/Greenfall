@@ -9,7 +9,7 @@ public class MaterialPickup : MonoBehaviour
         PlayerStats stats = other.GetComponent<PlayerStats>();
         if (stats != null)
         {
-            stats.AddMaterials(materialAmount);
+            //stats.AddMaterials(materialAmount);
             Destroy(gameObject);
         }
     }

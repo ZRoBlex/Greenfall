@@ -15,4 +15,4 @@ MonoBehaviour:
   ammoName: SMG Ammo
   category: 2
   defaultMaxStack: 200
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 3f938017c0d7bf74ca95d673ed01c6d3, type: 3}

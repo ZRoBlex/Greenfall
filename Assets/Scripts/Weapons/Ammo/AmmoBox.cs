@@ -2,6 +2,9 @@
 
 public class AmmoBox : MonoBehaviour
 {
+    [Header("UI")]
+    public string displayName = "Ammo Box"; // 👈 editable en Inspector
+
     [Header("Ammo Type")]
     public AmmoTypeSO ammoType;   // Tipo de bala que da esta caja
 
@@ -85,9 +88,13 @@ public class AmmoBox : MonoBehaviour
     // 🔹 Para UI futura: "PICK UP 15x 7.62mm"
     public string GetInteractText()
     {
-        if (ammoType != null)
-            return $"PICK UP {currentAmount}x {ammoType.name}";
+        if (!string.IsNullOrEmpty(displayName))
+            return $"Grab ({displayName})";
 
-        return "PICK UP AMMO";
+        if (ammoType != null)
+            return $"Grab ({ammoType.name})";
+
+        return "Grab (Ammo)";
     }
+
 }

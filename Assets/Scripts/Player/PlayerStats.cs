@@ -1,7 +1,18 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
 {
+    [System.Serializable]
+    public class MaterialDefinition
+    {
+        public string id;            // "Wood", "Metal", "Scrap", "Brick"
+        public float maxAmount = 100f;
+    }
+
+    [Header("Material Definitions (IDs visibles en Inspector)")]
+    public List<MaterialDefinition> materialDefinitions = new List<MaterialDefinition>();
+
     [Header("Stats")]
     public float maxHunger = 100f;
     public float maxEnergy = 100f;
@@ -41,6 +52,11 @@ public class PlayerStats : MonoBehaviour
     public float maxMaterials = 100f;
 
     private float currentMaterials;
+    private Dictionary<string, float> currentMaterialsById =
+    new Dictionary<string, float>();
+
+    private Dictionary<string, float> maxMaterialsById =
+        new Dictionary<string, float>();
 
     [Header("UI References")]
     public UIResource materialsUI;
@@ -64,9 +80,42 @@ public class PlayerStats : MonoBehaviour
         currentWater = maxWater;
 
 
-        currentMaterials = 0f; // normalmente empiezas sin materiales
+        // 🔹 Inicializar materiales desde las definitions del inspector
+        foreach (var def in materialDefinitions)
+        {
+            if (string.IsNullOrEmpty(def.id))
+                continue;
 
-        materialsPanel?.SetMaterialAmount("Generic", currentMaterials, maxMaterials);
+            currentMaterialsById[def.id] = 0f;
+            maxMaterialsById[def.id] = def.maxAmount;
+
+            // 🔄 Refrescar UI (esto es lo que pone el texto en 0)
+            materialsPanel?.SetMaterialAmount(def.id, 0f, def.maxAmount);
+        }
+
+        // 🔎 Validar que cada material tenga slot en el panel UI
+        if (materialsPanel != null)
+        {
+            foreach (var def in materialDefinitions)
+            {
+                bool found = false;
+
+                foreach (var entry in materialsPanel.materials)
+                {
+                    if (entry.materialId == def.id)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    Debug.LogWarning($"⚠️ No hay slot UI para el material ID: {def.id}");
+                }
+            }
+        }
+
 
 
         hungerUI?.SetAmount(currentHunger, maxHunger);
@@ -135,6 +184,22 @@ public class PlayerStats : MonoBehaviour
         // ======================
         HandleStarvationAndDehydrationDamage(Time.deltaTime);
 
+        //if(Input.GetKeyDown(KeyCode.T))
+        //{
+        //    AddHunger(10f);
+        //    AddEnergy(10f);
+        //    AddWater(10f);
+        //    AddMaterials("Wood", 10f);
+        //}
+
+        //if (Input.GetKeyDown(KeyCode.C))
+        //{
+        //    //AddHunger(10f);
+        //    //AddEnergy(10f);
+        //    //AddWater(10f);
+        //    ConsumeMaterials("Wood", 10f);
+        //}
+
     }
 
     private bool IsPlayerMoving()
@@ -178,27 +243,47 @@ public class PlayerStats : MonoBehaviour
     }
 
     // 🧱 Agregar materiales desde pickups, crafting, recompensas, etc.
-    public void AddMaterials(float amount)
+    public void AddMaterials(string id, float amount)
     {
-        currentMaterials += amount;
-        currentMaterials = Mathf.Clamp(currentMaterials, 0, maxMaterials);
+        if (!currentMaterialsById.ContainsKey(id))
+        {
+            Debug.LogWarning($"Material desconocido: {id}");
+            return;
+        }
 
-        materialsPanel?.SetMaterialAmount("Generic", currentMaterials, maxMaterials);
+        float current = currentMaterialsById[id];
+        float max = maxMaterialsById[id];
+
+        current += amount;
+        current = Mathf.Clamp(current, 0, max);
+
+        currentMaterialsById[id] = current;
+
+        materialsPanel?.SetMaterialAmount(id, current, max);
     }
+
 
 
     // 🔨 Consumir materiales (crafting, construir, etc.)
-    public bool ConsumeMaterials(float amount)
+    public bool ConsumeMaterials(string id, float amount)
     {
-        if (currentMaterials < amount)
+        if (!currentMaterialsById.ContainsKey(id))
             return false;
 
-        currentMaterials -= amount;
-        currentMaterials = Mathf.Clamp(currentMaterials, 0, maxMaterials);
+        float current = currentMaterialsById[id];
 
-        materialsUI?.SetAmount(currentMaterials, maxMaterials);
+        if (current < amount)
+            return false;
+
+        current -= amount;
+        currentMaterialsById[id] = current;
+
+        float max = maxMaterialsById[id];
+        materialsPanel?.SetMaterialAmount(id, current, max);
+
         return true;
     }
+
 
     public bool HasResources(ResourceCost[] costs)
     {

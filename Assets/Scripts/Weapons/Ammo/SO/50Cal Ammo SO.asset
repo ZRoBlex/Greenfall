@@ -15,3 +15,4 @@ MonoBehaviour:
   ammoName: '50Cal Ammo '
   category: 4
   defaultMaxStack: 15
+  icon: {fileID: 21300000, guid: d78869d5023047a468bb47e9b04de6d6, type: 3}

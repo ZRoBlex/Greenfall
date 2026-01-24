@@ -72,6 +72,18 @@ public class WeaponInteractor : MonoBehaviour
         {
             interactText.gameObject.SetActive(false);
         }
+
+        // 🔹 1.5) AmmoBox con nombre personalizado
+        AmmoBox ammoBox = hit.collider.GetComponentInParent<AmmoBox>();
+        if (ammoBox != null)
+        {
+            string key = GetInteractKey();
+            interactText.alignment = TextAlignmentOptions.Center;
+            interactText.text = $"{ammoBox.GetInteractText()}\n<size=70%>({key})</size>";
+            interactText.gameObject.SetActive(true);
+            return;
+        }
+
     }
 
 
@@ -111,11 +123,17 @@ public class WeaponInteractor : MonoBehaviour
 
         bool willSwap = inventory.IsFull;
 
-        string actionText = willSwap ? "Swap Weapon" : "Interact";
+        string actionText = willSwap ? "Swap Weapon" : "Grab";
+
+        string weaponLabel = hoveredWeapon != null &&
+                              !string.IsNullOrEmpty(hoveredWeapon.weaponName)
+            ? $" ({hoveredWeapon.weaponName})"
+            : "";
 
         interactText.alignment = TextAlignmentOptions.Center;
-        interactText.text = $"{actionText}\n<size=70%>({key})</size>";
+        interactText.text = $"{actionText}{weaponLabel}\n<size=70%>({key})</size>";
     }
+
 
     bool TryGetCustomMessage(RaycastHit hit, out string message)
     {
