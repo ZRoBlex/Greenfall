@@ -14,6 +14,20 @@ public class EnemySpawnManager : MonoBehaviour
     public LayerMask groundMask;
     public float rayHeight = 150f;
 
+    [Header("Despawn Rules")]
+    public float maxLifetime = 180f; // ⏱️ segundos antes de permitir despawn
+    public bool enableLifetimeDespawn = true;
+    public bool enableDistanceDespawn = true;
+
+    Dictionary<EnemyController, float> aliveTimeByEnemy =
+    new Dictionary<EnemyController, float>();
+
+    [Header("Respawn Control")]
+    public bool maintainPopulation = true;
+    public int maxSpawnPerFrame = 2; // para no meter picos de CPU
+
+
+
     List<EnemyController> aliveEnemies = new List<EnemyController>();
 
     void Start()
@@ -23,8 +37,13 @@ public class EnemySpawnManager : MonoBehaviour
 
     void Update()
     {
-        HandleDespawnByDistance();
+        CleanupDeadOrInactive();
+        UpdateAliveTimes();
+        HandleDespawnByRules();
+        MaintainPopulation();
     }
+
+
 
     // 🔹 SPAWN MASIVO
     void SpawnAll()
@@ -66,6 +85,8 @@ public class EnemySpawnManager : MonoBehaviour
         e.gameObject.SetActive(true);
 
         aliveEnemies.Add(e);
+        aliveTimeByEnemy[e] = 0f; // ⏱️ empieza su vida
+
         return true;
     }
 
@@ -126,5 +147,106 @@ public class EnemySpawnManager : MonoBehaviour
     public void NotifyEnemyDied(EnemyController e)
     {
         aliveEnemies.Remove(e);
+        aliveTimeByEnemy.Remove(e);
     }
+
+
+    void UpdateAliveTimes()
+    {
+        for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+        {
+            var e = aliveEnemies[i];
+            if (e == null || !e.gameObject.activeSelf)
+                continue;
+
+            aliveTimeByEnemy[e] += Time.deltaTime;
+        }
+    }
+
+    void HandleDespawnByRules()
+    {
+        if (EnemyManager.Instance == null)
+            return;
+
+        float sleepDist = EnemyManager.Instance.sleepDistance;
+
+        for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+        {
+            var e = aliveEnemies[i];
+
+            if (e == null || !e.gameObject.activeSelf)
+            {
+                aliveEnemies.RemoveAt(i);
+                aliveTimeByEnemy.Remove(e);
+                continue;
+            }
+
+            // 🔒 Regla 1: jamás despawnear si está Active
+            if (e.CurrentLOD == EnemyLOD.Active)
+                continue;
+
+            float aliveTime = aliveTimeByEnemy.TryGetValue(e, out var t) ? t : 0f;
+
+            float distToPlayer = Vector3.Distance(
+                e.transform.position,
+                area.player.position
+            );
+
+            bool tooFar = enableDistanceDespawn && distToPlayer > sleepDist;
+            bool tooOld = enableLifetimeDespawn && aliveTime >= maxLifetime;
+
+            // 🔥 Regla 2:
+            // solo despawnear si:
+            // - está en SemiActive o Sleep
+            // - y cumple distancia O tiempo
+            if ((e.CurrentLOD == EnemyLOD.SemiActive || e.CurrentLOD == EnemyLOD.Sleep)
+                && (tooFar || tooOld))
+            {
+                pool.Release(e);
+                aliveEnemies.RemoveAt(i);
+                aliveTimeByEnemy.Remove(e);
+            }
+        }
+    }
+
+    void CleanupDeadOrInactive()
+    {
+        for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+        {
+            var e = aliveEnemies[i];
+
+            if (e == null || !e.gameObject.activeSelf)
+            {
+                aliveEnemies.RemoveAt(i);
+                aliveTimeByEnemy.Remove(e);
+            }
+        }
+    }
+
+    void MaintainPopulation()
+    {
+        if (!maintainPopulation)
+            return;
+
+        int missing = initialCount - aliveEnemies.Count;
+        if (missing <= 0)
+            return;
+
+        int spawnedThisFrame = 0;
+        int safety = 0;
+
+        while (missing > 0 &&
+               spawnedThisFrame < maxSpawnPerFrame &&
+               safety < initialCount * 5)
+        {
+            if (TrySpawnOne())
+            {
+                missing--;
+                spawnedThisFrame++;
+            }
+
+            safety++;
+        }
+    }
+
 }

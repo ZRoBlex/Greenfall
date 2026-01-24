@@ -1562,7 +1562,7 @@ MonoBehaviour:
   semiActiveDistance: 35
   sleepDistance: 90
   maxRepathsPerFrame: 5
-  showDebugOverlay: 0
+  showDebugOverlay: 1
   debugPosition: {x: 10, y: 10}
 --- !u!1 &561931789
 GameObject:
@@ -3606,6 +3606,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4096
   rayHeight: 150
+  maxLifetime: 180
+  enableLifetimeDespawn: 1
+  enableDistanceDespawn: 1
 --- !u!1 &1248518936
 GameObject:
   m_ObjectHideFlags: 0
@@ -5707,7 +5710,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 144183429619597909, guid: 2743d79568fafed4f98ab75609c77586, type: 3}
-  initialSize: 10
+  initialSize: 20
 --- !u!1 &1914073798
 GameObject:
   m_ObjectHideFlags: 0
