@@ -1,6 +1,14 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public enum ResourceType { Food, Energy, Material, Moral }
+public enum ResourceType
+{
+    Food,
+    Energy,
+    Water,   // 💧 NUEVO
+    Material,
+    Moral
+}
+
 
 [CreateAssetMenu(fileName = "NewUIResource", menuName = "Greenfall/UIResource")]
 public class UIResourceSO : ScriptableObject
