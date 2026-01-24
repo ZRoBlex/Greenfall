@@ -17,6 +17,11 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private CannibalType currentType;
     [SerializeField] private string currentTeam;
 
+    // EnemyController.cs
+
+    [Header("Combat")]
+    public float attackCooldownTimer = 0f;
+
     public CannibalType CurrentType => currentType;
     public string CurrentTeam => currentTeam;
 
@@ -84,6 +89,10 @@ public class EnemyController : MonoBehaviour
 
     void Update()
     {
+        // 🔻 bajar cooldown global
+        if (attackCooldownTimer > 0f)
+            attackCooldownTimer -= Time.deltaTime;
+
         // 🔴 Sleep → no hacer absolutamente nada
         if (currentLOD == EnemyLOD.Sleep)
             return;
@@ -283,10 +292,21 @@ public class EnemyController : MonoBehaviour
                 {
                     float dist = Vector3.Distance(transform.position, Perception.CurrentTarget.position);
 
-                    if (dist <= stats.attackRange && !(FSM.CurrentState is AttackState))
-                        FSM.ChangeState(new AttackState());
-                    else if (!(FSM.CurrentState is FollowingState))
-                        FSM.ChangeState(new FollowingState());
+                    //if (dist <= stats.attackRange && !(FSM.CurrentState is AttackState))
+                    //    FSM.ChangeState(new AttackState());
+                    //else if (!(FSM.CurrentState is FollowingState))
+                    //    FSM.ChangeState(new FollowingState());
+                    if (dist <= stats.attackRange)
+                    {
+                        if (!(FSM.CurrentState is AttackState))
+                            FSM.ChangeState(new AttackState());
+                    }
+                    else
+                    {
+                        if (!(FSM.CurrentState is FollowingState))
+                            FSM.ChangeState(new FollowingState());
+                    }
+
                 }
                 else if (!(FSM.CurrentState is WanderState))
                     FSM.ChangeState(new WanderState());

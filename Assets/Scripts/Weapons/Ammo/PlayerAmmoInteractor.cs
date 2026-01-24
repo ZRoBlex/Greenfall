@@ -17,7 +17,7 @@ public class PlayerAmmoInteractor : MonoBehaviour
     };
 
     [Header("UI")]
-    public TextMeshProUGUI interactText;
+    //public TextMeshProUGUI interactText;
 
     [Header("References")]
     public Camera playerCamera;
@@ -66,7 +66,7 @@ public class PlayerAmmoInteractor : MonoBehaviour
     void Update()
     {
         hoveredBox = null;
-        interactText.text = "";
+        //interactText.text = "";
 
         Vector3 origin = playerCamera.transform.position + playerCamera.transform.forward * 0.1f;
         Ray ray = new Ray(origin, playerCamera.transform.forward);
@@ -81,7 +81,7 @@ public class PlayerAmmoInteractor : MonoBehaviour
                 if (box != null)
                 {
                     hoveredBox = box;
-                    interactText.text = "INTERACT";
+                    //interactText.text = "INTERACT";
                 }
             }
         }
@@ -101,7 +101,7 @@ public class PlayerAmmoInteractor : MonoBehaviour
         Debug.Log("💥 Interact ejecutado sobre: " + hoveredBox.name);
 
         hoveredBox.Interact(this.gameObject);
-        interactText.text = "";
+        //interactText.text = "";
         hoveredBox = null;
     }
 

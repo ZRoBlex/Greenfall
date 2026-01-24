@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a8ffba7159b37649b9bb88f9a348196, type: 3}
-  m_Name: Stone UI
+  m_Name: Metal SO
   m_EditorClassIdentifier: 
-  resourceType: 2
-  resourceName: Wood
-  icon: {fileID: 4936506583271141030, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+  resourceType: 3
+  resourceName: Metal
+  icon: {fileID: 6718763151315418932, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
   maxAmount: 100

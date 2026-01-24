@@ -21,6 +21,8 @@ public class EnemyStats : ScriptableObject
     public float attackDamage = 10f;
     public float attackCooldown = 1.2f;
 
+    public bool canDealDamage = true; // 👈 NUEVO
+
     [Header("Wander")]
     public float wanderRadius = 8f;
     public float wanderWaitTime = 2f;

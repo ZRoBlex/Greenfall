@@ -24,8 +24,15 @@ public class PlayerStats : MonoBehaviour
     [Header("References")]
     public FirstPersonController playerController;
 
-    private float currentHunger;
-    private float currentEnergy;
+    [Header("Health Damage When Depleted")]
+    [SerializeField] private PlayerHealth playerHealth;
+
+    [SerializeField] private float hungerDamagePerSecond = 5f;
+    [SerializeField] private float waterDamagePerSecond = 8f;
+
+
+    public float currentHunger;
+    public float currentEnergy;
 
     private float energyRecoverTimer = 0f; // ⏱️ contador interno
 
@@ -39,11 +46,23 @@ public class PlayerStats : MonoBehaviour
     public UIResource materialsUI;
     public UIMaterialsPanel materialsPanel;
 
+    [Header("Water")]
+    public float maxWater = 100f;
+    public float currentWater = 100f;
+
+    [SerializeField] private UIResource waterUI;
+    [SerializeField] private UIResourceSO waterResourceSO;
+
 
     void Start()
     {
         currentHunger = maxHunger;
         currentEnergy = maxEnergy;
+
+        waterUI?.SetAmount(currentWater, maxWater);
+        maxWater = waterResourceSO.maxAmount;
+        currentWater = maxWater;
+
 
         currentMaterials = 0f; // normalmente empiezas sin materiales
 
@@ -109,6 +128,13 @@ public class PlayerStats : MonoBehaviour
         // ======================
         hungerUI?.SetAmount(currentHunger, maxHunger);
         energyUI?.SetAmount(currentEnergy, maxEnergy);
+        ConsumeWaterOverTime(Time.deltaTime);
+
+        // ======================
+        // ❤️ DAÑO POR HAMBRE / AGUA
+        // ======================
+        HandleStarvationAndDehydrationDamage(Time.deltaTime);
+
     }
 
     private bool IsPlayerMoving()
@@ -226,5 +252,40 @@ public class PlayerStats : MonoBehaviour
         return true;
     }
 
+    [SerializeField] private float waterDrainPerSecond = 0.5f;
+
+    // 💧 Consumir agua con el tiempo
+    public void ConsumeWaterOverTime(float deltaTime)
+    {
+        currentWater -= waterDrainPerSecond * deltaTime;
+        currentWater = Mathf.Clamp(currentWater, 0f, maxWater);
+
+        waterUI?.SetAmount(currentWater, maxWater);
+    }
+
+    // 💧 Recuperar agua (beber, fuentes, botellas)
+    public void AddWater(float amount)
+    {
+        currentWater += amount;
+        currentWater = Mathf.Clamp(currentWater, 0f, maxWater);
+
+        waterUI?.SetAmount(currentWater, maxWater);
+    }
+    void HandleStarvationAndDehydrationDamage(float deltaTime)
+    {
+        if (playerHealth == null) return;
+
+        // 🍗 Daño por hambre
+        if (currentHunger <= 0f)
+        {
+            playerHealth.TakeDamage(hungerDamagePerSecond * deltaTime);
+        }
+
+        // 💧 Daño por sed
+        if (currentWater <= 0f)
+        {
+            playerHealth.TakeDamage(waterDamagePerSecond * deltaTime);
+        }
+    }
 
 }

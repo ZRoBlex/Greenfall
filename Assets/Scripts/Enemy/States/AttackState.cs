@@ -2,13 +2,14 @@
 
 public class AttackState : State<EnemyController>
 {
-    float attackTimer;
+    //float attackTimer;
 
     public override void Enter(EnemyController o)
 {
-    attackTimer = 0f;
+        //attackTimer = 0f;
+        //attackTimer = o.stats.attackCooldown; // 👈 arranca lleno
 
-    if (o.AnimatorBridge != null)
+        if (o.AnimatorBridge != null)
     {
         o.AnimatorBridge.ResetSpecialBools();
         o.AnimatorBridge.SetBool("IsChasing", true);
@@ -45,13 +46,14 @@ public class AttackState : State<EnemyController>
             return;
         }
 
-        attackTimer -= Time.deltaTime;
-        if (attackTimer <= 0f)
+        // ⏱️ usar cooldown persistente
+        if (o.attackCooldownTimer <= 0f)
         {
             PerformAttack(o, player);
-            attackTimer = o.stats.attackCooldown;
+            o.attackCooldownTimer = o.stats.attackCooldown;
         }
     }
+
 
     void LookAtPlayer(EnemyController o, Transform player)
     {
@@ -66,9 +68,30 @@ public class AttackState : State<EnemyController>
 
     void PerformAttack(EnemyController o, Transform player)
     {
-        Debug.Log($"[{o.stats.displayName}] Atacó al jugador causando {o.stats.attackDamage} de daño.");
+        // ❌ Este enemigo no hace daño
+        if (!o.stats.canDealDamage)
+        {
+            Debug.Log($"[{o.stats.displayName}] intentó atacar, pero es friendly.");
+            return;
+        }
 
-        // 🔹 Cuando tengas animación de ataque:
-        // o.AnimatorBridge.SetBool("IsAttack", true);
+        // 🔎 Buscar PlayerHealth en el padre también
+        PlayerHealth health = player.GetComponentInParent<PlayerHealth>();
+
+        if (health == null)
+        {
+            Debug.LogWarning(
+                $"[{o.stats.displayName}] No se encontró PlayerHealth en {player.name} ni en sus padres."
+            );
+            return;
+        }
+
+        // Aplicar daño
+        health.TakeDamage(o.stats.attackDamage);
+
+        Debug.Log($"[{o.stats.displayName}] Atacó al jugador causando {o.stats.attackDamage} de daño.");
     }
+
+
+
 }

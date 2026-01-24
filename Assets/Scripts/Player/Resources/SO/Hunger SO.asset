@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a8ffba7159b37649b9bb88f9a348196, type: 3}
-  m_Name: Brick UI
+  m_Name: Hunger SO
   m_EditorClassIdentifier: 
-  resourceType: 2
-  resourceName: Brick
-  icon: {fileID: -7411174152488024004, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+  resourceType: 0
+  resourceName: Hunger
+  icon: {fileID: 0}
   maxAmount: 100
