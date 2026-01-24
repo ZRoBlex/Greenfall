@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting.Antlr3.Runtime.Misc;
+using UnityEngine;
 
 public class FirstPersonController : MonoBehaviour
 {
@@ -61,6 +62,8 @@ public class FirstPersonController : MonoBehaviour
 
     float targetHeight;
 
+    [SerializeField] private PlayerStats stats;
+
 
 
 
@@ -92,8 +95,9 @@ public class FirstPersonController : MonoBehaviour
     private float currentSpeed =>
     walkSpeed *
     (isCrouching ? crouchSpeedMultiplier : 1f) *
-    (playerInputHandler.SprintTrigger && !isCrouching ? sprintMultiplier : 1f) *
+    ((playerInputHandler.SprintTrigger && !isCrouching && stats.CanSprint()) ? sprintMultiplier : 1f) *
     currentMoveMultiplier;
+
 
 
     void Start()
@@ -341,6 +345,13 @@ public class FirstPersonController : MonoBehaviour
         );
     }
 
+    public Vector2 GetMovementInput()
+    {
+        return playerInputHandler.MovementInput;
+    }
 
-
+    public bool IsSprinting()
+    {
+        return playerInputHandler.SprintTrigger;
+    }
 }

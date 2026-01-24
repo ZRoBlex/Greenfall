@@ -1,45 +1,34 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class UIResource : MonoBehaviour
 {
-    [Header("Settings")]
-    public UIResourceSO resourceSO;
-    [SerializeField] Image fillImage; // Para barras o iconos que se llenan
-    [SerializeField] float lerpSpeed = 5f;
+    [Header("Referencia de la barra")]
+    public Image fillImage; // La barra que se llena
+    [SerializeField] private float lerpSpeed = 5f;
 
-    [Header("Optional Icon")]
-    [SerializeField] Image iconImage;
-
-    private float currentAmount;
-
-    void Start()
-    {
-        currentAmount = resourceSO.maxAmount;
-
-        if (iconImage != null)
-            iconImage.sprite = resourceSO.icon;
-
-        UpdateUIImmediate();
-    }
+    private float targetAmount = 0f;
+    private float maxAmount = 100f;
 
     void Update()
     {
-        if (fillImage != null)
-        {
-            float targetFill = currentAmount / resourceSO.maxAmount;
-            fillImage.fillAmount = Mathf.Lerp(fillImage.fillAmount, targetFill, Time.deltaTime * lerpSpeed);
-        }
+        if (fillImage == null) return;
+
+        float targetFill = targetAmount / maxAmount;
+        fillImage.fillAmount = Mathf.MoveTowards(
+            fillImage.fillAmount,
+            targetFill,
+            Time.deltaTime * lerpSpeed
+        );
     }
 
-    public void SetAmount(float amount)
-    {
-        currentAmount = Mathf.Clamp(amount, 0, resourceSO.maxAmount);
-    }
 
-    private void UpdateUIImmediate()
+    /// <summary>
+    /// Se llama desde PlayerStats para actualizar la barra
+    /// </summary>
+    public void SetAmount(float amount, float max)
     {
-        if (fillImage != null)
-            fillImage.fillAmount = currentAmount / resourceSO.maxAmount;
+        targetAmount = Mathf.Clamp(amount, 0, max);
+        maxAmount = max;
     }
 }
