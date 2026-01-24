@@ -178,7 +178,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -330, y: 180}
+  m_AnchoredPosition: {x: -330, y: 110}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &79239577
@@ -6395,8 +6395,8 @@ MonoBehaviour:
   energyUI: {fileID: 1943080226}
   playerController: {fileID: 1039216098262650840}
   maxMaterials: 100
-  materialsUI: {fileID: 0}
-  materialsPanel: {fileID: 0}
+  materialsUI: {fileID: 2004823115}
+  materialsPanel: {fileID: 79239578}
   hungerSprintThreshold: 25
   energySprintThreshold: 0
 --- !u!1001 &1244160608282943124
@@ -6785,7 +6785,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: UI_resources
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7460788279920145053, guid: d7f694cb6c17ebd4c98c721ed41b8c51, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -6803,5 +6804,5 @@ SceneRoots:
   - {fileID: 1514569706}
   - {fileID: 140110392}
   - {fileID: 516598946}
-  - {fileID: 1244160608282943124}
   - {fileID: 352589311}
+  - {fileID: 1244160608282943124}

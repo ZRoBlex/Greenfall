@@ -174,5 +174,57 @@ public class PlayerStats : MonoBehaviour
         return true;
     }
 
+    public bool HasResources(ResourceCost[] costs)
+    {
+        foreach (var cost in costs)
+        {
+            switch (cost.resourceType)
+            {
+                case ResourceType.Material:
+                    if (currentMaterials < cost.amount) return false;
+                    break;
+
+                case ResourceType.Food:
+                    if (currentHunger < cost.amount) return false;
+                    break;
+
+                case ResourceType.Energy:
+                    if (currentEnergy < cost.amount) return false;
+                    break;
+            }
+        }
+
+        return true;
+    }
+
+    public bool ConsumeResources(ResourceCost[] costs)
+    {
+        if (!HasResources(costs))
+            return false;
+
+        foreach (var cost in costs)
+        {
+            switch (cost.resourceType)
+            {
+                case ResourceType.Material:
+                    currentMaterials -= cost.amount;
+                    materialsUI?.SetAmount(currentMaterials, maxMaterials);
+                    break;
+
+                case ResourceType.Food:
+                    currentHunger -= cost.amount;
+                    hungerUI?.SetAmount(currentHunger, maxHunger);
+                    break;
+
+                case ResourceType.Energy:
+                    currentEnergy -= cost.amount;
+                    energyUI?.SetAmount(currentEnergy, maxEnergy);
+                    break;
+            }
+        }
+
+        return true;
+    }
+
 
 }

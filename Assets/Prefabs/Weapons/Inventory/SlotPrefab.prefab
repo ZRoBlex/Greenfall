@@ -136,7 +136,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   icon: {fileID: 6620656759307377339}
   background: {fileID: 2163051650788407865}
-  liftPixels: 30
+  liftPixels: 10
   liftSpeed: 10
 --- !u!1 &8417146772873341354
 GameObject:
