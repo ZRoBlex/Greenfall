@@ -42,6 +42,11 @@ public class WorldPropGenerator : MonoBehaviour
     public int rockCount = 100;
     public float minRockSpacing = 2f;
 
+    [Header("Biome System")]
+    public BiomeMap biomeMap;
+
+
+
     List<Vector3> spawnedPositions = new List<Vector3>();
     System.Random prng;
 
@@ -51,11 +56,18 @@ public class WorldPropGenerator : MonoBehaviour
     {
         InitSeed();
         Clear();
-        GenerateTrees(false);
-        GenerateRocks(false);
+
+        if (biomeMap == null)
+        {
+            Debug.LogError("WorldPropGenerator: No BiomeMap assigned.");
+            return;
+        }
+
+        GenerateByBiome();
 
         Debug.Log($"WorldPropGenerator: Generated {spawnedPositions.Count} props total.");
     }
+
 
     public void GenerateTreesOnly()
     {
@@ -187,6 +199,15 @@ public class WorldPropGenerator : MonoBehaviour
 
                 spawnedPositions.Add(spawnPos);
                 count--;
+
+                BiomeType biome = biomeMap != null
+    ? biomeMap.GetBiome(spawnPos)
+    : BiomeType.Plains;
+
+                // DEBUG (por ahora no bloquea nada)
+                if (biome == BiomeType.Desert && prefabs == treePrefabs)
+                    continue; // ejemplo: no árboles en desierto
+
             }
         }
     }
@@ -221,6 +242,78 @@ public class WorldPropGenerator : MonoBehaviour
     {
         return (float)(prng.NextDouble() * (max - min) + min);
     }
+
+    void GenerateByBiome()
+    {
+        int attempts = 0;
+        int maxAttempts = 100000;
+
+        while (attempts < maxAttempts)
+        {
+            attempts++;
+
+            float rx = NextFloat(-0.5f, 0.5f) * areaSize.x;
+            float rz = NextFloat(-0.5f, 0.5f) * areaSize.y;
+
+            Vector3 randomPos = transform.position + new Vector3(
+                rx,
+                rayHeight,
+                rz
+            );
+
+            if (!Physics.Raycast(
+                randomPos,
+                Vector3.down,
+                out RaycastHit hit,
+                maxRayDistance,
+                groundLayer
+            ))
+                continue;
+
+            float slope = Vector3.Angle(hit.normal, Vector3.up);
+            if (slope > maxSlopeAngle)
+                continue;
+
+            Vector3 spawnPos = hit.point;
+
+            if (IsInForbiddenZone(spawnPos))
+                continue;
+
+            var biomeDef = biomeMap.GetBiomeDefinition(spawnPos);
+            if (biomeDef == null)
+                continue;
+
+            TrySpawnFromBiome(biomeDef, spawnPos, hit.normal);
+        }
+    }
+
+    void TrySpawnFromBiome(BiomeDefinition biome, Vector3 pos, Vector3 normal)
+    {
+        foreach (var entry in biome.props)
+        {
+            if (Random.value > entry.spawnChance)
+                continue;
+
+            if (!IsFarEnough(pos, entry.minSpacing))
+                continue;
+
+            if (entry.prefabs.Count == 0)
+                continue;
+
+            GameObject prefab =
+                entry.prefabs[prng.Next(0, entry.prefabs.Count)];
+
+            Quaternion rot = Quaternion.Euler(0, NextFloat(0f, 360f), 0);
+
+            GameObject obj = Instantiate(prefab, pos, rot, transform);
+
+            if (entry.alignToGround)
+                obj.transform.up = normal;
+
+            spawnedPositions.Add(pos);
+        }
+    }
+
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()

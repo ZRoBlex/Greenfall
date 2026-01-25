@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44ab751fbb19a4f46912411f040a8df9, type: 3}
+  m_Name: Forest
+  m_EditorClassIdentifier: 
+  biomeType: 1
+  props:
+  - name: Tree
+    type: 0
+    prefabs:
+    - {fileID: 3281575696061241009, guid: fc937adcfd2b59145951eb5500f7a5fb, type: 3}
+    spawnChance: 1
+    minSpacing: 5
+    targetCount: 10
+    alignToGround: 1
