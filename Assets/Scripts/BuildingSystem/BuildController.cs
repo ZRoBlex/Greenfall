@@ -110,7 +110,20 @@ public class BuildController : MonoBehaviour
         // 7. VALIDACIÓN
         // =========================
 
-        bool valid = validator.CanPlace(data, targetPos, rot, preview);
+        bool canPlaceByRules =
+    validator.CanPlace(data, targetPos, rot, preview);
+
+        // 🧱 validar materiales
+        bool hasMaterials = true;
+
+        if (data.materialCosts != null && data.materialCosts.Length > 0)
+        {
+            hasMaterials = playerStats.HasMaterials(data.materialCosts);
+        }
+
+        // ✅ válido solo si pasa ambas cosas
+        bool valid = canPlaceByRules && hasMaterials;
+
 
         // =========================
         // 8. SUAVIZADO VISUAL
