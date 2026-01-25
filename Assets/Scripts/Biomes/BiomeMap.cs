@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BiomeMap : MonoBehaviour
@@ -12,6 +13,9 @@ public class BiomeMap : MonoBehaviour
     public bool drawPreview = true;
     public float previewSize = 200f;
     public float previewStep = 8f;
+
+    public List<BiomeDefinition> allBiomeDefinitions = new List<BiomeDefinition>();
+
 
     float offsetX;
     float offsetZ;

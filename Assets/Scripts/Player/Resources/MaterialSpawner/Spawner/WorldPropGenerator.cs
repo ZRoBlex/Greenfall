@@ -63,10 +63,13 @@ public class WorldPropGenerator : MonoBehaviour
             return;
         }
 
+        ResetBiomePropCounters();   // ✅ NUEVO
+
         GenerateByBiome();
 
         Debug.Log($"WorldPropGenerator: Generated {spawnedPositions.Count} props total.");
     }
+
 
 
     public void GenerateTreesOnly()
@@ -284,6 +287,10 @@ public class WorldPropGenerator : MonoBehaviour
                 continue;
 
             TrySpawnFromBiome(biomeDef, spawnPos, hit.normal);
+
+            // 🛑 corte temprano
+            if (AllBiomeTargetsReached())
+                break;
         }
     }
 
@@ -291,9 +298,15 @@ public class WorldPropGenerator : MonoBehaviour
     {
         foreach (var entry in biome.props)
         {
+            // 🚫 ya llenó su cuota
+            if (entry.spawnedCount >= entry.targetCount)
+                continue;
+
+            // 🎲 probabilidad
             if (Random.value > entry.spawnChance)
                 continue;
 
+            // 📏 espaciado
             if (!IsFarEnough(pos, entry.minSpacing))
                 continue;
 
@@ -311,8 +324,13 @@ public class WorldPropGenerator : MonoBehaviour
                 obj.transform.up = normal;
 
             spawnedPositions.Add(pos);
+
+            entry.spawnedCount++;   // ✅ CONSUME targetCount
+
+            break; // ⛔ solo 1 prop por punto
         }
     }
+
 
 
 #if UNITY_EDITOR
@@ -335,5 +353,39 @@ public class WorldPropGenerator : MonoBehaviour
         seed = Random.Range(int.MinValue, int.MaxValue);
         Debug.Log($"WorldPropGenerator: New random seed = {seed}");
     }
+
+    void ResetBiomePropCounters()
+    {
+        if (biomeMap == null)
+            return;
+
+        foreach (var def in biomeMap.allBiomeDefinitions)
+        {
+            foreach (var prop in def.props)
+            {
+                prop.spawnedCount = 0;
+            }
+        }
+    }
+
+
+    bool AllBiomeTargetsReached()
+    {
+        if (biomeMap == null)
+            return true;
+
+        foreach (var def in biomeMap.allBiomeDefinitions)
+        {
+            foreach (var prop in def.props)
+            {
+                if (prop.spawnedCount < prop.targetCount)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+
 
 }

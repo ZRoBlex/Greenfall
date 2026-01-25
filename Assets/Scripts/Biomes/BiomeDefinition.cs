@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public enum PropType
@@ -13,19 +13,23 @@ public enum PropType
 [System.Serializable]
 public class BiomePropEntry
 {
-    public string name;                 // solo para debug
+    public string name;
     public PropType type;
 
     public List<GameObject> prefabs = new List<GameObject>();
 
     [Range(0f, 1f)]
-    public float spawnChance = 1f;      // probabilidad por intento
+    public float spawnChance = 1f;
 
     public float minSpacing = 3f;
-    public int targetCount = 50;        // densidad real
+    public int targetCount = 50;
 
     public bool alignToGround = true;
+
+    [System.NonSerialized]
+    public int spawnedCount = 0;   // ✅ contador real
 }
+
 
 [CreateAssetMenu(menuName = "World/Biome Definition")]
 public class BiomeDefinition : ScriptableObject
