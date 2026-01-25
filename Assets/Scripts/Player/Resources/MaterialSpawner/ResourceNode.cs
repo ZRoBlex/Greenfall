@@ -51,6 +51,10 @@ public class ResourceNode : MonoBehaviour
     {
         foreach (var drop in data.drops)
         {
+            // 🎲 Tirada de probabilidad
+            if (Random.value > drop.dropChance)
+                continue;
+
             int count = Random.Range(drop.minAmount, drop.maxAmount + 1);
 
             for (int i = 0; i < count; i++)
@@ -66,10 +70,17 @@ public class ResourceNode : MonoBehaviour
 
                 var pickup = obj.GetComponent<MaterialPickup>();
                 pickup.materialId = drop.materialId;
+
+                // cantidad TOTAL que representa este pickup
+                int amount = Random.Range(drop.minAmount, drop.maxAmount + 1);
                 pickup.amount = ammount;
+
                 pickup.prefabKey = drop.pickupPrefab;
 
-                // 💥 impulso físico
+                // 🔁 actualizar visual según amount
+                pickup.UpdateVisual();
+
+
                 var rb = obj.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
@@ -86,6 +97,7 @@ public class ResourceNode : MonoBehaviour
             }
         }
     }
+
 
 
 

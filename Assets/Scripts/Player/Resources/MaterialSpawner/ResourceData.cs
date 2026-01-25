@@ -1,13 +1,20 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [System.Serializable]
 public struct ResourceDrop
 {
-    public string materialId;     // "Wood", "Metal", "Scrap"
+    public string materialId;
     public GameObject pickupPrefab;
+
     public int minAmount;
     public int maxAmount;
+
+    [Range(0f, 1f)]
+    public float dropChance;   // 👈 probabilidad 0–1
+
+    public float weight;       // 👈 para loot table (opcional por ahora)
 }
+
 
 [CreateAssetMenu(menuName = "Resources/Resource Data")]
 public class ResourceData : ScriptableObject

@@ -20,5 +20,8 @@ MonoBehaviour:
     pickupPrefab: {fileID: 521986790578004721, guid: 747e7896e0646ee4885d775249cf0f3c, type: 3}
     minAmount: 3
     maxAmount: 6
+    dropChance: 1
+    weight: 1
+  rolls: 2
   canRespawn: 1
   respawnTime: 60
