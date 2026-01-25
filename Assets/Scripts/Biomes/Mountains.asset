@@ -13,4 +13,8 @@ MonoBehaviour:
   m_Name: Mountains
   m_EditorClassIdentifier: 
   biomeType: 4
-  props: []
+  debugColor: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 0}
+  props:
+  - prop: {fileID: 11400000, guid: 2449af459d1d71f4c957beae29b72329, type: 2}
+    targetCount: 0
+    spawnedCount: 0

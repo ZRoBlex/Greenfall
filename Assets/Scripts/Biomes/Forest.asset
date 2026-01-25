@@ -13,12 +13,8 @@ MonoBehaviour:
   m_Name: Forest
   m_EditorClassIdentifier: 
   biomeType: 1
+  debugColor: {r: 0.06541475, g: 0.2830189, b: 0.12890546, a: 0}
   props:
-  - name: Tree
-    type: 0
-    prefabs:
-    - {fileID: 3281575696061241009, guid: fc937adcfd2b59145951eb5500f7a5fb, type: 3}
-    spawnChance: 1
-    minSpacing: 5
-    densityPerKm2: 40000
-    alignToGround: 1
+  - prop: {fileID: 11400000, guid: 932d241fe8a04704bac03d85f2db532b, type: 2}
+    targetCount: 3024
+    spawnedCount: 3024

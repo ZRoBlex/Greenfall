@@ -10,7 +10,6 @@ public class WorldPropGenerator : MonoBehaviour
     [Tooltip("Si está activo, genera una seed nueva cada vez que llamas GenerateAll()")]
     public bool randomizeSeedOnGenerate = false;
 
-
     [Header("Noise Settings (future biomes 👀)")]
     public float noiseScale = 0.08f;
     public Vector2 noiseOffset;
@@ -30,30 +29,26 @@ public class WorldPropGenerator : MonoBehaviour
     public List<string> forbiddenTags = new List<string>() { "Building", "NoSpawn" };
     public float forbiddenCheckRadius = 1.2f;
 
-    // 🌲 Árboles
-    [Header("Trees")]
-    public List<GameObject> treePrefabs = new List<GameObject>();
-    public int treeCount = 150;
-    public float minTreeSpacing = 3f;
-
-    // 🪨 Rocas
-    [Header("Rocks")]
-    public List<GameObject> rockPrefabs = new List<GameObject>();
-    public int rockCount = 100;
-    public float minRockSpacing = 2f;
-
     [Header("Biome System")]
     public BiomeMap biomeMap;
 
-    Dictionary<BiomeDefinition, float> biomeAreaKm2 =
-    new Dictionary<BiomeDefinition, float>();
+    [Header("Props by SO")]
+    public List<WorldPropSO> treeSOs = new List<WorldPropSO>();
+    public List<WorldPropSO> rockSOs = new List<WorldPropSO>();
 
+    [Header("Legacy Prefabs (optional)")]
+    public List<GameObject> treePrefabs = new List<GameObject>();
+    public List<GameObject> rockPrefabs = new List<GameObject>();
+    public int treeCount = 150;
+    public int rockCount = 100;
+    public float minTreeSpacing = 3f;
+    public float minRockSpacing = 2f;
 
+    Dictionary<BiomeDefinition, float> biomeAreaKm2 = new Dictionary<BiomeDefinition, float>();
     List<Vector3> spawnedPositions = new List<Vector3>();
     System.Random prng;
 
     // ===== PUBLIC API =====
-
     public void GenerateAll()
     {
         InitSeed();
@@ -67,14 +62,10 @@ public class WorldPropGenerator : MonoBehaviour
 
         CalculateBiomeAreas();
         CalculateBiomeTargets();
-
         GenerateByBiome();
-
 
         Debug.Log($"WorldPropGenerator: Generated {spawnedPositions.Count} props total.");
     }
-
-
 
     public void GenerateTreesOnly()
     {
@@ -99,7 +90,6 @@ public class WorldPropGenerator : MonoBehaviour
     }
 
     // ===== INTERNAL =====
-
     void InitSeed()
     {
         if (useSeed)
@@ -117,35 +107,34 @@ public class WorldPropGenerator : MonoBehaviour
         }
     }
 
-
     void GenerateTrees(bool keepExisting)
     {
         if (!keepExisting)
             spawnedPositions.Clear();
 
-        if (treePrefabs.Count == 0)
+        if (treeSOs.Count == 0)
         {
-            Debug.LogWarning("WorldPropGenerator: No tree prefabs assigned.");
+            Debug.LogWarning("WorldPropGenerator: No tree SOs assigned.");
             return;
         }
 
-        SpawnFromList(treePrefabs, treeCount, minTreeSpacing);
+        SpawnFromSOList(treeSOs, treeCount);
         Debug.Log("WorldPropGenerator: Trees generated.");
     }
 
     void GenerateRocks(bool keepExisting)
     {
-        if (rockPrefabs.Count == 0)
+        if (rockSOs.Count == 0)
         {
-            Debug.LogWarning("WorldPropGenerator: No rock prefabs assigned.");
+            Debug.LogWarning("WorldPropGenerator: No rock SOs assigned.");
             return;
         }
 
-        SpawnFromList(rockPrefabs, rockCount, minRockSpacing);
+        SpawnFromSOList(rockSOs, rockCount);
         Debug.Log("WorldPropGenerator: Rocks generated.");
     }
 
-    void SpawnFromList(List<GameObject> prefabs, int count, float minSpacing)
+    void SpawnFromSOList(List<WorldPropSO> props, int count)
     {
         int attempts = 0;
         int maxAttempts = count * 20;
@@ -156,66 +145,93 @@ public class WorldPropGenerator : MonoBehaviour
 
             float rx = NextFloat(-0.5f, 0.5f) * areaSize.x;
             float rz = NextFloat(-0.5f, 0.5f) * areaSize.y;
+            Vector3 randomPos = transform.position + new Vector3(rx, rayHeight, rz);
 
-            Vector3 randomPos = transform.position + new Vector3(
-                rx,
-                rayHeight,
-                rz
-            );
+            if (!Physics.Raycast(randomPos, Vector3.down, out RaycastHit hit, maxRayDistance, groundLayer))
+                continue;
 
-            if (Physics.Raycast(
-                randomPos,
-                Vector3.down,
-                out RaycastHit hit,
-                maxRayDistance,
-                groundLayer
-            ))
-            {
-                float slope = Vector3.Angle(hit.normal, Vector3.up);
-                if (slope > maxSlopeAngle)
-                    continue;
+            float slope = Vector3.Angle(hit.normal, Vector3.up);
+            if (slope > maxSlopeAngle) continue;
 
-                Vector3 spawnPos = hit.point;
+            Vector3 spawnPos = hit.point;
 
-                if (!IsFarEnough(spawnPos, minSpacing))
-                    continue;
+            if (!IsFarEnough(spawnPos, 1f)) continue; // opcional, spacing mínimo general
+            if (IsInForbiddenZone(spawnPos)) continue;
 
-                if (IsInForbiddenZone(spawnPos))
-                    continue;
+            WorldPropSO prop = props[prng.Next(0, props.Count)];
 
-                // 🔮 Noise sample (no depende del tamaño del área)
-                float noiseValue = Mathf.PerlinNoise(
-                    (spawnPos.x + noiseOffset.x) * noiseScale,
-                    (spawnPos.z + noiseOffset.y) * noiseScale
-                );
+            // Probabilidad por SO
+            if (Random.value > prop.spawnChance) continue;
 
-                // (por ahora solo debug / futuro biomas)
-                // if (noiseValue < 0.3f) continue;
-
-                GameObject prefab =
-                    prefabs[prng.Next(0, prefabs.Count)];
-
-                GameObject obj = Instantiate(
-                    prefab,
-                    spawnPos,
-                    Quaternion.Euler(0, NextFloat(0f, 360f), 0),
-                    transform
-                );
-
+            GameObject obj = Instantiate(prop.prefab, spawnPos, Quaternion.Euler(0, NextFloat(0f, 360f), 0), transform);
+            if (prop.alignToGround)
                 obj.transform.up = hit.normal;
 
-                spawnedPositions.Add(spawnPos);
-                count--;
+            var node = obj.GetComponent<ResourceNode>();
+            if (node != null && prop.resourceData != null)
+                node.data = prop.resourceData;
 
-                BiomeType biome = biomeMap != null
-    ? biomeMap.GetBiome(spawnPos)
-    : BiomeType.Plains;
+            spawnedPositions.Add(spawnPos);
+            count--;
+        }
+    }
 
-                // DEBUG (por ahora no bloquea nada)
-                if (biome == BiomeType.Desert && prefabs == treePrefabs)
-                    continue; // ejemplo: no árboles en desierto
+    void GenerateByBiome()
+    {
+        int attempts = 0;
+        int maxAttempts = 100000;
 
-            }
+        while (attempts < maxAttempts)
+        {
+            attempts++;
+
+            float rx = NextFloat(-0.5f, 0.5f) * areaSize.x;
+            float rz = NextFloat(-0.5f, 0.5f) * areaSize.y;
+            Vector3 randomPos = transform.position + new Vector3(rx, rayHeight, rz);
+
+            if (!Physics.Raycast(randomPos, Vector3.down, out RaycastHit hit, maxRayDistance, groundLayer))
+                continue;
+
+            float slope = Vector3.Angle(hit.normal, Vector3.up);
+            if (slope > maxSlopeAngle) continue;
+
+            Vector3 spawnPos = hit.point;
+            if (IsInForbiddenZone(spawnPos)) continue;
+
+            var biomeDef = biomeMap.GetBiomeDefinition(spawnPos);
+            if (biomeDef == null) continue;
+
+            TrySpawnFromBiome(biomeDef, spawnPos, hit.normal);
+
+            if (AllBiomeTargetsReached()) break;
+        }
+    }
+
+    void TrySpawnFromBiome(BiomeDefinition biome, Vector3 pos, Vector3 normal)
+    {
+        foreach (var entry in biome.props)
+        {
+            if (entry.spawnedCount >= entry.targetCount)
+                continue;
+
+            WorldPropSO prop = entry.prop;
+            if (prop == null || prop.prefab == null) continue;
+            if (Random.value > prop.spawnChance) continue;
+            if (!IsFarEnough(pos, prop.minSpacing)) continue;
+            if (!IsPropAllowedInBiome(prop, biome.biomeType)) continue;
+
+            Quaternion rot = Quaternion.Euler(0, NextFloat(0f, 360f), 0);
+            GameObject obj = Instantiate(prop.prefab, pos, rot, transform);
+            if (prop.alignToGround)
+                obj.transform.up = normal;
+
+            var node = obj.GetComponent<ResourceNode>();
+            if (node != null && prop.resourceData != null)
+                node.data = prop.resourceData;
+
+            spawnedPositions.Add(pos);
+            entry.spawnedCount++;
+            break; // solo 1 prop por punto
         }
     }
 
@@ -232,16 +248,9 @@ public class WorldPropGenerator : MonoBehaviour
     bool IsInForbiddenZone(Vector3 pos)
     {
         Collider[] hits = Physics.OverlapSphere(pos, forbiddenCheckRadius);
-
         foreach (var col in hits)
-        {
             foreach (var tag in forbiddenTags)
-            {
-                if (col.CompareTag(tag))
-                    return true;
-            }
-        }
-
+                if (col.CompareTag(tag)) return true;
         return false;
     }
 
@@ -250,156 +259,36 @@ public class WorldPropGenerator : MonoBehaviour
         return (float)(prng.NextDouble() * (max - min) + min);
     }
 
-    void GenerateByBiome()
+    bool IsPropAllowedInBiome(WorldPropSO prop, BiomeType biome)
     {
-        int attempts = 0;
-        int maxAttempts = 100000;
-
-        while (attempts < maxAttempts)
+        return biome switch
         {
-            attempts++;
-
-            float rx = NextFloat(-0.5f, 0.5f) * areaSize.x;
-            float rz = NextFloat(-0.5f, 0.5f) * areaSize.y;
-
-            Vector3 randomPos = transform.position + new Vector3(
-                rx,
-                rayHeight,
-                rz
-            );
-
-            if (!Physics.Raycast(
-                randomPos,
-                Vector3.down,
-                out RaycastHit hit,
-                maxRayDistance,
-                groundLayer
-            ))
-                continue;
-
-            float slope = Vector3.Angle(hit.normal, Vector3.up);
-            if (slope > maxSlopeAngle)
-                continue;
-
-            Vector3 spawnPos = hit.point;
-
-            if (IsInForbiddenZone(spawnPos))
-                continue;
-
-            var biomeDef = biomeMap.GetBiomeDefinition(spawnPos);
-            if (biomeDef == null)
-                continue;
-
-            TrySpawnFromBiome(biomeDef, spawnPos, hit.normal);
-
-            // 🛑 corte temprano
-            if (AllBiomeTargetsReached())
-                break;
-        }
+            BiomeType.Plains => prop.allowedInPlains,
+            BiomeType.Forest => prop.allowedInForest,
+            BiomeType.Snow => prop.allowedInSnow,
+            BiomeType.Desert => prop.allowedInDesert,
+            _ => true
+        };
     }
-
-    void TrySpawnFromBiome(BiomeDefinition biome, Vector3 pos, Vector3 normal)
-    {
-        foreach (var entry in biome.props)
-        {
-            // 🚫 ya llenó su cuota
-            if (entry.spawnedCount >= entry.targetCount)
-                continue;
-
-            // 🎲 probabilidad
-            if (Random.value > entry.spawnChance)
-                continue;
-
-            // 📏 espaciado
-            if (!IsFarEnough(pos, entry.minSpacing))
-                continue;
-
-            if (entry.prefabs.Count == 0)
-                continue;
-
-            GameObject prefab =
-                entry.prefabs[prng.Next(0, entry.prefabs.Count)];
-
-            Quaternion rot = Quaternion.Euler(0, NextFloat(0f, 360f), 0);
-
-            GameObject obj = Instantiate(prefab, pos, rot, transform);
-
-            if (entry.alignToGround)
-                obj.transform.up = normal;
-
-            spawnedPositions.Add(pos);
-
-            entry.spawnedCount++;   // ✅ CONSUME targetCount
-
-            break; // ⛔ solo 1 prop por punto
-        }
-    }
-
-
-
-#if UNITY_EDITOR
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(
-            transform.position,
-            new Vector3(areaSize.x, 1f, areaSize.y)
-        );
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, forbiddenCheckRadius);
-    }
-#endif
-
-
-    public void RandomizeSeed()
-    {
-        seed = Random.Range(int.MinValue, int.MaxValue);
-        Debug.Log($"WorldPropGenerator: New random seed = {seed}");
-    }
-
-    void ResetBiomePropCounters()
-    {
-        if (biomeMap == null)
-            return;
-
-        foreach (var def in biomeMap.allBiomeDefinitions)
-        {
-            foreach (var prop in def.props)
-            {
-                prop.spawnedCount = 0;
-            }
-        }
-    }
-
 
     bool AllBiomeTargetsReached()
     {
-        if (biomeMap == null)
-            return true;
+        if (biomeMap == null) return true;
 
         foreach (var def in biomeMap.allBiomeDefinitions)
-        {
             foreach (var prop in def.props)
-            {
                 if (prop.spawnedCount < prop.targetCount)
                     return false;
-            }
-        }
 
         return true;
     }
 
-
     void CalculateBiomeAreas()
     {
         biomeAreaKm2.Clear();
-
         float areaWidth = areaSize.x;
         float areaHeight = areaSize.y;
-
-        float totalAreaM2 = areaWidth * areaHeight;
-        float sampleStep = 5f; // resolución del muestreo (más bajo = más preciso)
+        float sampleStep = 5f;
 
         int samplesX = Mathf.CeilToInt(areaWidth / sampleStep);
         int samplesZ = Mathf.CeilToInt(areaHeight / sampleStep);
@@ -412,10 +301,8 @@ public class WorldPropGenerator : MonoBehaviour
                 float wz = transform.position.z - areaHeight * 0.5f + z * sampleStep;
 
                 Vector3 pos = new Vector3(wx, 0f, wz);
-
                 var biomeDef = biomeMap.GetBiomeDefinition(pos);
-                if (biomeDef == null)
-                    continue;
+                if (biomeDef == null) continue;
 
                 if (!biomeAreaKm2.ContainsKey(biomeDef))
                     biomeAreaKm2[biomeDef] = 0f;
@@ -424,31 +311,38 @@ public class WorldPropGenerator : MonoBehaviour
             }
         }
 
-        // m² → km²
         var keys = new List<BiomeDefinition>(biomeAreaKm2.Keys);
         foreach (var k in keys)
-        {
-            biomeAreaKm2[k] /= 1_000_000f;
-        }
+            biomeAreaKm2[k] /= 1_000_000f; // m² → km²
     }
 
     void CalculateBiomeTargets()
     {
         foreach (var def in biomeMap.allBiomeDefinitions)
         {
-            float biomeKm2 = biomeAreaKm2.ContainsKey(def)
-                ? biomeAreaKm2[def]
-                : 0f;
-
-            foreach (var prop in def.props)
+            float biomeKm2 = biomeAreaKm2.ContainsKey(def) ? biomeAreaKm2[def] : 0f;
+            foreach (var entry in def.props)
             {
-                prop.spawnedCount = 0;
-
-                prop.targetCount = Mathf.RoundToInt(
-                    prop.densityPerKm2 * biomeKm2
-                );
+                entry.spawnedCount = 0;
+                entry.targetCount = Mathf.RoundToInt(entry.prop.densityPerKm2 * biomeKm2);
             }
         }
     }
 
+    public void RandomizeSeed()
+    {
+        seed = Random.Range(int.MinValue, int.MaxValue);
+        Debug.Log($"WorldPropGenerator: New random seed = {seed}");
+    }
+
+#if UNITY_EDITOR
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(transform.position, new Vector3(areaSize.x, 1f, areaSize.y));
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, forbiddenCheckRadius);
+    }
+#endif
 }

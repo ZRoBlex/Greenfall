@@ -1,8 +1,10 @@
-public enum BiomeType
+﻿public enum BiomeType
 {
     Plains,
     Forest,
     Desert,
     Snow,
-    Mountains
+    Mountains,
+    Farmland, // 👈 nuevo bioma
+    City      // 👈 nuevo bioma
 }

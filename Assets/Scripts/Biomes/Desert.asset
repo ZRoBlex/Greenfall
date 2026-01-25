@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: Desert
   m_EditorClassIdentifier: 
   biomeType: 2
+  debugColor: {r: 0.6981132, g: 0.66513795, b: 0.4708971, a: 0}
   props: []

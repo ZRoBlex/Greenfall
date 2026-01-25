@@ -13,34 +13,21 @@ public enum PropType
 [System.Serializable]
 public class BiomePropEntry
 {
-    public string name;
-    public PropType type;
+    public WorldPropSO prop;
 
-    public List<GameObject> prefabs = new List<GameObject>();
-
-    [Range(0f, 1f)]
-    public float spawnChance = 1f;
-
-    public float minSpacing = 3f;
-
-    [Header("Density")]
-    public float densityPerKm2 = 120f;
-
-    public bool alignToGround = true;
-
-    [System.NonSerialized]
-    public int spawnedCount = 0;
-
-    [System.NonSerialized]
-    public int targetCount = 0;   // 👈 ahora se calcula
+    [HideInInspector] public int targetCount;
+    [HideInInspector] public int spawnedCount;
 }
+
 
 
 [CreateAssetMenu(menuName = "World/Biome Definition")]
 public class BiomeDefinition : ScriptableObject
 {
     public BiomeType biomeType;
+    //public Color debugColor;
+    public Color debugColor = Color.green; // para visualización
 
-    [Header("Allowed Props in this Biome")]
-    public List<BiomePropEntry> props = new List<BiomePropEntry>();
+    [Header("Props in this biome")]
+    public List<BiomePropEntry> props = new();
 }

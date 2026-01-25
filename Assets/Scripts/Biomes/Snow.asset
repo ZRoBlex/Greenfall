@@ -13,4 +13,8 @@ MonoBehaviour:
   m_Name: Snow
   m_EditorClassIdentifier: 
   biomeType: 3
-  props: []
+  debugColor: {r: 1, g: 1, b: 1, a: 0}
+  props:
+  - prop: {fileID: 11400000, guid: 144435b821863c144a469ecffa69ac2a, type: 2}
+    targetCount: 1127
+    spawnedCount: 0

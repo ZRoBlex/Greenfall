@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class BiomeMap : MonoBehaviour
@@ -115,6 +115,8 @@ public class BiomeMap : MonoBehaviour
             case BiomeType.Forest: return new Color(0f, 0.5f, 0f);
             case BiomeType.Mountains: return Color.gray;
             case BiomeType.Snow: return Color.white;
+            case BiomeType.Farmland: return Color.red;
+            case BiomeType.City: return Color.blue;
             default: return Color.magenta;
         }
     }

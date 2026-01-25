@@ -13,12 +13,8 @@ MonoBehaviour:
   m_Name: Plains
   m_EditorClassIdentifier: 
   biomeType: 0
+  debugColor: {r: 0.49790847, g: 0.6320754, b: 0.50001305, a: 0}
   props:
-  - name: Tree
-    type: 0
-    prefabs:
-    - {fileID: 3281575696061241009, guid: fc937adcfd2b59145951eb5500f7a5fb, type: 3}
-    spawnChance: 1
-    minSpacing: 15
-    targetCount: 1000
-    alignToGround: 1
+  - prop: {fileID: 11400000, guid: 8813d42d026b5404b81bfd69a6bf6d5f, type: 2}
+    targetCount: 34
+    spawnedCount: 34
