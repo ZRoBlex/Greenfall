@@ -172,6 +172,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Harvest"",
+                    ""type"": ""Button"",
+                    ""id"": ""733c4d1b-8177-424d-8851-4b0569f080b9"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -315,6 +324,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""CrouchTrigger"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7eb01ed4-abdb-4691-9fce-7ef313fe7630"",
+                    ""path"": ""<Keyboard>/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Harvest"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -566,6 +586,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
         m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
         m_Player_CrouchTrigger = m_Player.FindAction("CrouchTrigger", throwIfNotFound: true);
+        m_Player_Harvest = m_Player.FindAction("Harvest", throwIfNotFound: true);
         // Inventory
         m_Inventory = asset.FindActionMap("Inventory", throwIfNotFound: true);
         m_Inventory_Interact = m_Inventory.FindAction("Interact", throwIfNotFound: true);
@@ -667,6 +688,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Reload;
     private readonly InputAction m_Player_Aim;
     private readonly InputAction m_Player_CrouchTrigger;
+    private readonly InputAction m_Player_Harvest;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -714,6 +736,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/CrouchTrigger".
         /// </summary>
         public InputAction @CrouchTrigger => m_Wrapper.m_Player_CrouchTrigger;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Harvest".
+        /// </summary>
+        public InputAction @Harvest => m_Wrapper.m_Player_Harvest;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -767,6 +793,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @CrouchTrigger.started += instance.OnCrouchTrigger;
             @CrouchTrigger.performed += instance.OnCrouchTrigger;
             @CrouchTrigger.canceled += instance.OnCrouchTrigger;
+            @Harvest.started += instance.OnHarvest;
+            @Harvest.performed += instance.OnHarvest;
+            @Harvest.canceled += instance.OnHarvest;
         }
 
         /// <summary>
@@ -805,6 +834,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @CrouchTrigger.started -= instance.OnCrouchTrigger;
             @CrouchTrigger.performed -= instance.OnCrouchTrigger;
             @CrouchTrigger.canceled -= instance.OnCrouchTrigger;
+            @Harvest.started -= instance.OnHarvest;
+            @Harvest.performed -= instance.OnHarvest;
+            @Harvest.canceled -= instance.OnHarvest;
         }
 
         /// <summary>
@@ -1092,6 +1124,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCrouchTrigger(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Harvest" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHarvest(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Inventory" which allows adding and removing callbacks.

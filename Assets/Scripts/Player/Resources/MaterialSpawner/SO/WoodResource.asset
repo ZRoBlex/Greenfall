@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb586fe16a9ff6340993a2eeb24a1247, type: 3}
+  m_Name: WoodResource
+  m_EditorClassIdentifier: 
+  resourceId: Wood
+  prefab: {fileID: 521986790578004721, guid: 747e7896e0646ee4885d775249cf0f3c, type: 3}
+  maxHealth: 50
+  drops:
+  - materialId: Wood
+    pickupPrefab: {fileID: 521986790578004721, guid: 747e7896e0646ee4885d775249cf0f3c, type: 3}
+    minAmount: 3
+    maxAmount: 6
+  canRespawn: 1
+  respawnTime: 60
