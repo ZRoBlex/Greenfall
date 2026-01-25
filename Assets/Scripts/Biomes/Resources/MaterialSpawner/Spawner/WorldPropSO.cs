@@ -29,4 +29,9 @@ public class WorldPropSO : ScriptableObject
 
     [Header("Density")]
     public float densityPerKm2 = 50f; // 👈 lo que ya estás usando por bioma
+
+    [Header("Random Scale")]
+    public float minScale = 1f;
+    public float maxScale = 1f;
+
 }

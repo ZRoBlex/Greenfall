@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class WorldPropGenerator : MonoBehaviour
 {
@@ -44,9 +45,36 @@ public class WorldPropGenerator : MonoBehaviour
     public float minTreeSpacing = 3f;
     public float minRockSpacing = 2f;
 
+    [Header("Chunked Trees")]
+    public Transform player;            // referencia al jugador
+    public int chunkSize = 32;          // tamaño de cada chunk
+    public int renderDistance = 2;      // chunks alrededor del jugador
+    public float treeMinHeight = 0.8f;  // altura mínima aleatoria
+    public float treeMaxHeight = 1.3f;  // altura máxima aleatoria
+
+    [Header("Chunk Manager")]
+    public TreeChunkManager treeChunkManager;
+
+
+    private Dictionary<Vector2Int, TreeChunk> treeChunks = new();
+
+
     Dictionary<BiomeDefinition, float> biomeAreaKm2 = new Dictionary<BiomeDefinition, float>();
     List<Vector3> spawnedPositions = new List<Vector3>();
     System.Random prng;
+
+    void Start()
+{
+    if (transform.childCount == 0)
+        GenerateAll();
+    else if (treeChunkManager != null)
+        treeChunkManager.InitializeFromParent(transform); // agrupa los árboles existentes
+}
+
+    void Update()
+    {
+        UpdateTreeChunks();
+    }
 
     // ===== PUBLIC API =====
     public void GenerateAll()
@@ -65,6 +93,18 @@ public class WorldPropGenerator : MonoBehaviour
         GenerateByBiome();
 
         Debug.Log($"WorldPropGenerator: Generated {spawnedPositions.Count} props total.");
+
+        // ⚡ Inicializar chunk manager en la siguiente frame
+        if (treeChunkManager != null)
+        {
+            StartCoroutine(InitializeChunksNextFrame());
+        }
+    }
+
+    private IEnumerator InitializeChunksNextFrame()
+    {
+        yield return null; // espera 1 frame
+        treeChunkManager.InitializeFromParent(transform);
     }
 
     public void GenerateTreesOnly()
@@ -328,6 +368,103 @@ public class WorldPropGenerator : MonoBehaviour
             }
         }
     }
+
+    [System.Serializable]
+    public class TreeChunk
+    {
+        public GameObject chunkGO;
+        public List<GameObject> trees = new();
+
+        public void Generate(Vector2Int chunkPos, int chunkSize, int treesCount, List<WorldPropSO> treeSOs, System.Random prng, float minH, float maxH, Transform parent, BiomeMap biomeMap)
+        {
+            chunkGO = new GameObject($"Chunk_{chunkPos.x}_{chunkPos.y}");
+            chunkGO.transform.parent = parent;
+
+            for (int i = 0; i < treesCount; i++)
+            {
+                float rx = (float)prng.NextDouble() * chunkSize;
+                float rz = (float)prng.NextDouble() * chunkSize;
+
+                Vector3 pos = new Vector3(chunkPos.x * chunkSize + rx, 0f, chunkPos.y * chunkSize + rz);
+
+                // Chequear altura usando raycast
+                if (!Physics.Raycast(pos + Vector3.up * 50f, Vector3.down, out RaycastHit hit, 100f, parent.GetComponent<WorldPropGenerator>().groundLayer))
+                    continue;
+
+                pos.y = hit.point.y;
+
+                // Obtener bioma
+                BiomeDefinition biome = biomeMap.GetBiomeDefinition(pos);
+                if (biome == null) continue;
+
+                // Filtrar árboles permitidos en ese bioma
+                List<WorldPropSO> allowedTrees = new List<WorldPropSO>();
+                foreach (var t in treeSOs)
+                {
+                    if ((biome.biomeType == BiomeType.Forest && t.allowedInForest) ||
+                        (biome.biomeType == BiomeType.Plains && t.allowedInPlains) ||
+                        (biome.biomeType == BiomeType.Desert && t.allowedInDesert) ||
+                        (biome.biomeType == BiomeType.Snow && t.allowedInSnow))
+                        allowedTrees.Add(t);
+                }
+
+                if (allowedTrees.Count == 0) continue;
+
+                WorldPropSO treeSO = allowedTrees[prng.Next(0, allowedTrees.Count)];
+                if (treeSO.prefab == null) continue;
+
+                GameObject tree = GameObject.Instantiate(treeSO.prefab, pos, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f), chunkGO.transform);
+                float scale = Random.Range(minH, maxH);
+                tree.transform.localScale *= scale;
+
+                trees.Add(tree);
+            }
+        }
+
+        public void SetActive(bool active)
+        {
+            if (chunkGO != null)
+                chunkGO.SetActive(active);
+        }
+    }
+
+    void UpdateTreeChunks()
+    {
+        if (player == null || treeSOs.Count == 0 || biomeMap == null)
+            return;
+
+        Vector2Int playerChunk = new Vector2Int(
+            Mathf.FloorToInt(player.position.x / chunkSize),
+            Mathf.FloorToInt(player.position.z / chunkSize)
+        );
+
+        // Crear/activar chunks cercanos
+        for (int x = -renderDistance; x <= renderDistance; x++)
+        {
+            for (int z = -renderDistance; z <= renderDistance; z++)
+            {
+                Vector2Int c = playerChunk + new Vector2Int(x, z);
+                if (!treeChunks.ContainsKey(c))
+                {
+                    TreeChunk chunk = new TreeChunk();
+                    chunk.Generate(c, chunkSize, 50, treeSOs, prng, treeMinHeight, treeMaxHeight, transform, biomeMap);
+                    treeChunks[c] = chunk;
+                }
+                treeChunks[c].SetActive(true);
+            }
+        }
+
+        // Desactivar chunks lejanos
+        foreach (var kvp in treeChunks)
+        {
+            Vector2Int c = kvp.Key;
+            if (Mathf.Abs(c.x - playerChunk.x) > renderDistance || Mathf.Abs(c.y - playerChunk.y) > renderDistance)
+            {
+                kvp.Value.SetActive(false);
+            }
+        }
+    }
+
 
     public void RandomizeSeed()
     {
