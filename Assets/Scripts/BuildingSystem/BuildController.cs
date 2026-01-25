@@ -28,6 +28,8 @@ public class BuildController : MonoBehaviour
     [Header("Visual")]
     public float previewSmoothSpeed = 25f;
 
+    [SerializeField] private PlayerStats playerStats;
+
     StructureData Current => selector.Current;
 
     Vector3 visualPos;
@@ -136,16 +138,36 @@ public class BuildController : MonoBehaviour
 
     void Place(Vector3 pos, Quaternion rot)
     {
+        StructureData data = Current;
+
+        // 🔒 1) Verificar materiales
+        if (data.materialCosts != null && data.materialCosts.Length > 0)
+        {
+            if (!playerStats.HasMaterials(data.materialCosts))
+            {
+                Debug.Log("❌ No tienes suficientes materiales");
+                return;
+            }
+        }
+
+        // 🔨 2) Consumir materiales
+        if (data.materialCosts != null && data.materialCosts.Length > 0)
+        {
+            playerStats.ConsumeMaterials(data.materialCosts);
+        }
+
+        // 🏗️ 3) Spawnear estructura
         GameObject obj =
-            StructurePool.Instance.Get(Current.finalPrefab, pos, rot);
+            StructurePool.Instance.Get(data.finalPrefab, pos, rot);
 
         var instance = obj.GetComponent<StructureInstance>();
-        instance.prefab = Current.finalPrefab;
+        instance.prefab = data.finalPrefab;
 
         var health = obj.GetComponent<StructureHealth>();
-        health.data = Current;
+        health.data = data;
         health.ResetHealth();
     }
+
 
     public void ForceHidePreview()
     {

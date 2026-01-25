@@ -3,6 +3,13 @@
 [CreateAssetMenu(menuName = "Building/Structure Data")]
 public class StructureData : ScriptableObject
 {
+    [System.Serializable]
+    public struct MaterialCost
+    {
+        public string materialId;   // "Wood", "Metal", etc.
+        public float amount;
+    }
+
     [Header("Prefabs")]
     public GameObject previewPrefab;
     public GameObject finalPrefab;
@@ -25,4 +32,10 @@ public class StructureData : ScriptableObject
     [Tooltip("Resistencia al daño (0 = sin resistencia, 0.5 = 50%)")]
     [Range(0f, 1f)]
     public float damageResistance = 0f;
+
+    // ============================
+    // 🔨 BUILD COSTS (NUEVO)
+    // ============================
+    [Header("Build Costs")]
+    public MaterialCost[] materialCosts;
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static StructureData;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -184,21 +185,21 @@ public class PlayerStats : MonoBehaviour
         // ======================
         HandleStarvationAndDehydrationDamage(Time.deltaTime);
 
-        //if(Input.GetKeyDown(KeyCode.T))
-        //{
-        //    AddHunger(10f);
-        //    AddEnergy(10f);
-        //    AddWater(10f);
-        //    AddMaterials("Wood", 10f);
-        //}
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            AddHunger(10f);
+            AddEnergy(10f);
+            AddWater(10f);
+            AddMaterials("Wood", 10f);
+        }
 
-        //if (Input.GetKeyDown(KeyCode.C))
-        //{
-        //    //AddHunger(10f);
-        //    //AddEnergy(10f);
-        //    //AddWater(10f);
-        //    ConsumeMaterials("Wood", 10f);
-        //}
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            //AddHunger(10f);
+            //AddEnergy(10f);
+            //AddWater(10f);
+            ConsumeMaterials("Wood", 10f);
+        }
 
     }
 
@@ -371,6 +372,48 @@ public class PlayerStats : MonoBehaviour
         {
             playerHealth.TakeDamage(waterDamagePerSecond * deltaTime);
         }
+    }
+
+    // ===============================
+    // 🔍 CONSULTAR COSTOS
+    // ===============================
+    public bool HasMaterials(MaterialCost[] costs)
+    {
+        foreach (var cost in costs)
+        {
+            if (!currentMaterialsById.TryGetValue(cost.materialId, out float current))
+            {
+                Debug.LogWarning($"Material desconocido: {cost.materialId}");
+                return false;
+            }
+
+            if (current < cost.amount)
+                return false;
+        }
+
+        return true;
+    }
+
+    // ===============================
+    // 🔨 CONSUMIR COSTOS
+    // ===============================
+    public bool ConsumeMaterials(MaterialCost[] costs)
+    {
+        if (!HasMaterials(costs))
+            return false;
+
+        foreach (var cost in costs)
+        {
+            float current = currentMaterialsById[cost.materialId];
+            float max = maxMaterialsById[cost.materialId];
+
+            current -= cost.amount;
+            currentMaterialsById[cost.materialId] = current;
+
+            materialsPanel?.SetMaterialAmount(cost.materialId, current, max);
+        }
+
+        return true;
     }
 
 }

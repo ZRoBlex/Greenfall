@@ -3593,7 +3593,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1248132949}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 850d4b2e61689ae4c800e5163bf9b0bf, type: 3}
   m_Name: 
@@ -6975,6 +6975,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3784181818818641501, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: range
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3784181818818641501, guid: fc95a902743b2f244bc1085196210a31, type: 3}
+      propertyPath: playerStats
+      value: 
+      objectReference: {fileID: 1039216098262650848}
     - target: {fileID: 7469503220378386840, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: m_Name
       value: PlayerObject
