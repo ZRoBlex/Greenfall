@@ -22,12 +22,17 @@ public class BiomePropEntry
     public float spawnChance = 1f;
 
     public float minSpacing = 3f;
-    public int targetCount = 50;
+
+    [Header("Density")]
+    public float densityPerKm2 = 120f;
 
     public bool alignToGround = true;
 
     [System.NonSerialized]
-    public int spawnedCount = 0;   // ✅ contador real
+    public int spawnedCount = 0;
+
+    [System.NonSerialized]
+    public int targetCount = 0;   // 👈 ahora se calcula
 }
 
 

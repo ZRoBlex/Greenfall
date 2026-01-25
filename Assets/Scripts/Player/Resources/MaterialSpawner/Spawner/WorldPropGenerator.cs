@@ -45,6 +45,8 @@ public class WorldPropGenerator : MonoBehaviour
     [Header("Biome System")]
     public BiomeMap biomeMap;
 
+    Dictionary<BiomeDefinition, float> biomeAreaKm2 =
+    new Dictionary<BiomeDefinition, float>();
 
 
     List<Vector3> spawnedPositions = new List<Vector3>();
@@ -63,9 +65,11 @@ public class WorldPropGenerator : MonoBehaviour
             return;
         }
 
-        ResetBiomePropCounters();   // ✅ NUEVO
+        CalculateBiomeAreas();
+        CalculateBiomeTargets();
 
         GenerateByBiome();
+
 
         Debug.Log($"WorldPropGenerator: Generated {spawnedPositions.Count} props total.");
     }
@@ -387,5 +391,64 @@ public class WorldPropGenerator : MonoBehaviour
     }
 
 
+    void CalculateBiomeAreas()
+    {
+        biomeAreaKm2.Clear();
+
+        float areaWidth = areaSize.x;
+        float areaHeight = areaSize.y;
+
+        float totalAreaM2 = areaWidth * areaHeight;
+        float sampleStep = 5f; // resolución del muestreo (más bajo = más preciso)
+
+        int samplesX = Mathf.CeilToInt(areaWidth / sampleStep);
+        int samplesZ = Mathf.CeilToInt(areaHeight / sampleStep);
+
+        for (int x = 0; x < samplesX; x++)
+        {
+            for (int z = 0; z < samplesZ; z++)
+            {
+                float wx = transform.position.x - areaWidth * 0.5f + x * sampleStep;
+                float wz = transform.position.z - areaHeight * 0.5f + z * sampleStep;
+
+                Vector3 pos = new Vector3(wx, 0f, wz);
+
+                var biomeDef = biomeMap.GetBiomeDefinition(pos);
+                if (biomeDef == null)
+                    continue;
+
+                if (!biomeAreaKm2.ContainsKey(biomeDef))
+                    biomeAreaKm2[biomeDef] = 0f;
+
+                biomeAreaKm2[biomeDef] += sampleStep * sampleStep;
+            }
+        }
+
+        // m² → km²
+        var keys = new List<BiomeDefinition>(biomeAreaKm2.Keys);
+        foreach (var k in keys)
+        {
+            biomeAreaKm2[k] /= 1_000_000f;
+        }
+    }
+
+    void CalculateBiomeTargets()
+    {
+        foreach (var def in biomeMap.allBiomeDefinitions)
+        {
+            float biomeKm2 = biomeAreaKm2.ContainsKey(def)
+                ? biomeAreaKm2[def]
+                : 0f;
+
+            foreach (var prop in def.props)
+            {
+                prop.spawnedCount = 0;
+
+                prop.targetCount = Mathf.RoundToInt(
+                    prop.densityPerKm2 * biomeKm2
+                );
+            }
+        }
+    }
 
 }

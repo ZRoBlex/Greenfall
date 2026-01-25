@@ -20,5 +20,5 @@ MonoBehaviour:
     - {fileID: 3281575696061241009, guid: fc937adcfd2b59145951eb5500f7a5fb, type: 3}
     spawnChance: 1
     minSpacing: 5
-    targetCount: 5000
+    densityPerKm2: 40000
     alignToGround: 1
