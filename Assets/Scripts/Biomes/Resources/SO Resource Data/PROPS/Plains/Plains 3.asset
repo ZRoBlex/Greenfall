@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 969a48f7c50d28c4c9858109aa597ad0, type: 3}
+  m_Name: Plains 3
+  m_EditorClassIdentifier: 
+  propId: plain tree
+  prefab: {fileID: 2587419035180025955, guid: 5e9ee3fd871120f47a107ebc02fb5240, type: 3}
+  resourceData: {fileID: 11400000, guid: 5b9fe891927b09049b2497cc8d9a6aca, type: 2}
+  alignToGround: 1
+  minSpacing: 3
+  spawnChance: 0.2
+  allowedInPlains: 1
+  allowedInForest: 0
+  allowedInSnow: 0
+  allowedInDesert: 0
+  allowedInMountains: 0
+  allowedInFarmLand: 0
+  allowedInCity: 0
+  densityPerKm2: 5000

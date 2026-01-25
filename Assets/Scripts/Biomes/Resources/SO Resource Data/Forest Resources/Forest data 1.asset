@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb586fe16a9ff6340993a2eeb24a1247, type: 3}
+  m_Name: Forest data 1
+  m_EditorClassIdentifier: 
+  resourceId: Birch 2
+  prefab: {fileID: 7175476482804379884, guid: fe4c1860b6d36a34493edffad11d880d, type: 3}
+  maxHealth: 50
+  drops:
+  - materialId: Wood
+    pickupPrefab: {fileID: 7428503491388443978, guid: 0161c4fd8fd334d40a9d092dbee71951, type: 3}
+    minAmount: 5
+    maxAmount: 10
+    dropChance: 1
+    weight: 1
+  canRespawn: 1
+  respawnTime: 60

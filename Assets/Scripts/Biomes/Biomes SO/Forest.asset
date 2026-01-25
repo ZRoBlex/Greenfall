@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44ab751fbb19a4f46912411f040a8df9, type: 3}
+  m_Name: Forest
+  m_EditorClassIdentifier: 
+  biomeType: 1
+  debugColor: {r: 0.06541475, g: 0.2830189, b: 0.12890546, a: 0}
+  props:
+  - prop: {fileID: 11400000, guid: 610e62e1727059940a89f4f8ed4c3384, type: 2}
+    targetCount: 2016
+    spawnedCount: 2016
+  - prop: {fileID: 11400000, guid: 47a31b8f88e544a44a3b347df8699c80, type: 2}
+    targetCount: 2016
+    spawnedCount: 2016
+  - prop: {fileID: 11400000, guid: dad858d1264c09a4e881c428a5656da9, type: 2}
+    targetCount: 2016
+    spawnedCount: 2016
+  - prop: {fileID: 11400000, guid: 23897d351cb7f5945acb445e62825b0b, type: 2}
+    targetCount: 2016
+    spawnedCount: 2016
+  - prop: {fileID: 11400000, guid: d24b104883433a944b1ee96de19875ca, type: 2}
+    targetCount: 2016
+    spawnedCount: 176
+  - prop: {fileID: 11400000, guid: e484aeefc79ca00489397deb0d4a2307, type: 2}
+    targetCount: 2016
+    spawnedCount: 0
+  - prop: {fileID: 11400000, guid: 2c9f46d10911e5a44a3678eba376198d, type: 2}
+    targetCount: 2016
+    spawnedCount: 0
+  - prop: {fileID: 11400000, guid: b6462f34b5b74a44db072e23d0c7902e, type: 2}
+    targetCount: 2016
+    spawnedCount: 0
+  - prop: {fileID: 11400000, guid: 2f97c8fad9ed2da4d8d821c9e248ca5c, type: 2}
+    targetCount: 2016
+    spawnedCount: 0
+  - prop: {fileID: 11400000, guid: 1acb9310840ccef49ad27869b3de0c2e, type: 2}
+    targetCount: 2016
+    spawnedCount: 0
+  - prop: {fileID: 11400000, guid: 7e25e1fe202f3a04588ddf53d2b40f17, type: 2}
+    targetCount: 403
+    spawnedCount: 0

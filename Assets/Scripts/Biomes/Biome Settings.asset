@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1575087d7d84384fbd9b98619c98a20, type: 3}
+  m_Name: Biome Settings
+  m_EditorClassIdentifier: 
+  noiseScale: 0.001
+  biomes:
+  - biome: 0
+    min: 0
+    max: 0.2
+    definition: {fileID: 11400000, guid: 57d9a92b78d5d4e48aca7bd892b9e399, type: 2}
+  - biome: 1
+    min: 0.2
+    max: 0.3
+    definition: {fileID: 11400000, guid: f5cad7965d50529448ffa26cc2803ddf, type: 2}
+  - biome: 5
+    min: 0.36
+    max: 0.5
+    definition: {fileID: 11400000, guid: 101048c5c2d448e428fb08da03420762, type: 2}
+  - biome: 6
+    min: 0.5
+    max: 1
+    definition: {fileID: 11400000, guid: 6d53df2a093c31740a9a313e0e7cd485, type: 2}
