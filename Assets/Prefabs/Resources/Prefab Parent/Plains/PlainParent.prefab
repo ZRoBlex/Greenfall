@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6808848427088861528}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlainParent
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -43,6 +43,14 @@ PrefabInstance:
     - target: {fileID: 1147289004525582606, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
       propertyPath: m_Name
       value: CommonTree_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1147289004525582606, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2530274448606587476, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 4638148130435942786, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -83,6 +91,18 @@ PrefabInstance:
     - target: {fileID: 4638148130435942786, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6561658797091476921, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6621130114770372449, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7263080781100822757, guid: f9c551b7077000840842ecec1c41a1fd, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

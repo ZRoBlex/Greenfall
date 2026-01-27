@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 108368954401580915}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TreeParent_4
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -40,9 +40,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 108368954401580915}
     m_Modifications:
+    - target: {fileID: 1966612340082583505, guid: 779bbcfdea357f44a8e5b392158b980b, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 2480956024022894369, guid: 779bbcfdea357f44a8e5b392158b980b, type: 3}
       propertyPath: m_Name
       value: BirchTree_5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2480956024022894369, guid: 779bbcfdea357f44a8e5b392158b980b, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 4172206691528606289, guid: 779bbcfdea357f44a8e5b392158b980b, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5434660331495324911, guid: 779bbcfdea357f44a8e5b392158b980b, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6598245705737456600, guid: 779bbcfdea357f44a8e5b392158b980b, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 9211260202948889365, guid: 779bbcfdea357f44a8e5b392158b980b, type: 3}
       propertyPath: m_LocalPosition.x

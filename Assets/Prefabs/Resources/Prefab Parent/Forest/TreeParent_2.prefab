@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 650531019850694953}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TreeParent_2
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -43,6 +43,14 @@ PrefabInstance:
     - target: {fileID: 1510579526375087462, guid: 0f984d05d054b45438ed899828e45e30, type: 3}
       propertyPath: m_Name
       value: BirchTree_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1510579526375087462, guid: 0f984d05d054b45438ed899828e45e30, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2074709005069239331, guid: 0f984d05d054b45438ed899828e45e30, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2757680345462307953, guid: 0f984d05d054b45438ed899828e45e30, type: 3}
       propertyPath: m_LocalPosition.x
@@ -83,6 +91,10 @@ PrefabInstance:
     - target: {fileID: 2757680345462307953, guid: 0f984d05d054b45438ed899828e45e30, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3507815869320955837, guid: 0f984d05d054b45438ed899828e45e30, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

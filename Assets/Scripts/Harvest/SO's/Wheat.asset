@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d3846a436f0ad14889a09bce2fd46e2, type: 3}
+  m_Name: Wheat
+  m_EditorClassIdentifier: 
+  seedId: Wheat seed
+  plantPrefab: {fileID: 1663796803051789955, guid: 9c831fe6f42e1b843a180ff7f3b0d098, type: 3}
+  growTime: 3
+  maxHarvests: 1
+  cropPrefab: {fileID: 5535388702236958303, guid: b1a1cd35cda436e4390b44ac1f89b58a, type: 3}
+  minCropAmount: 1
+  maxCropAmount: 3
+  minSeedReturn: 0
+  maxSeedReturn: 2
+  seedPickupPrefab: {fileID: 0}

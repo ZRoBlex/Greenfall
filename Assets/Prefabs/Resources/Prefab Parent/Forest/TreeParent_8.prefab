@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5446314363731903552}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TreeParent_8
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -40,9 +40,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5446314363731903552}
     m_Modifications:
+    - target: {fileID: 3287997375351366071, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3287997375351366071, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
+      propertyPath: m_TagString
+      value: Obstacle
+      objectReference: {fileID: 0}
     - target: {fileID: 6079860315942343595, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
       propertyPath: m_Name
       value: PineTree_4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6079860315942343595, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6740916521291019381, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6740916521291019381, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
+      propertyPath: m_TagString
+      value: Obstacle
       objectReference: {fileID: 0}
     - target: {fileID: 6846868418031571940, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
       propertyPath: m_LocalPosition.x
@@ -83,6 +103,14 @@ PrefabInstance:
     - target: {fileID: 6846868418031571940, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7899624934870575381, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7899624934870575381, guid: d9c6dd17621b67b49ac27eb89b61a612, type: 3}
+      propertyPath: m_TagString
+      value: Obstacle
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

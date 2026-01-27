@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3518545493021608488}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TreeParent_6
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -43,6 +43,10 @@ PrefabInstance:
     - target: {fileID: 253725180709299701, guid: feb83dcf2a8991a42bdaf696cab5d3f4, type: 3}
       propertyPath: m_Name
       value: PineTree_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 253725180709299701, guid: feb83dcf2a8991a42bdaf696cab5d3f4, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 1490578325817072179, guid: feb83dcf2a8991a42bdaf696cab5d3f4, type: 3}
       propertyPath: m_LocalPosition.x

@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7969680509144653273}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlainParent_4
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -40,9 +40,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7969680509144653273}
     m_Modifications:
+    - target: {fileID: 362659972515087128, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1615429546389915057, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2269086419787985121, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2465956205696269740, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 6180184854944778869, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
       propertyPath: m_Name
       value: Plain
+      objectReference: {fileID: 0}
+    - target: {fileID: 6180184854944778869, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6784915974682796891, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 7630991663965130271, guid: eb6d7b01bf0d62a46aefc73b0bede60c, type: 3}
       propertyPath: m_LocalPosition.x

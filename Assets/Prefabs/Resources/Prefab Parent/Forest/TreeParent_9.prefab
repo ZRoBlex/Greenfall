@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2559261107044358895}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TreeParent_9
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -40,9 +40,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2559261107044358895}
     m_Modifications:
+    - target: {fileID: 823265015342043561, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 823265015342043561, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
+      propertyPath: m_TagString
+      value: Obstacle
+      objectReference: {fileID: 0}
     - target: {fileID: 1462627797803345168, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
       propertyPath: m_Name
       value: PineTree_5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1462627797803345168, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 4459663138584698647, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
       propertyPath: m_LocalPosition.x
@@ -83,6 +95,14 @@ PrefabInstance:
     - target: {fileID: 4459663138584698647, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7663115303326515717, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7663115303326515717, guid: 75331842efaccc94f982f1f960d0bf40, type: 3}
+      propertyPath: m_TagString
+      value: Obstacle
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

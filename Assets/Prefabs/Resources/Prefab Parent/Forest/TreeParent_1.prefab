@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 744031843039694777}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: TreeParent_1
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -43,6 +43,18 @@ PrefabInstance:
     - target: {fileID: 2540321689418806225, guid: 9a5f2c815f4fe9f4fa2e50c90ae05c65, type: 3}
       propertyPath: m_Name
       value: BirchTree_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2540321689418806225, guid: 9a5f2c815f4fe9f4fa2e50c90ae05c65, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5758145375198666234, guid: 9a5f2c815f4fe9f4fa2e50c90ae05c65, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5990847795966717690, guid: 9a5f2c815f4fe9f4fa2e50c90ae05c65, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 6443440282105829209, guid: 9a5f2c815f4fe9f4fa2e50c90ae05c65, type: 3}
       propertyPath: m_LocalPosition.x
@@ -83,6 +95,10 @@ PrefabInstance:
     - target: {fileID: 6443440282105829209, guid: 9a5f2c815f4fe9f4fa2e50c90ae05c65, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7674498775970222847, guid: 9a5f2c815f4fe9f4fa2e50c90ae05c65, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
