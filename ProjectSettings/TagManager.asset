@@ -14,6 +14,8 @@ TagManager:
   - Dirt
   - Obstacle
   - AmmoBox
+  - HarvestZone
+  - Harvest
   layers:
   - Default
   - TransparentFX
