@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 6454088504426101451}
   - component: {fileID: 2593081683124768913}
   - component: {fileID: 92067321912118780}
-  - component: {fileID: 1230162044241645239}
   m_Layer: 0
   m_Name: Wheat
   m_TagString: Untagged
@@ -87,20 +86,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1230162044241645239
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5501150226130494591}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e6ae7239d31e8974b992386e2338db45, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data: {fileID: 11400000, guid: d4d4535ebb7e1f0438580a0d68451071, type: 2}
-  currentHealth: 2
-  minAmountMat: 0
-  maxAmountMat: 0
-  ammount: 0

@@ -14,6 +14,9 @@ public class PlantInstance : MonoBehaviour
     public GameObject grownModel;
     public Transform visualRoot; // para modo escala
 
+    GroundPlantable groundOwner;
+    Vector3 registeredPosition;
+
     PlantSpot mySpot;
 
     void Update()
@@ -56,7 +59,24 @@ public class PlantInstance : MonoBehaviour
             if (visualRoot != null)
                 visualRoot.localScale = Vector3.one * 0.1f;
         }
+
+        ResetGrowth();
     }
+
+    // 🟢 NUEVO: inicializar desde suelo
+    public void InitializeOnGround(
+    SeedItem seed,
+    GroundPlantable ground,
+    Vector3 position
+)
+    {
+        seedData = seed;
+        groundOwner = ground;
+        registeredPosition = position;
+
+        ResetGrowth();
+    }
+
 
     // 👇 ESTO ARREGLA TU ERROR ACTUAL
     public bool CanHarvest()
@@ -93,10 +113,41 @@ public class PlantInstance : MonoBehaviour
             }
         }
 
+        GroundPlantable ground = GetComponentInParent<GroundPlantable>();
+        if (ground != null)
+        {
+            ground.UnregisterPlant(transform.position);
+        }
 
+
+
+        // 🟢 liberar spot lógico
         if (mySpot != null)
             mySpot.ClearSpot();
 
+        // 🟢 liberar suelo lógico
+        if (groundOwner != null)
+            groundOwner.UnregisterPlant(registeredPosition);
+
         Destroy(gameObject);
+
     }
+
+    void ResetGrowth()
+    {
+        growTimer = 0f;
+        isGrown = false;
+
+        if (useStageModels)
+        {
+            if (sproutModel != null) sproutModel.SetActive(true);
+            if (grownModel != null) grownModel.SetActive(false);
+        }
+        else
+        {
+            if (visualRoot != null)
+                visualRoot.localScale = Vector3.one * 0.1f;
+        }
+    }
+
 }

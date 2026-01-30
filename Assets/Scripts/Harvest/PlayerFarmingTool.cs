@@ -32,11 +32,20 @@ public class PlayerFarmingTool : MonoBehaviour
 
         if (RaycastFiltered(out RaycastHit hit))
         {
-            Debug.Log("Hit: " + hit.collider.name + " | Tag: " + hit.collider.tag);
-
-            if (!HasAnyTag(hit.collider, plantSpotTags))
+            // 🟢 PARCELA CON MÚLTIPLES PUNTOS
+            FarmPlot plot = hit.collider.GetComponent<FarmPlot>();
+            if (plot != null)
+            {
+                PlantSpot freeSpot = plot.GetFreeSpot();
+                if (freeSpot != null)
+                {
+                    freeSpot.PlantSeed(selectedSeed);
+                    Debug.Log("Seed planted in plot!");
+                }
                 return;
+            }
 
+            // 🟢 PLANTAR DIRECTO EN UN SPOT
             PlantSpot spot = hit.collider.GetComponent<PlantSpot>();
             if (spot != null && spot.CanPlant())
             {
@@ -44,7 +53,41 @@ public class PlayerFarmingTool : MonoBehaviour
                 Debug.Log("Seed planted!");
             }
         }
+
+        GroundPlantable ground = hit.collider.GetComponent<GroundPlantable>();
+        if (ground != null)
+        {
+            Vector3 plantPos = hit.point;
+
+            if (!ground.CanPlantAt(plantPos))
+                return;
+
+            GameObject plantGO = Instantiate(
+                selectedSeed.plantPrefab,
+                plantPos,
+                Quaternion.identity
+            );
+
+            PlantInstance plant = plantGO.GetComponent<PlantInstance>();
+            if (plant == null)
+            {
+                Destroy(plantGO);
+                return;
+            }
+
+            ground.RegisterPlant(plantPos);
+
+            plant.InitializeOnGround(
+                selectedSeed,
+                ground,
+                plantPos
+            );
+        }
+
+
+
     }
+
 
     void TryHarvest()
     {
