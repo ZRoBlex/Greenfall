@@ -129,8 +129,6 @@ public class FirstPersonController : MonoBehaviour
 
     void Update()
     {
-        if (GamePauseManager.IsPaused) return;
-
         HandleMovement();
         HandleRotation();
         //HandleCrouch();
