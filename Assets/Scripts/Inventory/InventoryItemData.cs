@@ -8,4 +8,6 @@ public class InventoryItemData : ScriptableObject
 
     [Header("Size in inventory (pixels)")]
     public Vector2 size = new Vector2(64, 64);
+
+    public ItemCategory category;
 }
