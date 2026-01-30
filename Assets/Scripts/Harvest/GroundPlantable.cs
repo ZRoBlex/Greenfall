@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class GroundPlantable : MonoBehaviour
@@ -11,9 +11,20 @@ public class GroundPlantable : MonoBehaviour
 
     public bool CanPlantAt(Vector3 position)
     {
+        // 🟢 VALIDAR BIOMA
+        if (BiomeMap.Instance != null)
+        {
+            BiomeDefinition biome = BiomeMap.Instance.GetBiomeDefinition(position);
+
+            if (biome == null || !biome.allowPlanting)
+                return false;
+        }
+
+        // 🟢 LIMITE DE PLANTAS
         if (occupiedPositions.Count >= maxPlants)
             return false;
 
+        // 🟢 DISTANCIA ENTRE PLANTAS
         foreach (var pos in occupiedPositions)
         {
             if (Vector3.Distance(pos, position) < minDistanceBetweenPlants)
@@ -22,6 +33,7 @@ public class GroundPlantable : MonoBehaviour
 
         return true;
     }
+
 
     public void RegisterPlant(Vector3 position)
     {

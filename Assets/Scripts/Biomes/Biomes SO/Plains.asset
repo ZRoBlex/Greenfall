@@ -33,3 +33,4 @@ MonoBehaviour:
   - prop: {fileID: 11400000, guid: 36a7611a69c4db245a87716d29e44f1a, type: 2}
     targetCount: 0
     spawnedCount: 0
+  allowPlanting: 0

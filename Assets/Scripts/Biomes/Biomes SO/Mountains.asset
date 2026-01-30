@@ -18,3 +18,4 @@ MonoBehaviour:
   - prop: {fileID: 11400000, guid: 2449af459d1d71f4c957beae29b72329, type: 2}
     targetCount: 0
     spawnedCount: 0
+  allowPlanting: 0

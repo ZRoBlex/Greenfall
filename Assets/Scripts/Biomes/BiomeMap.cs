@@ -16,6 +16,8 @@ public class BiomeMap : MonoBehaviour
 
     public List<BiomeDefinition> allBiomeDefinitions = new List<BiomeDefinition>();
 
+    public static BiomeMap Instance;
+
 
     float offsetX;
     float offsetZ;
@@ -27,6 +29,7 @@ public class BiomeMap : MonoBehaviour
 
     void Awake()
     {
+        Instance = this;
         RecalculateOffsets();
     }
 

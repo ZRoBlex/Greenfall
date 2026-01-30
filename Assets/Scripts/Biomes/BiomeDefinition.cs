@@ -30,4 +30,7 @@ public class BiomeDefinition : ScriptableObject
 
     [Header("Props in this biome")]
     public List<BiomePropEntry> props = new();
+
+    [Header("Farming")]
+    public bool allowPlanting = true;
 }
