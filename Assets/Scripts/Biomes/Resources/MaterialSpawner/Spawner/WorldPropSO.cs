@@ -29,4 +29,14 @@ public class WorldPropSO : ScriptableObject
 
     [Header("Density")]
     public float densityPerKm2 = 50f; // 👈 lo que ya estás usando por bioma
+
+
+    [Header("Random Scale")]
+    public Vector2 scaleRange = new Vector2(0.9f, 1.2f);
+
+    [Header("Random Rotation")]
+    public bool randomYRotation = true;
+    public float maxTiltAngle = 2f; // grados en X/Z
+
+
 }

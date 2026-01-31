@@ -218,6 +218,8 @@ public class WorldPropGenerator_TEST : MonoBehaviour
 
             Quaternion rot = Quaternion.Euler(0, NextFloat(0, 360), 0);
             GameObject obj = Instantiate(prop.prefab, hit.point, rot, transform);
+            ApplyRandomTransform(obj, prop);
+
 
             if (prop.alignToGround)
                 obj.transform.up = hit.normal;
@@ -244,5 +246,23 @@ public class WorldPropGenerator_TEST : MonoBehaviour
         return false;
     }
 
+    void ApplyRandomTransform(GameObject obj, WorldPropSO prop)
+    {
+        // ESCALA UNIFORME
+        float scale = NextFloat(prop.scaleRange.x, prop.scaleRange.y);
+        obj.transform.localScale = Vector3.one * scale;
+
+        // ROTACIÓN
+        if (prop.randomYRotation)
+        {
+            Vector3 euler = obj.transform.eulerAngles;
+
+            float tiltX = NextFloat(-prop.maxTiltAngle, prop.maxTiltAngle);
+            float tiltZ = NextFloat(-prop.maxTiltAngle, prop.maxTiltAngle);
+
+            obj.transform.rotation =
+                Quaternion.Euler(tiltX, euler.y, tiltZ);
+        }
+    }
 
 }

@@ -26,3 +26,6 @@ MonoBehaviour:
   allowedInFarmLand: 0
   allowedInCity: 0
   densityPerKm2: 10000
+  scaleRange: {x: 0.9, y: 1.5}
+  randomYRotation: 1
+  maxTiltAngle: 2
