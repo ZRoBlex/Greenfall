@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6026321519446637097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4937594929845292598}
+  - component: {fileID: 4869830138920292124}
+  - component: {fileID: 5789670475455151580}
+  - component: {fileID: -4099863484914516293}
+  m_Layer: 0
+  m_Name: WorldChunk
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4937594929845292598
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6026321519446637097}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4869830138920292124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6026321519446637097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0069fc130bce2d24aab2f1f39e895888, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coord: {x: 0, y: 0}
+  chunkSize: 0
+  biomeMap: {fileID: 0}
+  propGenerator: {fileID: -4099863484914516293}
+--- !u!114 &5789670475455151580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6026321519446637097}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d9f381913c57d943b6dfd91212d1d83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  useSeed: 1
+  seed: -1778072125
+  randomizeSeedOnGenerate: 0
+  noiseScale: 0.08
+  noiseOffset: {x: 0, y: 0}
+  areaSize: {x: 1000, y: 1000}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+  rayHeight: 50
+  maxRayDistance: 100
+  maxSlopeAngle: 35
+  forbiddenTags:
+  - build
+  - Obstacle
+  - Player
+  - Enemy
+  - HarvestZone
+  forbiddenCheckRadius: 1.2
+  biomeMap: {fileID: 0}
+  treeSOs: []
+  rockSOs: []
+  treePrefabs: []
+  rockPrefabs: []
+  treeCount: 100
+  rockCount: 100
+  minTreeSpacing: 3
+  minRockSpacing: 2
+--- !u!114 &-4099863484914516293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6026321519446637097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36690d9cf99febe4b91c1839db7feaf1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chunkSize: 64
+  chunkCoord: {x: 0, y: 0}
+  seed: -1467863645
+  useSeed: 1
+  spawnAttemptsPerChunk: 120
+  rayHeight: 50
+  maxRayDistance: 100
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+  maxSlopeAngle: 35
+  biomeMap: {fileID: 0}
+  forbiddenRadius: 1.2
+  forbiddenTags:
+  - build
+  - Obstacle
+  - Player
+  - Enemy
+  - HarvestZone

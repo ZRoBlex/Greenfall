@@ -17,6 +17,9 @@ public class BiomePropEntry
 
     [HideInInspector] public int targetCount;
     [HideInInspector] public int spawnedCount;
+    [Header("Density Per Chunk")]
+    public int minPerChunk = 1;
+    public int maxPerChunk = 4;
 }
 
 

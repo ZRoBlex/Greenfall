@@ -18,19 +18,31 @@ MonoBehaviour:
   - prop: {fileID: 11400000, guid: 1804e8833bb0b9b4391b9d47490c84e3, type: 2}
     targetCount: 0
     spawnedCount: 0
+    minPerChunk: 1
+    maxPerChunk: 1
   - prop: {fileID: 11400000, guid: c79275858d739e14484ec2b3138737db, type: 2}
     targetCount: 0
     spawnedCount: 0
+    minPerChunk: 1
+    maxPerChunk: 1
   - prop: {fileID: 11400000, guid: 2dd912ff9abd9f6459cf0b77defbb8a4, type: 2}
     targetCount: 0
     spawnedCount: 0
+    minPerChunk: 1
+    maxPerChunk: 1
   - prop: {fileID: 11400000, guid: d1e3f92277adcc1459139f2efa9f2114, type: 2}
     targetCount: 0
     spawnedCount: 0
+    minPerChunk: 1
+    maxPerChunk: 1
   - prop: {fileID: 11400000, guid: 47d3ea2fd9cb61340b3e0cb2799446c1, type: 2}
     targetCount: 0
     spawnedCount: 0
+    minPerChunk: 1
+    maxPerChunk: 1
   - prop: {fileID: 11400000, guid: 36a7611a69c4db245a87716d29e44f1a, type: 2}
     targetCount: 0
     spawnedCount: 0
-  allowPlanting: 0
+    minPerChunk: 1
+    maxPerChunk: 1
+  allowPlanting: 1
