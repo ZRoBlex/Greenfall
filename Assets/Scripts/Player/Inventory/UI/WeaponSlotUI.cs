@@ -72,8 +72,18 @@ public class WeaponSlotUI : MonoBehaviour
     public void Clear()
     {
         if (icon != null)
+        {
             icon.enabled = false;
+            // Reseteamos posición
+            icon.rectTransform.anchoredPosition = basePosIcon;
+        }
+
+        if (background != null)
+        {
+            background.rectTransform.anchoredPosition = basePosBg;
+        }
 
         isSelected = false;
     }
+
 }
