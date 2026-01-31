@@ -17,7 +17,9 @@ GameObject:
   - component: {fileID: 4794996071742797569}
   - component: {fileID: 8324289124424883285}
   - component: {fileID: 6274188660040349636}
-  m_Layer: 0
+  - component: {fileID: -2671871176682078253}
+  - component: {fileID: 2187820991656093302}
+  m_Layer: 18
   m_Name: pig 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -182,6 +184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCMotor
   stats: {fileID: 11400000, guid: 74bda1e7d7631fe4eb6e4009eafe6ddc, type: 2}
+  externallyControlled: 1
 --- !u!114 &6274188660040349636
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,3 +198,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCHealth
   maxHealth: 100
+  currentHealth: 0
+--- !u!114 &-2671871176682078253
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7170910201816716737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94d98cffe67c64c49a5df04ff1e3ba54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PreyAI
+  detectionRadius: 12
+  fleeDistance: 10
+  predatorLayer:
+    serializedVersion: 2
+    m_Bits: 524288
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+--- !u!114 &2187820991656093302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7170910201816716737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14cf8a093875a5f43a679fed12900fda, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NPCDropperAdvanced
+  drops: []

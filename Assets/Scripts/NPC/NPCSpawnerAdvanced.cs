@@ -13,7 +13,17 @@ public class NPCSpawnerAdvanced : MonoBehaviour
     public float minDistanceFromPlayer = 10f;
     public float despawnDistance = 70f;
 
+    [Header("Ground")]
+    public LayerMask groundLayer; // Floor
+    public float spawnHeightOffset = 0.5f;
+
+
     public float checkInterval = 2f;
+
+    [Header("Group Spacing")]
+    public float minDistanceBetweenGroups = 8f;
+    List<Vector3> groupCenters = new List<Vector3>();
+
 
     [Header("NPC Types")]
     public List<NPCBiomeEntry> npcTypes = new List<NPCBiomeEntry>();
@@ -57,50 +67,129 @@ public class NPCSpawnerAdvanced : MonoBehaviour
 
     void MaintainPopulation()
     {
-        while (activeNPCs.Count < maxNPCs)
+        int safety = 0;
+
+        while (activeNPCs.Count < maxNPCs && safety < 10)
+        {
             SpawnGroup();
+            safety++;
+        }
     }
+
 
     void SpawnGroup()
     {
         var entry = GetRandomEntry();
         if (entry == null) return;
 
-        Vector3 center = GetRandomPosition();
+        Vector3 center = GetValidGroupCenter();
+        if (center == Vector3.zero)
+            return;
+
         var biome = biomeMap.GetBiomeDefinition(center);
 
         if (biome == null || !entry.allowedBiomes.Contains(biome.biomeType))
             return;
 
+        groupCenters.Add(center);
+
         int count = Random.Range(entry.minGroup, entry.maxGroup + 1);
+
+        //for (int i = 0; i < count; i++)
+        //{
+        //    Vector3 offset = Random.insideUnitSphere * 2.5f;
+        //    offset.y = 0;
+
+        //    GameObject npc = GetFromPool(entry.prefab);
+        //    npc.transform.position = center + offset;
+        //    npc.SetActive(true);
+
+        //    var info = npc.GetComponent<NPCSpawnInfo>();
+        //    if (info == null)
+        //        info = npc.AddComponent<NPCSpawnInfo>();
+
+        //    info.prefabSource = entry.prefab;
+        //    info.biomeSpawnedIn = biome.biomeType;
+
+        //    activeNPCs.Add(npc);
+
+        //    NPCHealth h = npc.GetComponent<NPCHealth>();
+        //    if (h != null)
+        //        h.OnDeath = () => DespawnNPC(npc);
+        //}
+        GameObject leader = null;
+        NPCGroupLeader leaderScript = null;
 
         for (int i = 0; i < count; i++)
         {
-            Vector3 offset = Random.insideUnitSphere * 2f;
+            Vector3 offset = Random.insideUnitSphere * 3f;
             offset.y = 0;
 
             GameObject npc = GetFromPool(entry.prefab);
             npc.transform.position = center + offset;
             npc.SetActive(true);
 
-            // 🔹 Guardar info del spawn
-            var info = npc.GetComponent<NPCSpawnInfo>();
-            if (info == null)
-                info = npc.AddComponent<NPCSpawnInfo>();
-
-            info.prefabSource = entry.prefab;
-            info.biomeSpawnedIn = biome.biomeType;
+            if (i == 0)
+            {
+                leader = npc;
+                leaderScript = npc.AddComponent<NPCGroupLeader>();
+            }
+            else
+            {
+                var member = npc.AddComponent<NPCGroupMember>();
+                member.SetLeader(leader.transform);
+                leaderScript.members.Add(member);
+            }
 
             activeNPCs.Add(npc);
-
-            NPCHealth h = npc.GetComponent<NPCHealth>();
-            if (h != null)
-                h.OnDeath = () => DespawnNPC(npc);
         }
+
+
+
     }
+
+    Vector3 GetValidGroupCenter()
+    {
+        for (int tries = 0; tries < 20; tries++)
+        {
+            Vector3 pos = GetRandomPosition();
+
+            // buscar suelo
+            Ray ray = new Ray(pos + Vector3.up * 50f, Vector3.down);
+            RaycastHit hit;
+
+            if (!Physics.Raycast(ray, out hit, 100f, groundLayer))
+                continue;
+
+            Vector3 groundPos = hit.point + Vector3.up * spawnHeightOffset;
+
+            bool tooClose = false;
+            foreach (var c in groupCenters)
+            {
+                if (Vector3.Distance(groundPos, c) < minDistanceBetweenGroups)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (!tooClose)
+                return groundPos;
+        }
+
+        return Vector3.zero;
+    }
+
+
 
     void DespawnInvalid()
     {
+        groupCenters.Clear();
+        foreach (var npc in activeNPCs)
+        {
+            groupCenters.Add(npc.transform.position);
+        }
+
         var playerBiome = biomeMap.GetBiomeDefinition(player.position);
 
         for (int i = activeNPCs.Count - 1; i >= 0; i--)

@@ -20,6 +20,9 @@ public class NPCMotor : MonoBehaviour
     float verticalVelocity = 0f;
     const float GRAVITY = -20f;
 
+    public bool externallyControlled = false;
+
+
     // Suavizado de dirección
     Vector3 smoothDirection;
 
@@ -42,12 +45,15 @@ public class NPCMotor : MonoBehaviour
             return;
         }
 
-        // Si no hay destino, elige uno nuevo
-        if (!hasTarget || path == null || pathIndex >= path.Count)
+        if (!externallyControlled)
         {
-            ChooseRandomDestination();
-            return;
+            if (!hasTarget || path == null || pathIndex >= path.Count)
+            {
+                ChooseRandomDestination();
+                return;
+            }
         }
+
 
         MoveAlongPath();
         ApplyGravity();
@@ -149,6 +155,15 @@ public class NPCMotor : MonoBehaviour
             }
         }
     }
+
+    public void SetTargetPosition(Vector3 pos)
+    {
+        Vector2Int destCell = localGrid.WorldToCell(pos);
+        path = pathfinder.FindPath(localGrid.WorldToCell(transform.position), destCell);
+        pathIndex = 0;
+        hasTarget = path != null && path.Count > 0;
+    }
+
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()

@@ -3,25 +3,40 @@ using System;
 
 public class NPCHealth : MonoBehaviour
 {
-    public float maxHealth = 100f;
-    float current;
+    public int maxHealth = 30;
+    [SerializeField] int currentHealth;
 
     public Action OnDeath;
 
-    void OnEnable()
+    NPCDropperAdvanced dropper;
+
+    void Awake()
     {
-        current = maxHealth;
+        dropper = GetComponent<NPCDropperAdvanced>();
+        ResetHealth();
     }
 
-    public void TakeDamage(float dmg)
+    void OnEnable()
     {
-        current -= dmg;
-        if (current <= 0)
+        ResetHealth();
+    }
+
+    void ResetHealth()
+    {
+        currentHealth = maxHealth;
+    }
+
+    public void TakeDamage(int amount)
+    {
+        currentHealth -= amount;
+        if (currentHealth <= 0)
             Die();
     }
 
     void Die()
     {
+        dropper?.Drop();
         OnDeath?.Invoke();
+        gameObject.SetActive(false);
     }
 }
