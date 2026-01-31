@@ -24,6 +24,10 @@ public class NPCSpawnerAdvanced : MonoBehaviour
     public float minDistanceBetweenGroups = 8f;
     List<Vector3> groupCenters = new List<Vector3>();
 
+    [Header("Pooling")]
+    public int initialPoolPerType = 10;
+
+
 
     [Header("NPC Types")]
     public List<NPCBiomeEntry> npcTypes = new List<NPCBiomeEntry>();
@@ -50,10 +54,29 @@ public class NPCSpawnerAdvanced : MonoBehaviour
     void Start()
     {
         foreach (var e in npcTypes)
+        {
             pool[e.prefab] = new Queue<GameObject>();
+
+            // 🔹 Pre-generate NPCs según el valor del Inspector
+            for (int i = 0; i < initialPoolPerType; i++)
+            {
+                GameObject npc = Instantiate(e.prefab, transform); // hijo del spawner
+                npc.SetActive(false);
+
+                var info = npc.GetComponent<NPCSpawnInfo>();
+                if (info == null)
+                    info = npc.AddComponent<NPCSpawnInfo>();
+
+                info.prefabSource = e.prefab;
+
+                pool[e.prefab].Enqueue(npc);
+            }
+        }
 
         StartCoroutine(SpawnerLoop());
     }
+
+
 
     IEnumerator SpawnerLoop()
     {
@@ -128,6 +151,14 @@ public class NPCSpawnerAdvanced : MonoBehaviour
             GameObject npc = GetFromPool(entry.prefab);
             npc.transform.position = center + offset;
             npc.SetActive(true);
+
+            // limpiar restos viejos
+            var oldLeader = npc.GetComponent<NPCGroupLeader>();
+            if (oldLeader) Destroy(oldLeader);
+
+            var oldMember = npc.GetComponent<NPCGroupMember>();
+            if (oldMember) Destroy(oldMember);
+
 
             if (i == 0)
             {
@@ -243,15 +274,30 @@ public class NPCSpawnerAdvanced : MonoBehaviour
 
     GameObject GetFromPool(GameObject prefab)
     {
-        if (pool[prefab].Count > 0)
-            return pool[prefab].Dequeue();
+        GameObject npc;
 
-        return Instantiate(prefab);
+        if (pool[prefab].Count > 0)
+        {
+            npc = pool[prefab].Dequeue();
+        }
+        else
+        {
+            npc = Instantiate(prefab, transform); // 👈 HIJO DEL SPAWNER
+            var info = npc.GetComponent<NPCSpawnInfo>();
+            if (info == null)
+                info = npc.AddComponent<NPCSpawnInfo>();
+
+            info.prefabSource = prefab;
+        }
+
+        return npc;
     }
+
 
     void ReturnToPool(GameObject npc)
     {
         npc.SetActive(false);
+        npc.transform.SetParent(transform); // vuelve al spawner
 
         var info = npc.GetComponent<NPCSpawnInfo>();
         if (info != null && pool.ContainsKey(info.prefabSource))
@@ -259,6 +305,7 @@ public class NPCSpawnerAdvanced : MonoBehaviour
             pool[info.prefabSource].Enqueue(npc);
         }
     }
+
 
     void DespawnNPC(GameObject npc)
     {
