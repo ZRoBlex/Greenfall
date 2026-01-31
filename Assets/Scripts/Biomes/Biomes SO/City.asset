@@ -16,3 +16,5 @@ MonoBehaviour:
   debugColor: {r: 0, g: 0.07107735, b: 1, a: 0}
   props: []
   allowPlanting: 0
+  fogColor: {r: 1, g: 0.9910503, b: 0.8632076, a: 1}
+  fogDensity: 0.01

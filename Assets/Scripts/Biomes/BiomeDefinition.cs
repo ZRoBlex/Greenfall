@@ -36,4 +36,9 @@ public class BiomeDefinition : ScriptableObject
 
     [Header("Farming")]
     public bool allowPlanting = true;
+
+    [Header("Fog Settings")]
+    public Color fogColor = Color.gray;
+    public float fogDensity = 0.01f;
+
 }

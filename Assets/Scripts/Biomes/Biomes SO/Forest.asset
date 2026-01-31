@@ -71,3 +71,5 @@ MonoBehaviour:
     minPerChunk: 1
     maxPerChunk: 4
   allowPlanting: 1
+  fogColor: {r: 0.5950235, g: 0.6226415, b: 0.56683874, a: 1}
+  fogDensity: 0.02
