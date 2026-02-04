@@ -22,7 +22,7 @@ MonoBehaviour:
   spreadAngle: 1.5
   hittableLayers:
     serializedVersion: 2
-    m_Bits: 6784
+    m_Bits: 793216
   damageTags:
   - Enemy
   - build

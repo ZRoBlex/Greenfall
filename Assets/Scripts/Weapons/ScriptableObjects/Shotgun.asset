@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24ed5e012be379543b9f8448157b4d8e, type: 3}
   m_Name: Shotgun
   m_EditorClassIdentifier: 
+  weaponIcon: {fileID: 0}
   fireMode: 0
   cooldown: 1.2
   burstCount: 3
@@ -21,7 +22,7 @@ MonoBehaviour:
   spreadAngle: 8
   hittableLayers:
     serializedVersion: 2
-    m_Bits: 6784
+    m_Bits: 793216
   damageTags:
   - Enemy
   - build
