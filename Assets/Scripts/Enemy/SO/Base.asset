@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Base
   m_EditorClassIdentifier: 
   displayName: Enemy
+  enemyID: default
   moveSpeed: 3.5
   runSpeed: 6
   turnSpeed: 8
@@ -23,13 +24,24 @@ MonoBehaviour:
   attackDamage: 10
   attackCooldown: 3
   canDealDamage: 1
-  wanderRadius: 8
-  wanderWaitTime: 10
   maxHealth: 100
+  canRegenerate: 0
+  healthRegenPerSecond: 0
   captureMeterMax: 100
   captureDecayPerSecond: 5
   capturePerHit: 20
-  team: 0
+  unconsciousDuration: 30
+  defaultType: 0
+  canChangeType: 1
+  wanderRadius: 8
+  wanderWaitTime: 10
+  lookDuration: 10
+  followMinDistance: 1
+  followMaxDistance: 2
+  scaredSafeDistance: 6
+  passiveSafeDistance: 6
+  scaredRepathTime: 1.5
+  scaredSearchRadius: 8
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 2176
@@ -37,12 +49,9 @@ MonoBehaviour:
   - Obstacle
   - build
   obstacleCheckHeight: 1
-  followMinDistance: 1
-  followMaxDistance: 1
-  scaredSafeDistance: 6
-  scaredRepathTime: 1.5
-  scaredSearchRadius: 8
-  lookDuration: 10
+  cellHeight: 5
+  cellSize: 1
+  gridRadius: 15
   idleAnim: Idle
   walkAnim: Walk
   chaseAnim: Chase
@@ -50,7 +59,5 @@ MonoBehaviour:
   lookAnim: Look
   attackAnim: Attack
   stunnedAnim: Stunned
-  passiveSafeDistance: 3
-  cellSize: 1
-  gridRadius: 15
-  cellHeight: 5
+  lodPriority: 5
+  canSleep: 1

@@ -1,68 +1,73 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Motor de movimiento ULTRA optimizado
+/// </summary>
 [RequireComponent(typeof(GridPathfinder), typeof(CharacterController))]
 public class EnemyMotor : MonoBehaviour
 {
     public EnemyStats stats;
 
+    [Header("═══════ REFERENCIAS ═══════")]
+    public EnemyLocalGrid localGrid;
+
+    [Header("═══════ CONFIGURACIÓN ═══════")]
+    public bool rotateTowardsMovement = true;
+
+    [Header("═══════ OPTIMIZACIÓN ═══════")]
+    [Range(0.3f, 2f)]
+    public float stuckCheckInterval = 0.8f;
+
+    [Range(0.1f, 0.5f)]
+    public float minMoveDistance = 0.15f;
+
+    public LayerMask obstacleMask;
+
+    // ═══════ COMPONENTES ═══════
+
     GridPathfinder pathfinder;
     CharacterController controller;
 
-    List<Vector3> path;
-    int index;
+    // ═══════ PATHFINDING ═══════
 
-    Transform target;
+    List<Vector3> path;
+    int currentPathIndex;
+
+    Transform followTarget;
     Vector2Int targetCell;
 
+    // ═══════ TIMERS ═══════
+
     float repathTimer;
-    float verticalVelocity;
-
-    const float GRAVITY = -20f;
-    const float REPATH_INTERVAL = 2f;
-
-    public EnemyLocalGrid localGrid;
-    public bool rotateTowardsMovement = true;
-
-    [Header("Repath Optimization")]
-    public float stuckCheckInterval = 0.5f;
-    public float minMoveDistance = 0.1f;
-    public LayerMask obstacleMask;
-
     float stuckTimer;
+
+    const float REPATH_INTERVAL = 2f;
+    const float GRAVITY = -20f;
+
+    // ═══════ MOVIMIENTO ═══════
+
+    float verticalVelocity;
+    Vector3 smoothDirection;
     Vector3 lastPosition;
 
+    // ═══════ CACHE ═══════
 
-    // 🔹 Suavizado de dirección (NO de velocidad)
-    Vector3 smoothDirection;
+    Transform cachedTransform;
+
+    // ═══════ UNITY LIFECYCLE ═══════
 
     void Awake()
     {
+        cachedTransform = transform;
+
         pathfinder = GetComponent<GridPathfinder>();
         controller = GetComponent<CharacterController>();
         localGrid = GetComponent<EnemyLocalGrid>();
 
-        lastPosition = transform.position;
+        lastPosition = cachedTransform.position;
 
-
-        if (localGrid == null)
-            Debug.LogError($"[EnemyMotor] Missing EnemyLocalGrid on {name}");
-
-        if (stats == null)
-            Debug.LogError($"[EnemyMotor] Missing EnemyStats on {name}");
-    }
-
-    public void SetTarget(Transform t)
-    {
-        target = t;
-        repathTimer = 0f;
-    }
-
-    public void SetDestination(Vector2Int cell)
-    {
-        target = null;
-        targetCell = cell;
-        RecalculatePath();
+        ValidateComponents();
     }
 
     void Update()
@@ -70,19 +75,42 @@ public class EnemyMotor : MonoBehaviour
         HandleRepath();
         MoveAlongPath();
         ApplyGravity();
-        CheckIfStuckOrBlocked();
+        CheckIfStuck();
     }
 
+    // ═══════ VALIDACIÓN ═══════
 
-    /* ===================== PATH ===================== */
+    void ValidateComponents()
+    {
+        if (localGrid == null)
+            Debug.LogError($"[EnemyMotor] {name} no tiene EnemyLocalGrid!");
+
+        if (stats == null)
+            Debug.LogError($"[EnemyMotor] {name} no tiene EnemyStats!");
+    }
+
+    // ═══════ PATHFINDING ═══════
+
+    public void SetTarget(Transform target)
+    {
+        followTarget = target;
+        repathTimer = 0f;
+    }
+
+    public void SetDestination(Vector2Int cell)
+    {
+        followTarget = null;
+        targetCell = cell;
+        RecalculatePath();
+    }
 
     void HandleRepath()
     {
         repathTimer -= Time.deltaTime;
 
-        if (target != null && repathTimer <= 0f)
+        if (followTarget != null && repathTimer <= 0f)
         {
-            targetCell = FindBestFollowCell(target);
+            targetCell = FindBestFollowCell(followTarget);
             RecalculatePath();
         }
     }
@@ -92,42 +120,74 @@ public class EnemyMotor : MonoBehaviour
         if (localGrid == null || stats == null)
             return;
 
-        // 🔹 Limitar repaths globales
-        if (EnemyManager.Instance != null &&
-            !EnemyManager.Instance.CanRepath())
+        if (EnemyManager.Instance != null && !EnemyManager.Instance.CanRepath())
             return;
 
-        Vector2Int start = localGrid.WorldToCell(transform.position);
+        Vector2Int start = localGrid.WorldToCell(cachedTransform.position);
         path = pathfinder.FindPath(start, targetCell, stats);
 
-        index = 0;
+        currentPathIndex = 0;
         repathTimer = REPATH_INTERVAL;
     }
 
+    Vector2Int FindBestFollowCell(Transform target)
+    {
+        Vector2Int targetCenter = localGrid.WorldToCell(target.position);
+        Vector2Int myCell = localGrid.WorldToCell(cachedTransform.position);
 
-    /* ===================== MOVEMENT ===================== */
+        Vector2Int bestCell = myCell;
+        float bestScore = float.MaxValue;
+
+        for (int x = -stats.followMaxDistance; x <= stats.followMaxDistance; x++)
+        {
+            for (int y = -stats.followMaxDistance; y <= stats.followMaxDistance; y++)
+            {
+                Vector2Int candidate = targetCenter + new Vector2Int(x, y);
+
+                int distToTarget = Mathf.Abs(x) + Mathf.Abs(y);
+
+                if (distToTarget < stats.followMinDistance)
+                    continue;
+
+                if (!localGrid.IsWalkable(candidate))
+                    continue;
+
+                // 🔥 Usar distancia Manhattan (más rápida)
+                int distToMe = Mathf.Abs(candidate.x - myCell.x) + Mathf.Abs(candidate.y - myCell.y);
+
+                if (distToMe < bestScore)
+                {
+                    bestScore = distToMe;
+                    bestCell = candidate;
+                }
+            }
+        }
+
+        return bestCell;
+    }
+
+    // ═══════ MOVIMIENTO ═══════
 
     void MoveAlongPath()
     {
-        if (path == null || index >= path.Count)
+        if (path == null || currentPathIndex >= path.Count)
             return;
 
-        Vector3 targetPos = path[index];
-        Vector3 flatTarget = new Vector3(targetPos.x, transform.position.y, targetPos.z);
+        Vector3 targetPos = path[currentPathIndex];
+        Vector3 flatTarget = new Vector3(targetPos.x, cachedTransform.position.y, targetPos.z);
 
-        Vector3 toTarget = flatTarget - transform.position;
-        float distance = toTarget.magnitude;
+        Vector3 toTarget = flatTarget - cachedTransform.position;
+        float distanceSqr = toTarget.sqrMagnitude;
 
-        // 🔹 Umbral un poco mayor para evitar micro-zigzag
-        if (distance < 0.35f)
+        // Llegamos al waypoint
+        if (distanceSqr < 0.35f * 0.35f) // sqr para evitar sqrt
         {
-            index++;
+            currentPathIndex++;
             return;
         }
 
         Vector3 desiredDirection = toTarget.normalized;
 
-        // 🔹 Suavizar SOLO la dirección (no la velocidad)
         smoothDirection = Vector3.Slerp(
             smoothDirection == Vector3.zero ? desiredDirection : smoothDirection,
             desiredDirection,
@@ -136,18 +196,16 @@ public class EnemyMotor : MonoBehaviour
 
         Vector3 direction = smoothDirection.normalized;
 
-        // 🔹 Rotación suave hacia la dirección de movimiento
         if (rotateTowardsMovement && direction != Vector3.zero)
         {
             Quaternion targetRot = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
+            cachedTransform.rotation = Quaternion.Slerp(
+                cachedTransform.rotation,
                 targetRot,
                 stats.turnSpeed * Time.deltaTime
             );
         }
 
-        // 🔹 Velocidad fija, sin interpolar (sin deslizamiento)
         Vector3 velocity = direction * stats.moveSpeed;
         velocity.y = verticalVelocity;
 
@@ -162,141 +220,24 @@ public class EnemyMotor : MonoBehaviour
             verticalVelocity += GRAVITY * Time.deltaTime;
     }
 
-#if UNITY_EDITOR
-    void OnDrawGizmos()
+    // ═══════ DETECCIÓN DE ATASCOS - OPTIMIZADA ═══════
+
+    void CheckIfStuck()
     {
-        if (localGrid == null)
-            localGrid = GetComponent<EnemyLocalGrid>();
-
-        if (localGrid == null)
-            return;
-
-        if (path == null || path.Count == 0)
-            return;
-
-        // ===== PATH =====
-        Gizmos.color = Color.cyan;
-        for (int i = 0; i < path.Count; i++)
-        {
-            Vector3 p = path[i] + Vector3.up * 0.2f;
-            Gizmos.DrawSphere(p, 0.15f);
-
-            if (i > 0)
-                Gizmos.DrawLine(
-                    path[i - 1] + Vector3.up * 0.2f,
-                    p
-                );
-        }
-
-        // ===== DESTINO =====
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawSphere(
-            localGrid.CellToWorld(targetCell) + Vector3.up * 0.3f,
-            0.3f
-        );
-
-        if (target != null)
-        {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(
-                transform.position,
-                target.position
-            );
-        }
-    }
-#endif
-
-    Vector2Int FindBestFollowCell(Transform target)
-    {
-        Vector2Int targetCenter =
-            localGrid.WorldToCell(target.position);
-
-        Vector2Int myCell =
-            localGrid.WorldToCell(transform.position);
-
-        Vector2Int bestCell = myCell;
-        float bestScore = float.MaxValue;
-
-        for (int x = -stats.followMaxDistance; x <= stats.followMaxDistance; x++)
-        {
-            for (int y = -stats.followMaxDistance; y <= stats.followMaxDistance; y++)
-            {
-                Vector2Int candidate = targetCenter + new Vector2Int(x, y);
-
-                int distToTarget =
-                    Mathf.Abs(x) + Mathf.Abs(y);
-
-                if (distToTarget < stats.followMinDistance)
-                    continue;
-
-                if (!localGrid.IsWalkable(candidate))
-                    continue;
-
-                float score =
-                    Vector2Int.Distance(candidate, myCell);
-
-                if (score < bestScore)
-                {
-                    bestScore = score;
-                    bestCell = candidate;
-                }
-            }
-        }
-
-        return bestCell;
-    }
-
-    public bool HasReachedDestination()
-    {
-        return path == null || index >= path.Count;
-    }
-
-    void CheckIfStuckOrBlocked()
-    {
-        // =========================
-        // 1. DETECTOR DE ATASCADO
-        // =========================
-
         stuckTimer += Time.deltaTime;
 
         if (stuckTimer >= stuckCheckInterval)
         {
-            float moved = Vector3.Distance(transform.position, lastPosition);
+            float movedSqr = (cachedTransform.position - lastPosition).sqrMagnitude;
 
-            if (moved < minMoveDistance)
+            // Está atascado
+            if (movedSqr < minMoveDistance * minMoveDistance && path != null && currentPathIndex < path.Count)
             {
-                // 🔹 Está atascado → forzar repath
                 ForceRepath();
             }
 
-            lastPosition = transform.position;
+            lastPosition = cachedTransform.position;
             stuckTimer = 0f;
-        }
-
-        // =========================
-        // 2. DETECTOR DE OBSTÁCULO DELANTE
-        // =========================
-
-        if (path == null || index >= path.Count)
-            return;
-
-        Vector3 nextPoint = path[index];
-        Vector3 flatNext = new Vector3(nextPoint.x, transform.position.y, nextPoint.z);
-
-        Vector3 dir = (flatNext - transform.position).normalized;
-
-        float checkDistance = 0.6f; // corto, barato
-
-        if (Physics.Raycast(
-                transform.position + Vector3.up * 0.5f,
-                dir,
-                out RaycastHit hit,
-                checkDistance,
-                obstacleMask,
-                QueryTriggerInteraction.Ignore))
-        {
-            // 🔹 Algo nuevo bloquea el camino
-            ForceRepath();
         }
     }
 
@@ -305,21 +246,56 @@ public class EnemyMotor : MonoBehaviour
         if (localGrid == null || stats == null)
             return;
 
-        if (EnemyManager.Instance != null &&
-            !EnemyManager.Instance.CanRepath())
+        if (EnemyManager.Instance != null && !EnemyManager.Instance.CanRepath())
             return;
 
-        Vector2Int start = localGrid.WorldToCell(transform.position);
+        Vector2Int start = localGrid.WorldToCell(cachedTransform.position);
 
-        if (target != null)
-            targetCell = FindBestFollowCell(target);
+        if (followTarget != null)
+            targetCell = FindBestFollowCell(followTarget);
 
         path = pathfinder.FindPath(start, targetCell, stats);
 
-        index = 0;
+        currentPathIndex = 0;
         repathTimer = REPATH_INTERVAL;
     }
 
+    // ═══════ CONSULTAS ═══════
 
+    public bool HasReachedDestination()
+    {
+        return path == null || currentPathIndex >= path.Count;
+    }
 
+    // ═══════ GIZMOS ═══════
+
+#if UNITY_EDITOR
+    void OnDrawGizmos()
+    {
+        if (localGrid == null || path == null || path.Count == 0)
+            return;
+
+        Gizmos.color = Color.cyan;
+        for (int i = 0; i < path.Count; i++)
+        {
+            Vector3 p = path[i] + Vector3.up * 0.2f;
+            Gizmos.DrawSphere(p, 0.15f);
+
+            if (i > 0)
+                Gizmos.DrawLine(path[i - 1] + Vector3.up * 0.2f, p);
+        }
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawSphere(
+            localGrid.CellToWorld(targetCell) + Vector3.up * 0.3f,
+            0.3f
+        );
+
+        if (followTarget != null)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(transform.position, followTarget.position);
+        }
+    }
+#endif
 }

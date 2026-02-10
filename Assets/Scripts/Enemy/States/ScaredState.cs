@@ -1,12 +1,29 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Estado de miedo - ULTRA OPTIMIZADO
+/// </summary>
 public class ScaredState : State<EnemyController>
 {
     float repathTimer;
     bool isMovingAway;
 
+    // Cache
+    Transform cachedTransform;
+    Transform cachedTarget;
+    EnemyLocalGrid cachedGrid;
+    float safeDistanceSqr;
+
     public override void Enter(EnemyController o)
     {
+        if (o == null) return;
+
+        cachedTransform = o.transform;
+        cachedGrid = o.Motor != null ? o.Motor.localGrid : null;
+
+        if (o.stats != null)
+            safeDistanceSqr = o.stats.scaredSafeDistance * o.stats.scaredSafeDistance;
+
         repathTimer = 0f;
         isMovingAway = false;
 
@@ -14,12 +31,13 @@ public class ScaredState : State<EnemyController>
         {
             o.AnimatorBridge.ResetSpecialBools();
             o.AnimatorBridge.SetBool("IsScared", true);
-            // IsWalking lo controla EnemyMotor
         }
 
-        // Mientras esté asustado, NO rotar hacia el movimiento
-        o.Motor.rotateTowardsMovement = false;
+        if (o.Motor != null)
+            o.Motor.rotateTowardsMovement = false;
 
+        if (o.Perception != null)
+            cachedTarget = o.Perception.CurrentTarget;
 
         LookAtPlayer(o);
     }
@@ -30,14 +48,15 @@ public class ScaredState : State<EnemyController>
             o.Motor.rotateTowardsMovement = true;
     }
 
-
     public override void Tick(EnemyController o)
     {
-        if (o == null || o.Motor == null || o.Perception == null)
-            return;
+        if (o == null || cachedTransform == null) return;
 
-        Transform player = o.Perception.CurrentTarget;
-        if (player == null)
+        // Actualizar target si cambió
+        if (o.Perception != null)
+            cachedTarget = o.Perception.CurrentTarget;
+
+        if (cachedTarget == null)
         {
             o.FSM.ChangeState(new WanderState());
             return;
@@ -45,12 +64,12 @@ public class ScaredState : State<EnemyController>
 
         LookAtPlayer(o);
 
-        float dist = Vector3.Distance(o.transform.position, player.position);
+        // 🔥 Squared magnitude para comparación
+        float distSqr = (cachedTransform.position - cachedTarget.position).sqrMagnitude;
 
-        // 🔹 Si ya está a distancia segura
-        if (dist >= o.stats.passiveSafeDistance)
+        // Ya está a distancia segura
+        if (distSqr >= safeDistanceSqr)
         {
-            // Se queda quieto, vuelve a estar asustado idle
             if (isMovingAway)
             {
                 isMovingAway = false;
@@ -61,33 +80,14 @@ public class ScaredState : State<EnemyController>
                     o.AnimatorBridge.SetBool("IsScared", true);
                 }
             }
-
-            // Ya está a distancia segura → solo mirar al jugador y quedarse idle
-            if (isMovingAway)
-            {
-                isMovingAway = false;
-
-                if (o.AnimatorBridge != null)
-                {
-                    o.AnimatorBridge.SetBool("IsWalking", false);
-                    o.AnimatorBridge.SetBool("IsScared", true);
-                }
-            }
-
-            // ❌ NO vuelvas a setear destino aquí
             return;
-
         }
 
-        // 🔹 Recalcular huida cada cierto tiempo
-        repathTimer -= Time.deltaTime;
+        // Recalcular huida
         repathTimer -= Time.deltaTime;
 
-        // 🔹 Si no tiene path activo o llegó al final → fuerza huida inmediata
-        if (o.Motor.HasReachedDestination())
-        {
+        if (o.Motor != null && o.Motor.HasReachedDestination())
             repathTimer = 0f;
-        }
 
         if (repathTimer <= 0f)
         {
@@ -102,25 +102,24 @@ public class ScaredState : State<EnemyController>
                 }
             }
 
-            MoveAway(o, player);
-            repathTimer = o.stats.scaredRepathTime;
+            MoveAway(o, cachedTarget);
+            repathTimer = o.stats != null ? o.stats.scaredRepathTime : 1.5f;
         }
-
     }
 
     void LookAtPlayer(EnemyController o)
     {
-        Transform player = o.Perception.CurrentTarget;
-        if (player == null)
+        if (cachedTarget == null || cachedTransform == null || o.stats == null)
             return;
 
-        Vector3 direction = player.position - o.transform.position;
+        Vector3 direction = cachedTarget.position - cachedTransform.position;
         direction.y = 0f;
+
         if (direction.sqrMagnitude > 0.001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            o.transform.rotation = Quaternion.Slerp(
-                o.transform.rotation,
+            cachedTransform.rotation = Quaternion.Slerp(
+                cachedTransform.rotation,
                 targetRotation,
                 o.stats.turnSpeed * Time.deltaTime
             );
@@ -129,31 +128,34 @@ public class ScaredState : State<EnemyController>
 
     void MoveAway(EnemyController o, Transform player)
     {
-        var grid = o.Motor.localGrid;
-        if (grid == null) return;
+        if (cachedGrid == null || o.stats == null) return;
 
-        Vector2Int myCell = grid.WorldToCell(o.transform.position);
-        Vector2Int playerCell = grid.WorldToCell(player.position);
+        Vector2Int myCell = cachedGrid.WorldToCell(cachedTransform.position);
+        Vector2Int playerCell = cachedGrid.WorldToCell(player.position);
 
         Vector2Int awayDirInt = myCell - playerCell;
 
         Vector2Int bestCell = myCell;
         float bestScore = float.MinValue;
 
-        for (int x = -o.stats.scaredSearchRadius; x <= o.stats.scaredSearchRadius; x++)
+        int radius = o.stats.scaredSearchRadius;
+
+        for (int x = -radius; x <= radius; x++)
         {
-            for (int y = -o.stats.scaredSearchRadius; y <= o.stats.scaredSearchRadius; y++)
+            for (int y = -radius; y <= radius; y++)
             {
                 Vector2Int candidate = myCell + new Vector2Int(x, y);
 
-                if (!grid.IsWalkable(candidate)) continue;
+                if (!cachedGrid.IsWalkable(candidate)) continue;
 
                 Vector2Int dirToCandidate = candidate - myCell;
                 Vector2 awayDir = new Vector2(awayDirInt.x, awayDirInt.y).normalized;
                 Vector2 dirCandidateF = new Vector2(dirToCandidate.x, dirToCandidate.y).normalized;
 
                 float dot = Vector2.Dot(awayDir, dirCandidateF);
-                float distToPlayer = Vector2Int.Distance(candidate, playerCell);
+
+                // 🔥 Usar distancia Manhattan (más rápida)
+                int distToPlayer = Mathf.Abs(candidate.x - playerCell.x) + Mathf.Abs(candidate.y - playerCell.y);
                 float score = dot * 2f + distToPlayer;
 
                 if (score > bestScore)
@@ -164,7 +166,7 @@ public class ScaredState : State<EnemyController>
             }
         }
 
-        o.Motor.SetDestination(bestCell);
-        // IsWalking ya está forzado arriba
+        if (o.Motor != null)
+            o.Motor.SetDestination(bestCell);
     }
 }

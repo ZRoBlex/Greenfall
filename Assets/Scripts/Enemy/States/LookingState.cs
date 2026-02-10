@@ -1,11 +1,16 @@
 using UnityEngine;
 
+/// <summary>
+/// Estado de observación - SIMPLE Y RÁPIDO
+/// </summary>
 public class LookingState : State<EnemyController>
 {
     float timer;
 
     public override void Enter(EnemyController o)
     {
+        if (o == null || o.stats == null) return;
+
         timer = o.stats.lookDuration;
 
         if (o.AnimatorBridge != null)
@@ -13,10 +18,7 @@ public class LookingState : State<EnemyController>
             o.AnimatorBridge.ResetSpecialBools();
             o.AnimatorBridge.SetBool("IsIdle", true);
         }
-
-        Debug.Log($"[{o.stats.displayName}] Entró en LookingState por {timer} segundos.");
     }
-
 
     public override void Tick(EnemyController o)
     {
@@ -26,7 +28,6 @@ public class LookingState : State<EnemyController>
 
         if (timer <= 0f)
         {
-            // Volver a WanderState
             o.FSM.ChangeState(new WanderState());
         }
     }

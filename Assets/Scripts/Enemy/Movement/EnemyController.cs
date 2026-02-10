@@ -1,56 +1,45 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Controlador principal del enemigo - ULTRA OPTIMIZADO
+/// </summary>
 [RequireComponent(typeof(GridPathfinder))]
 [RequireComponent(typeof(EnemyMotor))]
 [RequireComponent(typeof(EnemyLocalGrid))]
 [RequireComponent(typeof(AnimatorBridge))]
 [RequireComponent(typeof(ProfessionController))]
-[RequireComponent(typeof(NonLethalHealth))]
+[RequireComponent(typeof(NonLethalHealthAdapted))]
 [RequireComponent(typeof(Health))]
 public class EnemyController : MonoBehaviour
 {
-    [Header("Stats")]
+    [Header("═══════ CONFIGURACIÓN ═══════")]
     public EnemyStats stats;
 
-    [Header("Tipo y Equipo dinámico")]
-    [SerializeField] private CannibalType currentType;
-    [SerializeField] private string currentTeam;
+    [Header("═══════ TIPO Y EQUIPO ═══════")]
+    [SerializeField] CannibalType currentType;
+    [SerializeField] string currentTeam = "Enemy";
 
-    // EnemyController.cs
-
-    [Header("Combat")]
-    public float attackCooldownTimer = 0f;
-
-    public CannibalType CurrentType => currentType;
-    public string CurrentTeam => currentTeam;
-
-    [Header("Random Type On Spawn")]
+    [Header("═══════ TIPO ALEATORIO AL SPAWN ═══════")]
     [SerializeField] bool randomizeTypeOnSpawn = true;
 
     [SerializeField]
-    List<CannibalTypeProbability> typeProbabilities =
-        new List<CannibalTypeProbability>()
-        {
+    List<CannibalTypeProbability> typeProbabilities = new List<CannibalTypeProbability>()
+    {
         new CannibalTypeProbability { type = CannibalType.Aggressive, weight = 40f },
         new CannibalTypeProbability { type = CannibalType.Passive,    weight = 30f },
         new CannibalTypeProbability { type = CannibalType.Neutral,    weight = 20f },
         new CannibalTypeProbability { type = CannibalType.Friendly,   weight = 10f },
-        };
+    };
 
+    // ═══════ PROPIEDADES PÚBLICAS ═══════
 
-    [System.Serializable]
-    public class CannibalTypeProbability
-    {
-        public CannibalType type;
-        [Range(0f, 100f)]
-        public float weight;
-    }
+    public CannibalType CurrentType => currentType;
+    public string CurrentTeam => currentTeam;
+    public EnemyLOD CurrentLOD => currentLOD;
 
+    // ═══════ COMPONENTES (Cached) ═══════
 
-    // -----------------------
-    // Componentes internos
-    // -----------------------
     public EnemyMotor Motor { get; private set; }
     public EnemyPerception Perception { get; private set; }
     public GridPathfinder Pathfinder { get; private set; }
@@ -61,47 +50,46 @@ public class EnemyController : MonoBehaviour
 
     public StateMachine<EnemyController> FSM { get; private set; }
 
-    // -----------------------
-    // LOD
-    // -----------------------
+    // ═══════ LOD SYSTEM ═══════
+
     EnemyLOD currentLOD = EnemyLOD.Active;
     float semiActiveTimer;
-    public EnemyLOD CurrentLOD => currentLOD;
+    const float SEMI_ACTIVE_TICK_RATE = 0.5f;
 
+    // ═══════ COMBATE ═══════
 
-    // 🔒 Lista de scripts a controlar
-    List<MonoBehaviour> controlledBehaviours = new List<MonoBehaviour>();
+    public float attackCooldownTimer = 0f;
+
+    // ═══════ OPTIMIZACIÓN ═══════
+
+    GameObject enemyUIRoot;
+    Transform cachedTransform;
+    CharacterController characterController; // 🔥 NUEVO
+
+    bool isInitialized = false;
+
+    // ═══════ UNITY LIFECYCLE ═══════
 
     void Awake()
     {
-        Motor = GetComponent<EnemyMotor>();
-        Perception = GetComponent<EnemyPerception>();
-        Pathfinder = GetComponent<GridPathfinder>();
-        LocalGrid = GetComponent<EnemyLocalGrid>();
-        AnimatorBridge = GetComponent<AnimatorBridge>();
-        Profession = GetComponent<ProfessionController>();
-        Health = GetComponent<NonLethalHealthAdapted>();
+        cachedTransform = transform;
 
-        Motor.stats = stats;
-        Perception.stats = stats;
+        CacheComponents();
+        CacheEnemyUI();
 
-        FSM = new StateMachine<EnemyController>(this);
+        InitializeComponents();
+        InitializeFSM();
 
-        currentTeam = "Enemy";
-
-        // 🔥 Buscar automáticamente el UI del enemigo (hijo con Canvas)
-        var canvas = GetComponentInChildren<Canvas>(true);
-        if (canvas != null)
-        {
-            enemyUIRoot = canvas.gameObject;
-        }
-
-
-        // 🔥 Registrar TODOS los scripts que deben apagarse en Sleep
-        CacheControlledBehaviours();
+        isInitialized = true;
     }
+
     void OnEnable()
     {
+        if (!isInitialized) return;
+
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.Register(this);
+
         if (randomizeTypeOnSpawn)
         {
             CannibalType randomType = GetRandomTypeByWeight();
@@ -111,75 +99,187 @@ public class EnemyController : MonoBehaviour
         {
             ApplyTypeBehavior();
         }
-
-        //ResetForSpawn();
     }
 
     void OnDisable()
     {
-        if (EnemySpawner.Instance != null)
-            EnemySpawner.Instance.NotifyEnemyDespawned(this);
-
-        if (EnemyPool.Instance != null)
-            EnemyPool.Instance.Return(this);
-    }
-
-
-
-    void Start()
-    {
         if (EnemyManager.Instance != null)
-            EnemyManager.Instance.Register(this);
+            EnemyManager.Instance.Unregister(this);
     }
-
-
 
     void Update()
     {
-        // 🔻 bajar cooldown global
         if (attackCooldownTimer > 0f)
             attackCooldownTimer -= Time.deltaTime;
 
-        // 🔴 Sleep → no hacer absolutamente nada
+        // 🔴 SLEEP → DETENER COMPLETAMENTE
         if (currentLOD == EnemyLOD.Sleep)
             return;
 
-        // 🟡 SemiActive → FSM lenta
+        // 🟡 SEMI-ACTIVE → IA lenta
         if (currentLOD == EnemyLOD.SemiActive)
         {
             semiActiveTimer -= Time.deltaTime;
             if (semiActiveTimer <= 0f)
             {
                 TickAI();
-                semiActiveTimer = 0.5f; // 2 veces por segundo
+                semiActiveTimer = SEMI_ACTIVE_TICK_RATE;
             }
             return;
         }
 
-        // 🟢 Active
+        // 🟢 ACTIVE → IA completa
         TickAI();
     }
 
+    // ═══════ INICIALIZACIÓN ═══════
+
+    void CacheComponents()
+    {
+        Motor = GetComponent<EnemyMotor>();
+        Perception = GetComponent<EnemyPerception>();
+        Pathfinder = GetComponent<GridPathfinder>();
+        LocalGrid = GetComponent<EnemyLocalGrid>();
+        AnimatorBridge = GetComponent<AnimatorBridge>();
+        Profession = GetComponent<ProfessionController>();
+        Health = GetComponent<NonLethalHealthAdapted>();
+        characterController = GetComponent<CharacterController>(); // 🔥 NUEVO
+
+        if (Motor == null) Debug.LogError($"[{name}] Motor faltante!");
+        if (Perception == null) Debug.LogError($"[{name}] Perception faltante!");
+        if (LocalGrid == null) Debug.LogError($"[{name}] LocalGrid faltante!");
+    }
+
+    void InitializeComponents()
+    {
+        if (stats == null)
+        {
+            Debug.LogError($"[{name}] EnemyStats no asignado!");
+            return;
+        }
+
+        Motor.stats = stats;
+        Perception.stats = stats;
+        LocalGrid.stats = stats;
+    }
+
+    void InitializeFSM()
+    {
+        FSM = new StateMachine<EnemyController>(this);
+        FSM.ChangeState(new WanderState());
+    }
+
+    void CacheEnemyUI()
+    {
+        Canvas canvas = GetComponentInChildren<Canvas>(true);
+        if (canvas != null)
+        {
+            enemyUIRoot = canvas.gameObject;
+        }
+    }
+
+    // ═══════ IA TICK ═══════
+
     void TickAI()
     {
-        // Prioridad: stun
         if (Health != null && Health.IsStunned())
         {
             FSM.Tick();
             return;
         }
 
-        FSM.Tick();
         UpdateBehavior();
+        FSM.Tick();
     }
 
-    // -----------------------
-    // LOD API
-    // -----------------------
+    void UpdateBehavior()
+    {
+        if (FSM == null || stats == null) return;
+
+        if (Health != null && Health.IsStunned())
+            return;
+
+        switch (currentType)
+        {
+            case CannibalType.Aggressive:
+                UpdateAggressiveBehavior();
+                break;
+
+            case CannibalType.Passive:
+                UpdatePassiveBehavior();
+                break;
+
+            case CannibalType.Neutral:
+                UpdateNeutralBehavior();
+                break;
+
+            case CannibalType.Friendly:
+                UpdateFriendlyBehavior();
+                break;
+        }
+    }
+
+    void UpdateAggressiveBehavior()
+    {
+        if (Perception.CurrentTarget != null)
+        {
+            float distSqr = (cachedTransform.position - Perception.CurrentTarget.position).sqrMagnitude;
+            float attackRangeSqr = stats.attackRange * stats.attackRange;
+
+            if (distSqr <= attackRangeSqr)
+            {
+                if (!FSM.IsInState<AttackState>())
+                    FSM.ChangeState(new AttackState());
+            }
+            else
+            {
+                if (!FSM.IsInState<FollowingState>())
+                    FSM.ChangeState(new FollowingState());
+            }
+        }
+        else if (!FSM.IsInState<WanderState>())
+        {
+            FSM.ChangeState(new WanderState());
+        }
+    }
+
+    void UpdatePassiveBehavior()
+    {
+        if (Perception.CurrentTarget != null)
+        {
+            if (!FSM.IsInState<ScaredState>())
+                FSM.ChangeState(new ScaredState());
+        }
+        else if (!FSM.IsInState<WanderState>())
+        {
+            FSM.ChangeState(new WanderState());
+        }
+    }
+
+    void UpdateNeutralBehavior()
+    {
+        if (!FSM.IsInState<WanderState>())
+            FSM.ChangeState(new WanderState());
+    }
+
+    void UpdateFriendlyBehavior()
+    {
+        if (Perception.CurrentTarget != null)
+        {
+            if (!FSM.IsInState<FriendlyState>())
+                FSM.ChangeState(new FriendlyState());
+        }
+        else if (!FSM.IsInState<WanderState>())
+        {
+            FSM.ChangeState(new WanderState());
+        }
+    }
+
+    // ═══════ LOD SYSTEM - ARREGLADO ═══════
+
     public void SetLOD(EnemyLOD lod)
     {
-        if (currentLOD == lod)
-            return;
+        if (currentLOD == lod) return;
 
         currentLOD = lod;
 
@@ -190,98 +290,68 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyLOD.SemiActive:
-                EnableCheapAI();
+                EnableSemiActiveAI();
                 break;
 
             case EnemyLOD.Sleep:
-                EnableSleepAI();
+                EnableSleepMode();
                 break;
         }
     }
 
-    // -----------------------
-    // ACTIVACIÓN POR LOD
-    // -----------------------
-
     void EnableFullAI()
     {
-        foreach (var b in controlledBehaviours)
-        {
-            if (b != null)
-                b.enabled = true;
-        }
+        // Activar componentes críticos
+        if (Motor != null) Motor.enabled = true;
+        if (Perception != null) Perception.enabled = true;
+        if (characterController != null) characterController.enabled = true;
 
+        // Mostrar UI
         if (enemyUIRoot != null)
             enemyUIRoot.SetActive(true);
 
         enabled = true;
     }
 
-
-    // 🔹 UI del enemigo (barras de vida, texto, etc.)
-    GameObject enemyUIRoot;
-
-
-    void EnableCheapAI()
+    void EnableSemiActiveAI()
     {
-        foreach (var b in controlledBehaviours)
-        {
-            if (b == null) continue;
+        // Motor desactivado (no se mueve)
+        if (Motor != null) Motor.enabled = false;
+        if (characterController != null) characterController.enabled = false;
 
-            if (b == Motor)
-                b.enabled = false;
-            else
-                b.enabled = true;
+        // Perception activo (puede detectar)
+        if (Perception != null) Perception.enabled = true;
 
-        }
-
+        // Ocultar UI
         if (enemyUIRoot != null)
             enemyUIRoot.SetActive(false);
 
         enabled = true;
+        semiActiveTimer = SEMI_ACTIVE_TICK_RATE;
     }
 
-
-    void EnableSleepAI()
+    void EnableSleepMode()
     {
-        foreach (var b in controlledBehaviours)
-        {
-            if (b != null)
-                b.enabled = false;
-        }
+        // 🔥 DESACTIVAR TODO - Completamente pausado
+        if (Motor != null) Motor.enabled = false;
+        if (Perception != null) Perception.enabled = false;
+        if (characterController != null) characterController.enabled = false;
 
+        // Ocultar UI
         if (enemyUIRoot != null)
             enemyUIRoot.SetActive(false);
 
+        // Mantener controller activo solo para cambios de LOD
         enabled = true;
     }
 
+    // ═══════ TIPO Y EQUIPO ═══════
 
-    // -----------------------
-    // Cache automático de scripts
-    // -----------------------
-    void CacheControlledBehaviours()
-    {
-        controlledBehaviours.Clear();
-
-        // Tomamos TODOS los MonoBehaviour del enemigo
-        var all = GetComponents<MonoBehaviour>();
-
-        foreach (var b in all)
-        {
-            // Nunca nos desactivamos a nosotros mismos
-            if (b == this)
-                continue;
-
-            controlledBehaviours.Add(b);
-        }
-    }
-
-    // -----------------------
-    // Métodos para cambiar tipo/equipo
-    // -----------------------
     public void SetType(CannibalType newType)
     {
+        if (!stats.canChangeType && isInitialized)
+            return;
+
         currentType = newType;
         ApplyTypeBehavior();
     }
@@ -289,7 +359,6 @@ public class EnemyController : MonoBehaviour
     public void SetTeam(string teamName)
     {
         currentTeam = teamName;
-        Debug.Log($"[EnemyController] {name} ahora pertenece al equipo {teamName}");
     }
 
     public void SetTypeAndTeam(CannibalType newType, string teamName)
@@ -299,11 +368,14 @@ public class EnemyController : MonoBehaviour
         ApplyTypeBehavior();
     }
 
-    private void ApplyTypeBehavior()
+    void ApplyTypeBehavior()
     {
+        if (FSM == null) return;
+
         switch (currentType)
         {
             case CannibalType.Aggressive:
+            case CannibalType.Neutral:
                 FSM.ChangeState(new WanderState());
                 break;
 
@@ -311,96 +383,21 @@ public class EnemyController : MonoBehaviour
                 FSM.ChangeState(new ScaredState());
                 break;
 
-            case CannibalType.Neutral:
-                FSM.ChangeState(new WanderState());
-                break;
-
             case CannibalType.Friendly:
                 if (Perception.CurrentTarget != null)
                     FSM.ChangeState(new FriendlyState());
+                else
+                    FSM.ChangeState(new WanderState());
                 break;
         }
     }
-
-    public void UpdateBehavior()
-    {
-        if (FSM == null) return;
-
-        if (Health != null && Health.IsStunned())
-        {
-            FSM.Tick();
-            return;
-        }
-
-        switch (currentType)
-        {
-            case CannibalType.Aggressive:
-                if (Perception.CurrentTarget != null)
-                {
-                    float dist = Vector3.Distance(transform.position, Perception.CurrentTarget.position);
-
-                    //if (dist <= stats.attackRange && !(FSM.CurrentState is AttackState))
-                    //    FSM.ChangeState(new AttackState());
-                    //else if (!(FSM.CurrentState is FollowingState))
-                    //    FSM.ChangeState(new FollowingState());
-                    if (dist <= stats.attackRange)
-                    {
-                        if (!(FSM.CurrentState is AttackState))
-                            FSM.ChangeState(new AttackState());
-                    }
-                    else
-                    {
-                        if (!(FSM.CurrentState is FollowingState))
-                            FSM.ChangeState(new FollowingState());
-                    }
-
-                }
-                else if (!(FSM.CurrentState is WanderState))
-                    FSM.ChangeState(new WanderState());
-                break;
-
-            case CannibalType.Passive:
-                if (Perception.CurrentTarget != null && !(FSM.CurrentState is ScaredState))
-                    FSM.ChangeState(new ScaredState());
-                else if (Perception.CurrentTarget == null && !(FSM.CurrentState is WanderState))
-                    FSM.ChangeState(new WanderState());
-                break;
-
-            case CannibalType.Neutral:
-                if (!(FSM.CurrentState is WanderState))
-                    FSM.ChangeState(new WanderState());
-                break;
-
-            case CannibalType.Friendly:
-                if (Perception.CurrentTarget != null && !(FSM.CurrentState is FriendlyState))
-                    FSM.ChangeState(new FriendlyState());
-                else if (Perception.CurrentTarget == null && !(FSM.CurrentState is WanderState))
-                    FSM.ChangeState(new WanderState());
-                break;
-        }
-
-        FSM.Tick();
-    }
-
-    //void OnDisable()
-    //{
-    //    if (EnemySpawner.Instance != null)
-    //        EnemySpawner.Instance.NotifyEnemyDespawned(this);
-
-    //    if (EnemyPool.Instance != null)
-    //        EnemyPool.Instance.Return(this);
-    //}
 
     CannibalType GetRandomTypeByWeight()
     {
         if (typeProbabilities == null || typeProbabilities.Count == 0)
-        {
-            Debug.LogWarning("[EnemyController] No hay probabilidades configuradas, usando Aggressive");
             return CannibalType.Aggressive;
-        }
 
         float totalWeight = 0f;
-
         foreach (var entry in typeProbabilities)
         {
             if (entry.weight > 0f)
@@ -408,40 +405,37 @@ public class EnemyController : MonoBehaviour
         }
 
         if (totalWeight <= 0f)
-        {
-            Debug.LogWarning("[EnemyController] Pesos inválidos, usando Aggressive");
             return CannibalType.Aggressive;
-        }
 
         float roll = Random.Range(0f, totalWeight);
         float cumulative = 0f;
 
         foreach (var entry in typeProbabilities)
         {
-            if (entry.weight <= 0f)
-                continue;
+            if (entry.weight <= 0f) continue;
 
             cumulative += entry.weight;
             if (roll <= cumulative)
                 return entry.type;
         }
 
-        // fallback ultra defensivo
         return typeProbabilities[0].type;
     }
 
-    //void ResetForSpawn()
-    //{
-    //    attackCooldownTimer = 0f;
+    // ═══════ RESET (Para Pool) ═══════
 
-    //    if (Health != null)
-    //        Health.ResetState(); // si tienes algo así
+    public void ResetForPool()
+    {
+        attackCooldownTimer = 0f;
+        currentLOD = EnemyLOD.Active;
 
-    //    if (Perception != null)
-    //        Perception.ClearTarget(); // si tienes algo así
+        if (FSM != null)
+            FSM.ChangeState(new WanderState());
 
-    //    if (FSM != null)
-    //        FSM.ChangeState(new WanderState());
-    //}
+        if (Motor != null)
+            Motor.rotateTowardsMovement = true;
 
+        if (Perception != null)
+            Perception.SetExternalTarget(null);
+    }
 }

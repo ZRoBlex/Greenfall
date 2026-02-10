@@ -1,13 +1,24 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Estado amistoso - OPTIMIZADO
+/// </summary>
 public class FriendlyState : State<EnemyController>
 {
-    // Distancia mínima cómoda para no pegarse al jugador
-    float stopDistance = 2.0f;
+    const float STOP_DISTANCE = 2.0f;
+    const float STOP_DISTANCE_SQR = STOP_DISTANCE * STOP_DISTANCE;
+
+    Transform cachedTransform;
+    Transform cachedTarget;
+
+    float lastUpdateTime;
+    const float UPDATE_INTERVAL = 0.2f;
 
     public override void Enter(EnemyController o)
     {
         if (o == null) return;
+
+        cachedTransform = o.transform;
 
         if (o.AnimatorBridge != null)
         {
@@ -15,34 +26,42 @@ public class FriendlyState : State<EnemyController>
             o.AnimatorBridge.SetBool("IsWalking", true);
         }
 
-        if (o.Perception.CurrentTarget != null)
-            o.Motor.SetTarget(o.Perception.CurrentTarget);
+        if (o.Perception != null && o.Perception.CurrentTarget != null)
+        {
+            cachedTarget = o.Perception.CurrentTarget;
+            if (o.Motor != null)
+                o.Motor.SetTarget(cachedTarget);
+        }
 
-        Debug.Log($"[{o.stats.displayName}] Entró en FriendlyState.");
+        lastUpdateTime = Time.time;
     }
 
     public override void Tick(EnemyController o)
     {
-        if (o == null || o.Motor == null || o.Perception == null)
-            return;
+        if (o == null || cachedTransform == null) return;
 
-        Transform player = o.Perception.CurrentTarget;
+        // Actualizar target si cambió
+        if (o.Perception != null)
+            cachedTarget = o.Perception.CurrentTarget;
 
-        if (player == null)
+        if (cachedTarget == null)
         {
-            // Si pierde al jugador, vuelve a Wander
             o.FSM.ChangeState(new WanderState());
             return;
         }
 
-        float dist = Vector3.Distance(o.transform.position, player.position);
+        // 🔥 Squared magnitude
+        float distSqr = (cachedTransform.position - cachedTarget.position).sqrMagnitude;
 
-        // 🔹 Si está muy cerca, se detiene y solo mira al jugador
-        if (dist <= stopDistance)
+        // Muy cerca → detenerse y mirar
+        if (distSqr <= STOP_DISTANCE_SQR)
         {
             // Detener movimiento
-            Vector2Int myCell = o.LocalGrid.WorldToCell(o.transform.position);
-            o.Motor.SetDestination(myCell);
+            if (o.Motor != null && o.Motor.localGrid != null)
+            {
+                Vector2Int myCell = o.Motor.localGrid.WorldToCell(cachedTransform.position);
+                o.Motor.SetDestination(myCell);
+            }
 
             if (o.AnimatorBridge != null)
             {
@@ -50,22 +69,30 @@ public class FriendlyState : State<EnemyController>
                 o.AnimatorBridge.SetBool("IsIdle", true);
             }
 
-            LookAtPlayer(o, player);
+            LookAtPlayer(o, cachedTarget);
             return;
         }
 
-        // 🔹 Si está lejos, sigue caminando detrás del jugador
+        // Lejos → seguir
         if (o.AnimatorBridge != null)
         {
             o.AnimatorBridge.SetBool("IsIdle", false);
             o.AnimatorBridge.SetBool("IsWalking", true);
         }
 
-        o.Motor.SetTarget(player);
+        // 🔥 Solo actualizar target cada X segundos
+        if (Time.time - lastUpdateTime > UPDATE_INTERVAL)
+        {
+            if (o.Motor != null)
+                o.Motor.SetTarget(cachedTarget);
+            lastUpdateTime = Time.time;
+        }
     }
 
     public override void Exit(EnemyController o)
     {
+        if (o == null) return;
+
         if (o.AnimatorBridge != null)
         {
             o.AnimatorBridge.SetBool("IsWalking", false);
@@ -75,14 +102,16 @@ public class FriendlyState : State<EnemyController>
 
     void LookAtPlayer(EnemyController o, Transform player)
     {
-        Vector3 dir = player.position - o.transform.position;
+        if (o.stats == null || cachedTransform == null) return;
+
+        Vector3 dir = player.position - cachedTransform.position;
         dir.y = 0f;
 
         if (dir.sqrMagnitude > 0.001f)
         {
             Quaternion rot = Quaternion.LookRotation(dir);
-            o.transform.rotation = Quaternion.Slerp(
-                o.transform.rotation,
+            cachedTransform.rotation = Quaternion.Slerp(
+                cachedTransform.rotation,
                 rot,
                 o.stats.turnSpeed * Time.deltaTime
             );

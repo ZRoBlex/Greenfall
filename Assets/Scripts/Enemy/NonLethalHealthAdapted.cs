@@ -1,87 +1,151 @@
 ﻿using UnityEngine;
 using System;
 
-[RequireComponent(typeof(EnemyController))]
+/// <summary>
+/// Sistema de captura NO LETAL - Ultra optimizado
+/// Compatible con LOD y pooling
+/// </summary>
 public class NonLethalHealthAdapted : MonoBehaviour
 {
-    [Header("Capture Settings")]
+    [Header("═══════ CONFIGURACIÓN DE CAPTURA ═══════")]
     public float maxCapture = 100f;
-    public float currentCapture = 0f;
-    public float decayPerSecond = 5f;
-    public float stunDuration = 10f;
+    public float captureDecayPerSecond = 5f;
+    public float stunDuration = 30f;
 
-    [Header("Manual Control")]
-    [Tooltip("Forzar al enemigo a estar stuned manualmente")]
-    public bool forceStunned = false;
+    [Header("═══════ ESTADO ACTUAL ═══════")]
+    public float currentCapture;
 
-    // Eventos para animaciones o sistemas externos
-    public event Action OnStunned;
-    public event Action OnFullyStunned;
-    public event Action OnRecovered;
+    [Header("═══════ CONTROL MANUAL ═══════")]
+    [Tooltip("Forzar stun manualmente (debug)")]
+    public bool forceStunned;
 
-    EnemyController ec;
-    bool isStunned = false;
-    float stunTimer = 0f;
+    // ═══════ EVENTOS ═══════
+    public event Action OnStunned;           // 50% captura
+    public event Action OnFullyStunned;      // 100% captura
+    public event Action OnRecovered;         // Recuperado
+    public event Action<float> OnCaptureTaken;
+
+    // ═══════ PROPIEDADES ═══════
+    public bool CanBeCaptured => enemyController == null || enemyController.CurrentType != CannibalType.Friendly;
+
+    // ═══════ FLAGS ═══════
+    bool isStunned;
+    float stunTimer;
+
+    // ═══════ CACHE ═══════
+    EnemyController enemyController;
+    Transform cachedTransform;
+
+    // ═══════ LIFECYCLE ═══════
 
     void Awake()
     {
-        ec = GetComponent<EnemyController>();
+        enemyController = GetComponent<EnemyController>();
+        cachedTransform = transform;
+        currentCapture = 0f;
+        isStunned = false;
     }
 
-    void Start()
+    void OnEnable()
     {
         currentCapture = 0f;
+        isStunned = false;
+        forceStunned = false;
+        stunTimer = 0f;
     }
 
     void Update()
     {
-        // Si el bool manual está activado, activar stun si no lo está
-        if (forceStunned && !isStunned)
-        {
-            BecomeStunned();
-        }
+        // 🔴 Sleep LOD → No procesar NADA
+        if (enemyController != null && enemyController.CurrentLOD == EnemyLOD.Sleep)
+            return;
 
-        // Si está stuned, contar tiempo
+        // Forzar stun manual (debug)
+        if (forceStunned && !isStunned)
+            BecomeStunned();
+
+        // Si está stunned, contar tiempo
         if (isStunned)
         {
             stunTimer -= Time.deltaTime;
             if (stunTimer <= 0f)
                 Recover();
-
-            return; // no decae ni actúa mientras está stuned
+            return;
         }
 
-        // Si no está al máximo, decae el capture
+        // Decaimiento de captura
         if (!forceStunned && currentCapture > 0f)
         {
-            currentCapture = Mathf.Max(0f, currentCapture - decayPerSecond * Time.deltaTime);
-        }
-
-        // Si llega al máximo → stun automático
-        if (!forceStunned && currentCapture >= maxCapture)
-        {
-            BecomeStunned();
-        }
-        // Si llega a mitad → evento de stun leve
-        else if (!forceStunned && currentCapture >= maxCapture * 0.5f)
-        {
-            OnStunned?.Invoke();
+            currentCapture = Mathf.Max(0f, currentCapture - captureDecayPerSecond * Time.deltaTime);
         }
     }
 
+    // ═══════ API PÚBLICA ═══════
+
     /// <summary>
-    /// Aplicar incremento de captura
+    /// Aplicar daño de captura
     /// </summary>
-    public void ApplyCapture(float amount)
+    public void ApplyCaptureTick(float amount)
     {
-        if (isStunned) return;
+        // No capturar amigos
+        if (enemyController != null && enemyController.CurrentType == CannibalType.Friendly)
+            return;
+
+        // No capturar en Sleep
+        if (enemyController != null && enemyController.CurrentLOD == EnemyLOD.Sleep)
+            return;
+
+        if (isStunned || amount <= 0f) return;
 
         currentCapture += amount;
         currentCapture = Mathf.Clamp(currentCapture, 0f, maxCapture);
+
+        // 100% → Stun completo
+        if (currentCapture >= maxCapture)
+        {
+            BecomeStunned();
+        }
+        // 50% → Evento de medio stun
+        else if (currentCapture >= maxCapture * 0.5f)
+        {
+            OnStunned?.Invoke();
+        }
+
+        OnCaptureTaken?.Invoke(amount);
     }
+
+    public bool IsStunned() => isStunned;
+
+    public float GetCapturePercent() => maxCapture > 0 ? currentCapture / maxCapture : 0f;
+
+    // Compatibilidad con código antiguo
+    public void KnockOut() => BecomeStunned();
+    public void Revive() => Recover();
+
+    public void ResetHealth()
+    {
+        currentCapture = 0f;
+        forceStunned = false;
+
+        if (isStunned)
+        {
+            isStunned = false;
+            stunTimer = 0f;
+
+            // Reactivar motor
+            if (enemyController != null && enemyController.Motor != null)
+                enemyController.Motor.enabled = true;
+        }
+    }
+
+    // ═══════ STUN SYSTEM ═══════
 
     void BecomeStunned()
     {
+        // No permitir stun en Sleep
+        if (enemyController != null && enemyController.CurrentLOD == EnemyLOD.Sleep)
+            return;
+
         if (isStunned) return;
 
         isStunned = true;
@@ -89,18 +153,21 @@ public class NonLethalHealthAdapted : MonoBehaviour
 
         OnFullyStunned?.Invoke();
 
-        // Cambiar estado
-        ec?.FSM.ChangeState(new StunnedState());
+        // Cambiar a StunnedState
+        if (enemyController != null && enemyController.FSM != null)
+            enemyController.FSM.ChangeState(new StunnedState());
 
         // Detener motor
-        if (ec.Motor != null)
-            ec.Motor.enabled = false;
-
-        Debug.Log($"[{ec.stats.displayName}] Entró en StunnedState. (StunTimer={stunTimer}s)");
+        if (enemyController != null && enemyController.Motor != null)
+            enemyController.Motor.enabled = false;
     }
 
     void Recover()
     {
+        // No recuperar en Sleep
+        if (enemyController != null && enemyController.CurrentLOD == EnemyLOD.Sleep)
+            return;
+
         isStunned = false;
         currentCapture = 0f;
         forceStunned = false;
@@ -108,14 +175,11 @@ public class NonLethalHealthAdapted : MonoBehaviour
         OnRecovered?.Invoke();
 
         // Reactivar motor
-        if (ec.Motor != null)
-            ec.Motor.enabled = true;
+        if (enemyController != null && enemyController.Motor != null)
+            enemyController.Motor.enabled = true;
 
         // Volver a Wander
-        ec?.FSM.ChangeState(new WanderState());
-
-        Debug.Log($"[{ec.stats.displayName}] Salió de StunnedState.");
+        if (enemyController != null && enemyController.FSM != null)
+            enemyController.FSM.ChangeState(new WanderState());
     }
-
-    public bool IsStunned() => isStunned;
 }

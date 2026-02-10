@@ -1,97 +1,112 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Estado de ataque - ULTRA OPTIMIZADO
+/// </summary>
 public class AttackState : State<EnemyController>
 {
-    //float attackTimer;
+    // Cache
+    Transform cachedTransform;
+    Transform cachedTarget;
+    float attackRangeSqr;
+
+    PlayerHealth playerHealth;
+    bool hasValidTarget;
 
     public override void Enter(EnemyController o)
-{
-        //attackTimer = 0f;
-        //attackTimer = o.stats.attackCooldown; // 👈 arranca lleno
+    {
+        if (o == null) return;
+
+        cachedTransform = o.transform;
+
+        if (o.stats != null)
+            attackRangeSqr = o.stats.attackRange * o.stats.attackRange;
 
         if (o.AnimatorBridge != null)
-    {
-        o.AnimatorBridge.ResetSpecialBools();
-        o.AnimatorBridge.SetBool("IsChasing", true);
-        // IsWalking lo pone EnemyMotor
-    }
+        {
+            o.AnimatorBridge.ResetSpecialBools();
+            o.AnimatorBridge.SetBool("IsChasing", true);
+        }
 
-    Debug.Log($"[{o.stats.displayName}] Entró en AttackState.");
-}
+        // Cache player health una sola vez
+        if (o.Perception != null && o.Perception.CurrentTarget != null)
+        {
+            cachedTarget = o.Perception.CurrentTarget;
+            playerHealth = cachedTarget.GetComponentInParent<PlayerHealth>();
+            hasValidTarget = playerHealth != null;
+        }
+        else
+        {
+            hasValidTarget = false;
+        }
+    }
 
     public override void Tick(EnemyController o)
     {
-        if (o == null || o.Motor == null || o.Perception == null)
-            return;
+        if (o == null || cachedTransform == null) return;
 
-        Transform player = o.Perception.CurrentTarget;
-
-        if (player == null)
+        // Validar target
+        if (cachedTarget == null || !hasValidTarget)
         {
-            if (o.CurrentType == CannibalType.Passive)
-                o.FSM.ChangeState(new ScaredState());
-            else
-                o.FSM.ChangeState(new FollowingState());
-
+            o.FSM.ChangeState(GetFallbackState(o));
             return;
         }
 
-        LookAtPlayer(o, player);
+        // Rotar hacia el jugador
+        LookAtTarget(o, cachedTarget);
 
-        float distance = Vector3.Distance(o.transform.position, player.position);
+        // 🔥 Usar squared magnitude (más rápido que Distance)
+        float distSqr = (cachedTransform.position - cachedTarget.position).sqrMagnitude;
 
-        if (distance > o.stats.attackRange)
+        // Muy lejos → volver a perseguir
+        if (distSqr > attackRangeSqr)
         {
             o.FSM.ChangeState(new FollowingState());
             return;
         }
 
-        // ⏱️ usar cooldown persistente
+        // Atacar si el cooldown terminó
         if (o.attackCooldownTimer <= 0f)
         {
-            PerformAttack(o, player);
-            o.attackCooldownTimer = o.stats.attackCooldown;
+            PerformAttack(o);
+            o.attackCooldownTimer = o.stats != null ? o.stats.attackCooldown : 1f;
         }
     }
 
-
-    void LookAtPlayer(EnemyController o, Transform player)
+    void LookAtTarget(EnemyController o, Transform target)
     {
-        Vector3 direction = player.position - o.transform.position;
+        if (o.stats == null) return;
+
+        Vector3 direction = target.position - cachedTransform.position;
         direction.y = 0f;
+
         if (direction.sqrMagnitude > 0.001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            o.transform.rotation = Quaternion.Slerp(o.transform.rotation, targetRotation, o.stats.turnSpeed * Time.deltaTime);
-        }
-    }
-
-    void PerformAttack(EnemyController o, Transform player)
-    {
-        // ❌ Este enemigo no hace daño
-        if (!o.stats.canDealDamage)
-        {
-            Debug.Log($"[{o.stats.displayName}] intentó atacar, pero es friendly.");
-            return;
-        }
-
-        // 🔎 Buscar PlayerHealth en el padre también
-        PlayerHealth health = player.GetComponentInParent<PlayerHealth>();
-
-        if (health == null)
-        {
-            Debug.LogWarning(
-                $"[{o.stats.displayName}] No se encontró PlayerHealth en {player.name} ni en sus padres."
+            cachedTransform.rotation = Quaternion.Slerp(
+                cachedTransform.rotation,
+                targetRotation,
+                o.stats.turnSpeed * Time.deltaTime
             );
-            return;
         }
-
-        // Aplicar daño
-        health.TakeDamage(o.stats.attackDamage);
-
-        Debug.Log($"[{o.stats.displayName}] Atacó al jugador causando {o.stats.attackDamage} de daño.");
     }
 
+    void PerformAttack(EnemyController o)
+    {
+        if (o.stats == null || !o.stats.canDealDamage)
+            return;
 
+        if (playerHealth != null)
+        {
+            playerHealth.TakeDamage(o.stats.attackDamage);
+        }
+    }
 
+    State<EnemyController> GetFallbackState(EnemyController o)
+    {
+        if (o.CurrentType == CannibalType.Passive)
+            return new ScaredState();
+        else
+            return new FollowingState();
+    }
 }
