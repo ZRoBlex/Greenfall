@@ -1,82 +1,213 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Sistema de percepción ULTRA optimizado
+/// - No hace raycasts innecesarios
+/// - Percepción por capas (distancia → visión → audición)
+/// - Cache agresivo
+/// </summary>
 public class EnemyPerception : MonoBehaviour
 {
     public EnemyStats stats;
 
-    Transform player;
+    [Header("═══════ OPTIMIZACIÓN ═══════")]
+    [Range(0.1f, 1f)]
+    [Tooltip("Intervalo entre checks de percepción (segundos)")]
+    public float perceptionInterval = 0.2f;
+
+    [Range(0.1f, 1f)]
+    [Tooltip("Intervalo entre checks de visión (raycasts)")]
+    public float visionCheckInterval = 0.5f;
+
+    // ═══════ ESTADO ═══════
 
     public bool CanSeePlayer { get; private set; }
     public bool IsPlayerClose { get; private set; }
     public bool HeardPlayer { get; private set; }
-
     public Transform CurrentTarget { get; private set; }
+
+    // ═══════ CACHE ═══════
+
+    Transform player;
+    Transform cachedTransform;
+
+    // Pre-calculados (para evitar multiplicaciones)
+    float closeDetectionSqr;
+    float perceptionRangeSqr;
+    float hearingRangeSqr;
+    float halfFieldOfView;
+
+    // ═══════ TIMERS ═══════
+
+    float perceptionTimer;
+    float visionTimer;
+
+    // ═══════ LIFECYCLE ═══════
 
     void Awake()
     {
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        cachedTransform = transform;
+        FindPlayer();
+        RecalculateRanges();
+    }
+
+    void OnEnable()
+    {
+        perceptionTimer = Random.Range(0f, perceptionInterval); // Stagger inicial
+        visionTimer = Random.Range(0f, visionCheckInterval);
     }
 
     void Update()
     {
-        // 🔴 Si está desactivado por LOD, no procesar
-        if (!enabled)
+        if (player == null)
+        {
+            FindPlayer();
+            if (player == null)
+            {
+                ClearPerception();
+                return;
+            }
+        }
+
+        // 🔥 OPTIMIZACIÓN 1: Percepción por intervalos, no cada frame
+        perceptionTimer -= Time.deltaTime;
+        if (perceptionTimer > 0f)
             return;
 
+        perceptionTimer = perceptionInterval;
+
+        // 🔥 OPTIMIZACIÓN 2: Percepción por capas (más barato primero)
+        UpdatePerception();
+    }
+
+    // ═══════ PERCEPCIÓN POR CAPAS ═══════
+
+    void UpdatePerception()
+    {
         CurrentTarget = null;
 
-        if (player == null) return;
+        // CAPA 1: Distancia (más barato - solo squared magnitude)
+        float distSqr = (cachedTransform.position - player.position).sqrMagnitude;
 
-        CheckDistance();
-        CheckVision();
-        CheckHearing();
+        // Muy cerca → detectado automáticamente
+        IsPlayerClose = distSqr <= closeDetectionSqr;
+        if (IsPlayerClose)
+        {
+            CurrentTarget = player;
+            CanSeePlayer = true;
+            HeardPlayer = true;
+            return;
+        }
 
-        if (CanSeePlayer || IsPlayerClose || HeardPlayer)
+        // Fuera de rango de percepción → ignorar
+        if (distSqr > perceptionRangeSqr)
+        {
+            ClearPerception();
+            return;
+        }
+
+        // CAPA 2: Audición (barato - solo distancia)
+        HeardPlayer = distSqr <= hearingRangeSqr;
+
+        // CAPA 3: Visión (más caro - raycast)
+        visionTimer -= Time.deltaTime;
+        if (visionTimer <= 0f)
+        {
+            CheckVision(distSqr);
+            visionTimer = visionCheckInterval;
+        }
+
+        // Asignar target si detectado
+        if (CanSeePlayer || HeardPlayer)
             CurrentTarget = player;
     }
 
-
-    void CheckDistance()
+    void CheckVision(float distSqr)
     {
-        float dist = Vector3.Distance(transform.position, player.position);
-        IsPlayerClose = dist <= stats.closeDetectionRadius;
-    }
-
-    void CheckVision()
-    {
-        Vector3 toPlayer = player.position - transform.position;
-        float dist = toPlayer.magnitude;
-
-        if (dist > stats.perceptionRange)
+        // Ya fuera de rango
+        if (distSqr > perceptionRangeSqr)
         {
             CanSeePlayer = false;
             return;
         }
 
-        float angle = Vector3.Angle(transform.forward, toPlayer);
-        CanSeePlayer = angle <= stats.fieldOfView * 0.5f;
+        // Verificar ángulo (barato)
+        Vector3 toPlayer = player.position - cachedTransform.position;
+        float angle = Vector3.Angle(cachedTransform.forward, toPlayer);
+
+        if (angle > halfFieldOfView)
+        {
+            CanSeePlayer = false;
+            return;
+        }
+
+        // TODO: Raycast para verificar obstrucción (opcional)
+        // Por ahora, si está en ángulo = puede ver
+        CanSeePlayer = true;
     }
 
-    void CheckHearing()
+    void ClearPerception()
     {
-        float dist = Vector3.Distance(transform.position, player.position);
-        HeardPlayer = dist <= stats.perceptionRange * 0.6f;
+        CurrentTarget = null;
+        CanSeePlayer = false;
+        IsPlayerClose = false;
+        HeardPlayer = false;
     }
+
+    // ═══════ UTILIDADES ═══════
+
+    void FindPlayer()
+    {
+        if (player == null)
+        {
+            GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+            if (playerGO != null)
+                player = playerGO.transform;
+        }
+    }
+
+    void RecalculateRanges()
+    {
+        if (stats == null) return;
+
+        closeDetectionSqr = stats.closeDetectionRadius * stats.closeDetectionRadius;
+        perceptionRangeSqr = stats.perceptionRange * stats.perceptionRange;
+        hearingRangeSqr = (stats.perceptionRange * 0.6f) * (stats.perceptionRange * 0.6f);
+        halfFieldOfView = stats.fieldOfView * 0.5f;
+    }
+
+    void OnValidate()
+    {
+        RecalculateRanges();
+    }
+
+    // ═══════ API PÚBLICA ═══════
+
+    public void SetExternalTarget(Transform target)
+    {
+        CurrentTarget = target;
+    }
+
+    // ═══════ GIZMOS ═══════
 
 #if UNITY_EDITOR
     void OnDrawGizmos()
     {
         if (stats == null) return;
 
-        Gizmos.color = Color.red;
+        // Cerca (Rojo)
+        Gizmos.color = new Color(1f, 0f, 0f, 0.2f);
         Gizmos.DrawWireSphere(transform.position, stats.closeDetectionRadius);
 
-        Gizmos.color = Color.blue;
+        // Audición (Azul)
+        Gizmos.color = new Color(0f, 0f, 1f, 0.15f);
         Gizmos.DrawWireSphere(transform.position, stats.perceptionRange * 0.6f);
 
-        Gizmos.color = Color.yellow;
+        // Visión (Amarillo)
+        Gizmos.color = new Color(1f, 1f, 0f, 0.1f);
         Gizmos.DrawWireSphere(transform.position, stats.perceptionRange);
 
+        // Campo de visión
         Vector3 left = Quaternion.Euler(0, -stats.fieldOfView / 2f, 0) * transform.forward;
         Vector3 right = Quaternion.Euler(0, stats.fieldOfView / 2f, 0) * transform.forward;
 
@@ -84,16 +215,12 @@ public class EnemyPerception : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + left * stats.perceptionRange);
         Gizmos.DrawLine(transform.position, transform.position + right * stats.perceptionRange);
 
-        if (CurrentTarget != null)
+        // Línea al target
+        if (CurrentTarget != null && Application.isPlaying)
         {
-            Gizmos.color = Color.magenta;
+            Gizmos.color = CanSeePlayer ? Color.green : Color.yellow;
             Gizmos.DrawLine(transform.position, CurrentTarget.position);
         }
     }
 #endif
-
-    public void SetExternalTarget(Transform target)
-    {
-        CurrentTarget = target;
-    }
 }

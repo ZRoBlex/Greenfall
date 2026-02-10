@@ -1,36 +1,52 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Spawner simple ULTRA optimizado
+/// Para spawns puntuales y controlados
+/// </summary>
 public class EnemySpawner : MonoBehaviour
 {
-    public static EnemySpawner Instance;
+    public static EnemySpawner Instance { get; private set; }
 
-    [Header("Player Reference")]
+    [Header("═══════ PLAYER ═══════")]
     [SerializeField] Transform player;
 
-    [Header("Spawn Area (relative to player)")]
+    [Header("═══════ ÁREA DE SPAWN ═══════")]
+    [Range(10f, 100f)]
     public float minSpawnRadius = 20f;
+
+    [Range(20f, 150f)]
     public float maxSpawnRadius = 60f;
 
-    [Header("Spawn Settings")]
+    [Header("═══════ CONFIGURACIÓN ═══════")]
+    [Range(1, 50)]
     public int maxAliveEnemies = 20;
+
+    [Range(0.5f, 10f)]
     public float spawnInterval = 3f;
 
-    [Header("Ground Detection")]
+    [Header("═══════ TERRENO ═══════")]
     public float raycastHeight = 100f;
     public float raycastDistance = 200f;
     public LayerMask groundMask;
 
-    [Header("Forbidden Surface Tags")]
+    [Header("═══════ SUPERFICIES PROHIBIDAS ═══════")]
     public string[] forbiddenTags;
 
-    [Header("Retry")]
+    [Header("═══════ REINTENTOS ═══════")]
+    [Range(5, 30)]
     public int maxPositionTries = 15;
+
+    [Range(2f, 10f)]
     public float nearbySearchRadius = 5f;
 
-    float timer;
+    // ═══════ ESTADO ═══════
 
-    readonly List<EnemyController> alive = new();
+    float timer;
+    readonly List<EnemyController> alive = new List<EnemyController>();
+
+    // ═══════ LIFECYCLE ═══════
 
     void Awake()
     {
@@ -42,8 +58,7 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
-        if (player == null)
-            return;
+        if (player == null) return;
 
         timer -= Time.deltaTime;
 
@@ -53,6 +68,8 @@ public class EnemySpawner : MonoBehaviour
             timer = spawnInterval;
         }
     }
+
+    // ═══════ SPAWNING ═══════
 
     void TrySpawn()
     {
@@ -67,7 +84,6 @@ public class EnemySpawner : MonoBehaviour
         EnemyController enemy = EnemyPool.Instance.Get();
         enemy.transform.position = spawnPos;
         enemy.transform.rotation = Quaternion.identity;
-
         enemy.gameObject.SetActive(true);
         enemy.SetLOD(EnemyLOD.Active);
 
@@ -92,9 +108,7 @@ public class EnemySpawner : MonoBehaviour
             Vector2 randCircle = Random.insideUnitCircle.normalized *
                                  Random.Range(minSpawnRadius, maxSpawnRadius);
 
-            Vector3 candidate = player.position +
-                                new Vector3(randCircle.x, 0f, randCircle.y);
-
+            Vector3 candidate = player.position + new Vector3(randCircle.x, 0f, randCircle.y);
             candidate.y += raycastHeight;
 
             if (Physics.Raycast(
@@ -109,7 +123,6 @@ public class EnemySpawner : MonoBehaviour
                 {
                     if (TryFindNearbyValidPoint(hit.point, out result))
                         return true;
-
                     continue;
                 }
 
@@ -151,6 +164,9 @@ public class EnemySpawner : MonoBehaviour
 
     bool IsSurfaceForbidden(Collider col)
     {
+        if (forbiddenTags == null || forbiddenTags.Length == 0)
+            return false;
+
         foreach (string tag in forbiddenTags)
         {
             if (!string.IsNullOrEmpty(tag) && col.CompareTag(tag))
@@ -159,6 +175,8 @@ public class EnemySpawner : MonoBehaviour
 
         return false;
     }
+
+    // ═══════ API PÚBLICA ═══════
 
     public void NotifyEnemyDespawned(EnemyController enemy)
     {

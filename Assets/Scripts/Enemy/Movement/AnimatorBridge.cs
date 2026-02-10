@@ -1,84 +1,91 @@
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// Puente con Animator ULTRA optimizado
+/// - Cache de hashes
+/// - Sin Debug.Log en runtime
+/// </summary>
 [RequireComponent(typeof(Animator))]
 public class AnimatorBridge : MonoBehaviour
 {
     Animator anim;
-    EnemyStats stats; // Tomamos las animaciones desde EnemyStats
+    EnemyStats stats;
+
+    // ═══════ CACHE DE HASHES (mucho más rápido) ═══════
+
+    int hashIsScared;
+    int hashIsChasing;
+    int hashIsIdle;
+    int hashIsWalking;
+
+    // ═══════ LIFECYCLE ═══════
 
     void Awake()
     {
-        // 1. Primero intenta en este mismo objeto
         anim = GetComponent<Animator>();
 
-        // 2. Si no existe, b�scalo en hijos
         if (anim == null)
             anim = GetComponentInChildren<Animator>();
 
         if (anim == null)
-            Debug.LogError("[AnimatorBridge] No se encontr� Animator en " + name + " ni en sus hijos");
+        {
+            Debug.LogError($"[AnimatorBridge] No Animator en {name}");
+            return;
+        }
 
-        // Tomar EnemyStats desde EnemyController del mismo objeto
         EnemyController ec = GetComponent<EnemyController>();
         if (ec != null)
             stats = ec.stats;
 
-        if (stats == null)
-            Debug.LogWarning("[AnimatorBridge] No se encontr� EnemyStats en " + name);
+        // Pre-calcular hashes (MUCHO más rápido que strings)
+        hashIsScared = Animator.StringToHash("IsScared");
+        hashIsChasing = Animator.StringToHash("IsChasing");
+        hashIsIdle = Animator.StringToHash("IsIdle");
+        hashIsWalking = Animator.StringToHash("IsWalking");
     }
 
-
-    // ---------------------------
-    // M�TODOS GENERALES
-    // ---------------------------
+    // ═══════ API PÚBLICA ═══════
 
     public void Play(string animName)
     {
         if (anim == null || string.IsNullOrEmpty(animName)) return;
-
-        // Para pruebas sin animaciones, mostramos debug
-        Debug.Log($"[AnimatorBridge] Reproduciendo animaci�n: {animName}");
-
-        // Cuando tengas animaciones reales, descomenta:
-         anim.Play(animName);
+        anim.Play(animName);
     }
 
     public void SetBool(string param, bool value)
     {
         if (anim == null) return;
-        anim.SetBool(param, value);
-        Debug.Log($"[AnimatorBridge] SetBool({param}, {value})");
+
+        // Usar hash si es un parámetro común
+        int hash = GetHashForParam(param);
+        if (hash != 0)
+            anim.SetBool(hash, value);
+        else
+            anim.SetBool(param, value);
     }
 
     public void SetTrigger(string param)
     {
         if (anim == null) return;
         anim.SetTrigger(param);
-        Debug.Log($"[AnimatorBridge] SetTrigger({param})");
     }
 
     public void SetFloat(string param, float value)
     {
         if (anim == null) return;
         anim.SetFloat(param, value);
-        Debug.Log($"[AnimatorBridge] SetFloat({param}, {value})");
     }
 
     public void ResetSpecialBools()
     {
         if (anim == null) return;
 
-        anim.SetBool("IsScared", false);
-        anim.SetBool("IsChasing", false);
-        anim.SetBool("IsIdle", false);
-        //anim.SetBool("IsAttack", false);
-        // anim.SetBool("IsStunned", false); // futuro
+        anim.SetBool(hashIsScared, false);
+        anim.SetBool(hashIsChasing, false);
+        anim.SetBool(hashIsIdle, false);
     }
 
-
-    // ---------------------------
-    // M�TODOS POR ESTADO
-    // ---------------------------
+    // ═══════ MÉTODOS POR ESTADO ═══════
 
     public void PlayIdle() { if (stats != null) Play(stats.idleAnim); }
     public void PlayWalk() { if (stats != null) Play(stats.walkAnim); }
@@ -86,4 +93,18 @@ public class AnimatorBridge : MonoBehaviour
     public void PlayScared() { if (stats != null) Play(stats.scaredAnim); }
     public void PlayLook() { if (stats != null) Play(stats.lookAnim); }
     public void PlayAttack() { if (stats != null) Play(stats.attackAnim); }
+
+    // ═══════ HELPERS ═══════
+
+    int GetHashForParam(string param)
+    {
+        switch (param)
+        {
+            case "IsScared": return hashIsScared;
+            case "IsChasing": return hashIsChasing;
+            case "IsIdle": return hashIsIdle;
+            case "IsWalking": return hashIsWalking;
+            default: return 0;
+        }
+    }
 }
