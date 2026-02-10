@@ -1,34 +1,45 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Spawn manager ULTRA optimizado
+/// Spawns masivos al inicio + mantenimiento de población
+/// </summary>
 public class EnemySpawnManager : MonoBehaviour
 {
     public EnemySpawnerArea area;
     public EnemyPool pool;
 
-    [Header("Spawn Settings")]
+    [Header("═══════ SPAWN INICIAL ═══════")]
+    [Range(1, 100)]
     public int initialCount = 15;
+
+    [Range(5f, 30f)]
     public float minSpawnDistanceFromPlayer = 10f;
 
-    [Header("Surface Detection")]
+    [Header("═══════ DETECCIÓN DE SUPERFICIE ═══════")]
     public LayerMask groundMask;
     public float rayHeight = 150f;
 
-    [Header("Despawn Rules")]
-    public float maxLifetime = 180f; // ⏱️ segundos antes de permitir despawn
+    [Header("═══════ DESPAWN ═══════")]
+    [Range(60f, 600f)]
+    public float maxLifetime = 180f;
+
     public bool enableLifetimeDespawn = true;
     public bool enableDistanceDespawn = true;
 
-    Dictionary<EnemyController, float> aliveTimeByEnemy =
-    new Dictionary<EnemyController, float>();
-
-    [Header("Respawn Control")]
+    [Header("═══════ RESPAWN ═══════")]
     public bool maintainPopulation = true;
-    public int maxSpawnPerFrame = 2; // para no meter picos de CPU
 
+    [Range(1, 5)]
+    public int maxSpawnPerFrame = 2;
 
+    // ═══════ TRACKING ═══════
 
-    List<EnemyController> aliveEnemies = new List<EnemyController>();
+    readonly List<EnemyController> aliveEnemies = new List<EnemyController>();
+    readonly Dictionary<EnemyController, float> aliveTimeByEnemy = new Dictionary<EnemyController, float>();
+
+    // ═══════ LIFECYCLE ═══════
 
     void Start()
     {
@@ -43,85 +54,101 @@ public class EnemySpawnManager : MonoBehaviour
         MaintainPopulation();
     }
 
+    // ═══════ SPAWN MASIVO ═══════
 
-
-    // 🔹 SPAWN MASIVO
     void SpawnAll()
     {
         aliveEnemies.Clear();
+        aliveTimeByEnemy.Clear();
 
         int spawned = 0;
-        int safety = 0;
+        int attempts = 0;
+        int maxAttempts = initialCount * 20;
 
-        while (spawned < initialCount && safety < initialCount * 20)
+        while (spawned < initialCount && attempts < maxAttempts)
         {
             if (TrySpawnOne())
-            {
                 spawned++;
-            }
 
-            safety++;
+            attempts++;
         }
 
         if (spawned < initialCount)
         {
-            Debug.LogWarning(
-                $"⚠️ Solo se pudieron spawnear {spawned}/{initialCount} enemigos. " +
-                $"Revisa área, groundMask o distancias."
-            );
+            Debug.LogWarning($"⚠️ Solo {spawned}/{initialCount} enemigos spawneados. Revisa groundMask y área.");
+        }
+        else
+        {
+            Debug.Log($"✅ {spawned} enemigos spawneados correctamente");
         }
     }
 
-
     bool TrySpawnOne()
     {
-        Vector3 pos;
-        if (!TryGetValidSpawnPosition(out pos))
+        if (!TryGetValidSpawnPosition(out Vector3 pos))
             return false;
 
-        EnemyController e = pool.Get();
-        e.transform.position = pos;
-        e.transform.rotation = Quaternion.identity;
-        e.gameObject.SetActive(true);
+        EnemyController enemy = pool.Get();
 
-        aliveEnemies.Add(e);
-        aliveTimeByEnemy[e] = 0f; // ⏱️ empieza su vida
+        if (enemy == null)
+        {
+            Debug.LogError("❌ EnemyPool.Get() devolvió null!");
+            return false;
+        }
+
+        // 🔥 CRÍTICO: Configurar posición y rotación
+        enemy.transform.position = pos;
+        enemy.transform.rotation = Quaternion.identity;
+
+        // 🔥 CRÍTICO: Activar el GameObject
+        enemy.gameObject.SetActive(true);
+
+        // 🔥 CRÍTICO: Establecer LOD a Active
+        enemy.SetLOD(EnemyLOD.Active);
+
+        // 🔥 CRÍTICO: Asegurar que el controller esté enabled
+        enemy.enabled = true;
+
+        // 🔥 CRÍTICO: Asegurar que el Motor esté enabled
+        //if (enemy.Movement != null)
+        //    enemy.Movement.SetEnabled(true);
+
+        // 🔥 CRÍTICO: Asegurar que Perception esté enabled
+        if (enemy.Perception != null)
+            enemy.Perception.enabled = true;
+
+        // Tracking
+        aliveEnemies.Add(enemy);
+        aliveTimeByEnemy[enemy] = 0f;
 
         return true;
     }
 
-
-    // 🔹 DESPAWN SOLO SI SALE DEL ÁREA
-    void HandleDespawnByDistance()
-    {
-        for (int i = aliveEnemies.Count - 1; i >= 0; i--)
-        {
-            var e = aliveEnemies[i];
-            if (e == null || !e.gameObject.activeSelf)
-            {
-                aliveEnemies.RemoveAt(i);
-                continue;
-            }
-
-            if (!area.IsInsideArea(e.transform.position))
-            {
-                pool.Release(e);
-                aliveEnemies.RemoveAt(i);
-            }
-        }
-    }
-
-    // 🔹 POSICIÓN VÁLIDA SOBRE SUPERFICIE
     bool TryGetValidSpawnPosition(out Vector3 pos)
     {
+        if (area == null || area.player == null)
+        {
+            Debug.LogError("❌ EnemySpawnerArea o player es null!");
+            pos = Vector3.zero;
+            return false;
+        }
+
         for (int i = 0; i < 20; i++)
         {
-            Vector3 random = GetRandomPointInArea();
-            random.y += rayHeight;
+            Vector3 randomPoint = GetRandomPointInArea();
+            randomPoint.y += rayHeight;
 
-            if (Physics.Raycast(random, Vector3.down, out RaycastHit hit, rayHeight * 2f, groundMask))
+            if (Physics.Raycast(
+                randomPoint,
+                Vector3.down,
+                out RaycastHit hit,
+                rayHeight * 2f,
+                groundMask,
+                QueryTriggerInteraction.Ignore))
             {
-                if (Vector3.Distance(hit.point, area.player.position) < minSpawnDistanceFromPlayer)
+                // Muy cerca del jugador
+                float distSqr = (hit.point - area.player.position).sqrMagnitude;
+                if (distSqr < minSpawnDistanceFromPlayer * minSpawnDistanceFromPlayer)
                     continue;
 
                 pos = hit.point;
@@ -143,69 +170,17 @@ public class EnemySpawnManager : MonoBehaviour
         return area.transform.position + new Vector3(x, 0f, z);
     }
 
-    // 🔹 Para que el pool notifique muertes
-    public void NotifyEnemyDied(EnemyController e)
-    {
-        aliveEnemies.Remove(e);
-        aliveTimeByEnemy.Remove(e);
-    }
-
+    // ═══════ TRACKING ═══════
 
     void UpdateAliveTimes()
     {
-        for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+        foreach (var enemy in aliveEnemies)
         {
-            var e = aliveEnemies[i];
-            if (e == null || !e.gameObject.activeSelf)
+            if (enemy == null || !enemy.gameObject.activeSelf)
                 continue;
 
-            aliveTimeByEnemy[e] += Time.deltaTime;
-        }
-    }
-
-    void HandleDespawnByRules()
-    {
-        if (EnemyManager.Instance == null)
-            return;
-
-        float sleepDist = EnemyManager.Instance.sleepDistance;
-
-        for (int i = aliveEnemies.Count - 1; i >= 0; i--)
-        {
-            var e = aliveEnemies[i];
-
-            if (e == null || !e.gameObject.activeSelf)
-            {
-                aliveEnemies.RemoveAt(i);
-                aliveTimeByEnemy.Remove(e);
-                continue;
-            }
-
-            // 🔒 Regla 1: jamás despawnear si está Active
-            if (e.CurrentLOD == EnemyLOD.Active)
-                continue;
-
-            float aliveTime = aliveTimeByEnemy.TryGetValue(e, out var t) ? t : 0f;
-
-            float distToPlayer = Vector3.Distance(
-                e.transform.position,
-                area.player.position
-            );
-
-            bool tooFar = enableDistanceDespawn && distToPlayer > sleepDist;
-            bool tooOld = enableLifetimeDespawn && aliveTime >= maxLifetime;
-
-            // 🔥 Regla 2:
-            // solo despawnear si:
-            // - está en SemiActive o Sleep
-            // - y cumple distancia O tiempo
-            if ((e.CurrentLOD == EnemyLOD.SemiActive || e.CurrentLOD == EnemyLOD.Sleep)
-                && (tooFar || tooOld))
-            {
-                pool.Release(e);
-                aliveEnemies.RemoveAt(i);
-                aliveTimeByEnemy.Remove(e);
-            }
+            if (aliveTimeByEnemy.ContainsKey(enemy))
+                aliveTimeByEnemy[enemy] += Time.deltaTime;
         }
     }
 
@@ -213,15 +188,57 @@ public class EnemySpawnManager : MonoBehaviour
     {
         for (int i = aliveEnemies.Count - 1; i >= 0; i--)
         {
-            var e = aliveEnemies[i];
+            EnemyController enemy = aliveEnemies[i];
 
-            if (e == null || !e.gameObject.activeSelf)
+            if (enemy == null || !enemy.gameObject.activeSelf)
             {
                 aliveEnemies.RemoveAt(i);
-                aliveTimeByEnemy.Remove(e);
+                aliveTimeByEnemy.Remove(enemy);
             }
         }
     }
+
+    // ═══════ DESPAWN ═══════
+
+    void HandleDespawnByRules()
+    {
+        if (EnemyManager.Instance == null || area.player == null)
+            return;
+
+        float sleepDist = EnemyManager.Instance.sleepDistance;
+
+        for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+        {
+            EnemyController enemy = aliveEnemies[i];
+
+            if (enemy == null || !enemy.gameObject.activeSelf)
+            {
+                aliveEnemies.RemoveAt(i);
+                aliveTimeByEnemy.Remove(enemy);
+                continue;
+            }
+
+            // No despawnear Active
+            if (enemy.CurrentLOD == EnemyLOD.Active)
+                continue;
+
+            float aliveTime = aliveTimeByEnemy.TryGetValue(enemy, out float t) ? t : 0f;
+            float distSqr = (enemy.transform.position - area.player.position).sqrMagnitude;
+
+            bool tooFar = enableDistanceDespawn && distSqr > sleepDist * sleepDist;
+            bool tooOld = enableLifetimeDespawn && aliveTime >= maxLifetime;
+
+            if ((enemy.CurrentLOD == EnemyLOD.SemiActive || enemy.CurrentLOD == EnemyLOD.Sleep)
+                && (tooFar || tooOld))
+            {
+                pool.Release(enemy);
+                aliveEnemies.RemoveAt(i);
+                aliveTimeByEnemy.Remove(enemy);
+            }
+        }
+    }
+
+    // ═══════ RESPAWN ═══════
 
     void MaintainPopulation()
     {
@@ -233,11 +250,12 @@ public class EnemySpawnManager : MonoBehaviour
             return;
 
         int spawnedThisFrame = 0;
-        int safety = 0;
+        int attempts = 0;
+        int maxAttempts = initialCount * 5;
 
         while (missing > 0 &&
                spawnedThisFrame < maxSpawnPerFrame &&
-               safety < initialCount * 5)
+               attempts < maxAttempts)
         {
             if (TrySpawnOne())
             {
@@ -245,8 +263,15 @@ public class EnemySpawnManager : MonoBehaviour
                 spawnedThisFrame++;
             }
 
-            safety++;
+            attempts++;
         }
     }
 
+    // ═══════ API PÚBLICA ═══════
+
+    public void NotifyEnemyDied(EnemyController enemy)
+    {
+        aliveEnemies.Remove(enemy);
+        aliveTimeByEnemy.Remove(enemy);
+    }
 }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AmmoPickup : MonoBehaviour, IInteractable
+public class AmmoPickup : MonoBehaviour
 {
     [Header("Ammo Settings")]
     public AmmoTypeSO ammoType;
