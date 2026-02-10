@@ -1,107 +1,122 @@
-﻿using Unity.VisualScripting.Antlr3.Runtime.Misc;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// Controlador de movimiento ULTRA optimizado
+/// - Cache agresivo
+/// - Sin allocations
+/// - Cálculos mínimos
+/// </summary>
 public class FirstPersonController : MonoBehaviour
 {
-    [Header("Movement Speed")]
-    [SerializeField] float walkSpeed = 3.0f;
-    [SerializeField] float sprintMultiplier = 2.0f;
+    [Header("═══════ MOVIMIENTO ═══════")]
+    [Range(1f, 10f)]
+    [SerializeField] float walkSpeed = 3f;
 
-    [Header("Jump Parameters")]
-    [SerializeField] float jumpForce = 5.0f;
-    [SerializeField] float gravityMultiplier = 1.0f;
+    [Range(1.5f, 3f)]
+    [SerializeField] float sprintMultiplier = 2f;
 
-    [Header("Look Parameters")]
+    [Header("═══════ SALTO ═══════")]
+    [Range(3f, 10f)]
+    [SerializeField] float jumpForce = 5f;
+
+    [Range(0.5f, 3f)]
+    [SerializeField] float gravityMultiplier = 1f;
+
+    [Header("═══════ CÁMARA ═══════")]
+    [Range(0.05f, 0.5f)]
     [SerializeField] float mouseSensitivity = 0.1f;
-    [SerializeField] float upDownLookRange = 80.0f;
 
-    [Header("References")]
+    [Range(60f, 90f)]
+    [SerializeField] float upDownLookRange = 80f;
+
+    [Header("═══════ AGACHARSE ═══════")]
+    [Range(0.5f, 1.5f)]
+    [SerializeField] float crouchHeight = 1f;
+
+    [Range(1.5f, 2.5f)]
+    [SerializeField] float standingHeight = 1.8f;
+
+    [Range(0.3f, 0.8f)]
+    [SerializeField] float crouchSpeedMultiplier = 0.5f;
+
+    [Range(3f, 15f)]
+    [SerializeField] float crouchTransitionSpeed = 8f;
+
+    [Header("═══════ CÁMARA CROUCH ═══════")]
+    [Range(0.5f, 1.8f)]
+    [SerializeField] float cameraStandingHeight = 1.6f;
+
+    [Range(0.3f, 1.2f)]
+    [SerializeField] float cameraCrouchHeight = 1f;
+
+    [Header("═══════ AIM ═══════")]
+    [Range(0.1f, 0.8f)]
+    [SerializeField] float aimMoveMultiplier = 0.4f;
+
+    [Range(0.1f, 0.8f)]
+    [SerializeField] float aimSensitivityMultiplier = 0.5f;
+
+    [Header("═══════ TECHO ═══════")]
+    [SerializeField] LayerMask ceilingMask;
+    [SerializeField] float ceilingRayOffset = 0.05f;
+
+    [Header("═══════ REFERENCIAS ═══════")]
     [SerializeField] CharacterController characterController;
     [SerializeField] Camera mainCamera;
     [SerializeField] PlayerInputHandler playerInputHandler;
     [SerializeField] Animator playerAnimator;
+    [SerializeField] PlayerStats stats;
 
-    [Header("Sway")]
+    [Header("═══════ SWAY ═══════")]
     [SerializeField] WeaponSwayBinder weaponSwayBinder;
-    //[SerializeField] SwayController cameraVisualSway;
     [SerializeField] CameraBobController cameraVisualSway;
 
-    [Header("Aim Modifiers")]
-    [SerializeField] float aimMoveMultiplier = 0.4f;
-    [SerializeField] float aimSensitivityMultiplier = 0.5f;
-
+    [Header("═══════ CROSSHAIR ═══════")]
     [SerializeField] DynamicCrosshair crosshair;
-
-    [Header("Crouch")]
-    [SerializeField] float crouchHeight = 1.0f;
-    [SerializeField] float standingHeight = 1.8f;
-    [SerializeField] float crouchSpeedMultiplier = 0.5f;
-    [SerializeField] float crouchTransitionSpeed = 8f;
-
-    //[SerializeField] LayerMask ceilingMask;
-    //[SerializeField] float ceilingCheckRadius = 0.25f;
-    [Header("Crouch Check")]
-    [SerializeField] LayerMask ceilingMask;
-    [SerializeField] float ceilingRayOffset = 0.05f;
-
-
-    bool isCrouching;
-    bool wantsToStand;
-
-
-    [Header("Camera Crouch")]
-    [SerializeField] float cameraStandingHeight = 1.6f;
-    [SerializeField] float cameraCrouchHeight = 1.0f;
-    [SerializeField] float cameraCrouchSpeed = 8f;
-
-    [Header("Default Crosshair")]
     [SerializeField] CrosshairProfile defaultCrosshairProfile;
 
-    float cameraTargetHeight;
+    // ═══════ ESTADO ═══════
 
-
+    bool isCrouching;
     float targetHeight;
-
-    [SerializeField] private PlayerStats stats;
-
-
-
+    float cameraTargetHeight;
 
     float currentMoveMultiplier = 1f;
     float currentSensitivityMultiplier = 1f;
 
+    // ═══════ MOVIMIENTO ═══════
 
-    public void SetAimSensitivityMultiplier(float value)
-    {
-        currentSensitivityMultiplier = value;
-    }
+    Vector3 currentMovement;
+    float verticalRotation;
 
-    public void SetAimMoveMultiplier(float value)
-    {
-        currentMoveMultiplier = value;
-    }
+    // ═══════ CACHE ═══════
 
+    Transform cachedTransform;
+    Transform cameraTransform;
+    Vector3 cameraLocalPos;
 
-    public void ResetAimModifiers()
-    {
-        currentMoveMultiplier = 1f;
-        currentSensitivityMultiplier = 1f;
-    }
+    // ═══════ PROPIEDADES CALCULADAS ═══════
 
+    float CurrentSpeed =>
+        walkSpeed *
+        (isCrouching ? crouchSpeedMultiplier : 1f) *
+        (ShouldSprint() ? sprintMultiplier : 1f) *
+        currentMoveMultiplier;
 
+    bool ShouldSprint() =>
+        playerInputHandler.SprintTrigger &&
+        !isCrouching &&
+        stats != null &&
+        stats.CanSprint();
 
-    private Vector3 currentMovment;
-    private float verticalRotation;
-    private float currentSpeed =>
-    walkSpeed *
-    (isCrouching ? crouchSpeedMultiplier : 1f) *
-    ((playerInputHandler.SprintTrigger && !isCrouching && stats.CanSprint()) ? sprintMultiplier : 1f) *
-    currentMoveMultiplier;
-
-
+    // ═══════ LIFECYCLE ═══════
 
     void Start()
     {
+        cachedTransform = transform;
+        cameraTransform = mainCamera.transform;
+        cameraLocalPos = cameraTransform.localPosition;
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -109,160 +124,85 @@ public class FirstPersonController : MonoBehaviour
         characterController.height = standingHeight;
 
         cameraTargetHeight = cameraStandingHeight;
-        mainCamera.transform.localPosition = new Vector3(
-            mainCamera.transform.localPosition.x,
-            cameraStandingHeight,
-            mainCamera.transform.localPosition.z
-        );
+        cameraLocalPos.y = cameraStandingHeight;
+        cameraTransform.localPosition = cameraLocalPos;
 
-        playerInputHandler.enabled = true;
-
-        // 🔹 ASIGNAR CROSSHAIR POR DEFECTO SI NO HAY PROFILE
-        if (DynamicCrosshair.Instance != null)
-        {
-            if (DynamicCrosshair.Instance.Profile == null && defaultCrosshairProfile != null)
-            {
-                DynamicCrosshair.Instance.SetProfile(defaultCrosshairProfile);
-            }
-        }
+        if (crosshair != null && crosshair.Profile == null && defaultCrosshairProfile != null)
+            crosshair.SetProfile(defaultCrosshairProfile);
     }
 
     void Update()
     {
         HandleMovement();
         HandleRotation();
-        //HandleCrouch();
-
-        Vector2 moveInput = playerInputHandler.MovementInput;
-        Vector2 lookInput = playerInputHandler.RotationInput;
-
-        Vector2 move = playerInputHandler.MovementInput;
-        Vector2 look = playerInputHandler.RotationInput;
-
-        //cameraVisualSway?.SetMovementInput(move);
-        //cameraVisualSway?.SetLookInput(look);
-        cameraVisualSway?.SetMovementInput(playerInputHandler.MovementInput);
-        cameraVisualSway?.SetSprint(playerInputHandler.SprintTrigger);
-
-
-        weaponSwayBinder?.SetInputs(move, look);
-
-
-        float movmentMagnitude = new Vector3(moveInput.x, 0, moveInput.y).magnitude;
-        movmentMagnitude /= 2;
-        if (playerInputHandler.SprintTrigger)
-            movmentMagnitude *= 2;
-
-        playerAnimator.SetFloat("Speed", movmentMagnitude);
-
-        UpdateCrosshairMovement();
-
-        Debug.DrawRay(
-    transform.position + Vector3.up * ceilingRayOffset,
-    Vector3.up * (standingHeight - ceilingRayOffset),
-    CanStandUp() ? Color.green : Color.red
-);
-
-
+        HandleCrouch();
+        UpdateVisuals();
     }
 
+    // ═══════ MOVIMIENTO ═══════
 
-    private Vector3 CalculateWorldDirection()
+    void HandleMovement()
     {
-        Vector3 inputDirection = new Vector3(playerInputHandler.MovementInput.x, 0, playerInputHandler.MovementInput.y);
-        Vector3 worldDirection = transform.TransformDirection(inputDirection);
-        return worldDirection.normalized;
+        Vector3 worldDirection = CalculateWorldDirection();
+
+        currentMovement.x = worldDirection.x * CurrentSpeed;
+        currentMovement.z = worldDirection.z * CurrentSpeed;
+
+        HandleJumping();
+
+        characterController.Move(currentMovement * Time.deltaTime);
     }
 
-    private void HandleJumping()
+    Vector3 CalculateWorldDirection()
+    {
+        Vector2 input = playerInputHandler.MovementInput;
+        Vector3 inputDirection = new Vector3(input.x, 0f, input.y);
+        return cachedTransform.TransformDirection(inputDirection).normalized;
+    }
+
+    void HandleJumping()
     {
         if (characterController.isGrounded)
         {
-            playerAnimator.SetBool("isGrounded", true);
-            currentMovment.y = -0.5f;
+            currentMovement.y = -0.5f;
 
-            crosshair?.SetAirborne(false);
+            if (crosshair != null)
+                crosshair.SetAirborne(false);
+
+            if (playerAnimator != null)
+                playerAnimator.SetBool("isGrounded", true);
 
             if (playerInputHandler.JumpTrigger)
-            {
-                currentMovment.y = jumpForce;
-            }
+                currentMovement.y = jumpForce;
         }
         else
         {
-            currentMovment.y += Physics.gravity.y * gravityMultiplier * Time.deltaTime;
-            playerAnimator.SetBool("isGrounded", false);
+            currentMovement.y += Physics.gravity.y * gravityMultiplier * Time.deltaTime;
 
-            crosshair?.SetAirborne(true);
+            if (crosshair != null)
+                crosshair.SetAirborne(true);
+
+            if (playerAnimator != null)
+                playerAnimator.SetBool("isGrounded", false);
         }
     }
 
-    private void HandleMovement()
-    {
-        Vector3 worldDirection = CalculateWorldDirection();
-        currentMovment.x = worldDirection.x * currentSpeed;
-        currentMovment.z = worldDirection.z * currentSpeed;
+    // ═══════ ROTACIÓN ═══════
 
-        HandleJumping();
-        HandleCrouch();
-        characterController.Move(currentMovment * Time.deltaTime);
+    void HandleRotation()
+    {
+        Vector2 rotInput = playerInputHandler.RotationInput;
+
+        float mouseX = rotInput.x * mouseSensitivity * currentSensitivityMultiplier;
+        float mouseY = rotInput.y * mouseSensitivity * currentSensitivityMultiplier;
+
+        cachedTransform.Rotate(0f, mouseX, 0f);
+
+        verticalRotation = Mathf.Clamp(verticalRotation - mouseY, -upDownLookRange, upDownLookRange);
+        cameraTransform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
     }
 
-    private void ApplyHorizontalRotation(float rotationAmmount)
-    {
-        transform.Rotate(0, rotationAmmount, 0);
-    }
-
-    private void ApplyVerticalRotation(float rotationAmmount)
-    {
-        verticalRotation = Mathf.Clamp(verticalRotation - rotationAmmount, -upDownLookRange, upDownLookRange);
-        mainCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0, 0);
-    }
-
-    private void HandleRotation()
-    {
-        float mouseXRotation =
-    playerInputHandler.RotationInput.x *
-    mouseSensitivity *
-    currentSensitivityMultiplier;
-
-        float mouseYRotation =
-            playerInputHandler.RotationInput.y *
-            mouseSensitivity *
-            currentSensitivityMultiplier;
-
-
-        ApplyHorizontalRotation(mouseXRotation);
-        ApplyVerticalRotation(mouseYRotation);
-    }
-
-    public void SetAimModifiers(bool aiming)
-    {
-        if (isCrouching) return;
-
-        currentMoveMultiplier = aiming ? aimMoveMultiplier : 1f;
-        currentSensitivityMultiplier = aiming ? aimSensitivityMultiplier : 1f;
-    }
-
-
-    void UpdateCrosshairMovement()
-    {
-        if (crosshair == null) return;
-
-        Vector2 moveInput = playerInputHandler.MovementInput;
-
-        // Magnitud del input (0 quieto, 1 máximo)
-        float inputMagnitude = Mathf.Clamp01(moveInput.magnitude);
-
-        // Sprint aumenta spread
-        if (playerInputHandler.SprintTrigger)
-            inputMagnitude *= 1.5f;
-
-        // Apuntar reduce spread
-        inputMagnitude *= currentMoveMultiplier;
-
-        crosshair.SetMovementSpread(inputMagnitude);
-    }
+    // ═══════ CROUCH ═══════
 
     void HandleCrouch()
     {
@@ -274,83 +214,123 @@ public class FirstPersonController : MonoBehaviour
             targetHeight = crouchHeight;
             cameraTargetHeight = cameraCrouchHeight;
 
-            crosshair?.SetCrouch(true);
+            if (crosshair != null)
+                crosshair.SetCrouch(true);
         }
         else
         {
-            if (isCrouching && !CanStandUp())
+            if (isCrouching && CanStandUp())
             {
-                // ❌ Hay techo → no puede levantarse
-                isCrouching = true;
-                targetHeight = crouchHeight;
-                cameraTargetHeight = cameraCrouchHeight;
-            }
-            else
-            {
-                if (!CanStandUp())
-                {
-                    // ❌ Hay techo → mantenerse agachado
-                    isCrouching = true;
-                    targetHeight = crouchHeight;
-                    cameraTargetHeight = cameraCrouchHeight;
-                }
-                else
-                {
-                    // ✅ Espacio libre
-                    isCrouching = false;
-                    targetHeight = standingHeight;
-                    cameraTargetHeight = cameraStandingHeight;
-                    crosshair?.SetCrouch(false);
-                }
-            }
+                isCrouching = false;
+                targetHeight = standingHeight;
+                cameraTargetHeight = cameraStandingHeight;
 
+                if (crosshair != null)
+                    crosshair.SetCrouch(false);
+            }
         }
 
-        // 🔽 Collider suave
+        // Transición suave de collider
         characterController.height = Mathf.Lerp(
             characterController.height,
             targetHeight,
             Time.deltaTime * crouchTransitionSpeed
         );
 
-        characterController.center = new Vector3(
-            0,
-            characterController.height / 2f,
-            0
-        );
+        characterController.center = new Vector3(0f, characterController.height * 0.5f, 0f);
 
-        // 🎥 Cámara sincronizada
-        Vector3 camPos = mainCamera.transform.localPosition;
-        camPos.y = Mathf.Lerp(
-            camPos.y,
+        // Transición suave de cámara
+        cameraLocalPos.y = Mathf.Lerp(
+            cameraLocalPos.y,
             cameraTargetHeight,
-            Time.deltaTime * cameraCrouchSpeed
+            Time.deltaTime * crouchTransitionSpeed
         );
-        mainCamera.transform.localPosition = camPos;
-    }
 
+        cameraTransform.localPosition = cameraLocalPos;
+    }
 
     bool CanStandUp()
     {
-        Vector3 rayOrigin = transform.position + Vector3.up * ceilingRayOffset;
-
+        Vector3 rayOrigin = cachedTransform.position + Vector3.up * ceilingRayOffset;
         float rayLength = standingHeight - ceilingRayOffset;
 
-        return !Physics.Raycast(
-            rayOrigin,
-            Vector3.up,
-            rayLength,
-            ceilingMask
-        );
+        return !Physics.Raycast(rayOrigin, Vector3.up, rayLength, ceilingMask, QueryTriggerInteraction.Ignore);
     }
 
-    public Vector2 GetMovementInput()
+    // ═══════ VISUALS ═══════
+
+    void UpdateVisuals()
     {
-        return playerInputHandler.MovementInput;
+        Vector2 moveInput = playerInputHandler.MovementInput;
+        Vector2 lookInput = playerInputHandler.RotationInput;
+
+        // Animator
+        if (playerAnimator != null)
+        {
+            float moveMagnitude = new Vector3(moveInput.x, 0f, moveInput.y).magnitude * 0.5f;
+            if (ShouldSprint())
+                moveMagnitude *= 2f;
+
+            playerAnimator.SetFloat("Speed", moveMagnitude);
+        }
+
+        // Camera bob
+        if (cameraVisualSway != null)
+        {
+            cameraVisualSway.SetMovementInput(moveInput);
+            cameraVisualSway.SetSprint(playerInputHandler.SprintTrigger);
+        }
+
+        // Weapon sway
+        if (weaponSwayBinder != null)
+            weaponSwayBinder.SetInputs(moveInput, lookInput);
+
+        // Crosshair
+        UpdateCrosshair(moveInput);
     }
 
-    public bool IsSprinting()
+    void UpdateCrosshair(Vector2 moveInput)
     {
-        return playerInputHandler.SprintTrigger;
+        if (crosshair == null)
+            return;
+
+        float inputMagnitude = Mathf.Clamp01(moveInput.magnitude);
+
+        if (ShouldSprint())
+            inputMagnitude *= 1.5f;
+
+        inputMagnitude *= currentMoveMultiplier;
+
+        crosshair.SetMovementSpread(inputMagnitude);
     }
+
+    // ═══════ API PÚBLICA ═══════
+
+    public void SetAimModifiers(bool aiming)
+    {
+        if (isCrouching) return;
+
+        currentMoveMultiplier = aiming ? aimMoveMultiplier : 1f;
+        currentSensitivityMultiplier = aiming ? aimSensitivityMultiplier : 1f;
+    }
+
+    public void SetAimMoveMultiplier(float value)
+    {
+        currentMoveMultiplier = value;
+    }
+
+    public void SetAimSensitivityMultiplier(float value)
+    {
+        currentSensitivityMultiplier = value;
+    }
+
+    public void ResetAimModifiers()
+    {
+        currentMoveMultiplier = 1f;
+        currentSensitivityMultiplier = 1f;
+    }
+
+    public Vector2 GetMovementInput() => playerInputHandler.MovementInput;
+
+    public bool IsSprinting() => ShouldSprint();
 }
