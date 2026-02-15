@@ -1,50 +1,134 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// UI de barra de vida optimizada
+/// Compatible con el nuevo PlayerHealth
+/// </summary>
 public class HealthBarUI : MonoBehaviour
 {
-    public PlayerHealth player;
+    [Header("═══════ REFERENCIAS ═══════")]
+    [SerializeField] PlayerHealth player;
 
-    [Header("UI Elements")]
-    public Image fillImage;
+    [Header("═══════ UI ═══════")]
+    [SerializeField] Image fillImage;
+    [SerializeField] Image damageFlashImage; // Opcional: flash rojo al recibir daño
 
-    [Header("Opciones")]
-    public float smoothSpeed = 8f;
+    [Header("═══════ CONFIGURACIÓN ═══════")]
+    [Range(1f, 20f)]
+    [SerializeField] float smoothSpeed = 8f;
+
+    [Range(0f, 2f)]
+    [SerializeField] float flashDuration = 0.3f;
+
+    // ═══════ ESTADO ═══════
 
     float targetFill = 1f;
+    float currentFill = 1f;
+    float flashTimer;
 
-    void Start()
+    // ═══════ LIFECYCLE ═══════
+
+    void Awake()
     {
         if (player == null)
-            player = FindAnyObjectByType<PlayerHealth>();
+            player = FindFirstObjectByType<PlayerHealth>();
 
+        if (player == null)
+        {
+            Debug.LogError("❌ HealthBarUI: No se encontró PlayerHealth");
+            enabled = false;
+            return;
+        }
+
+        // Suscribirse a eventos
+        player.OnHealthChanged += OnHealthChanged;
+        player.OnDamaged += OnDamaged;
+        player.OnDeath += OnDeath;
+        player.OnRespawn += OnRespawn;
+
+        // Inicializar
+        UpdateFill(player.currentHealth, player.MaxHealth, true);
+    }
+
+    void OnDestroy()
+    {
         if (player != null)
         {
-            // Suscribirse a eventos del PlayerHealth
-            player.OnDamaged += UpdateFromDamage;
-            player.OnHealed += UpdateFromHeal;
-            player.OnDeath += OnPlayerDeath;
+            player.OnHealthChanged -= OnHealthChanged;
+            player.OnDamaged -= OnDamaged;
+            player.OnDeath -= OnDeath;
+            player.OnRespawn -= OnRespawn;
         }
     }
 
     void Update()
     {
-        // Animaci�n suave
-        fillImage.fillAmount = Mathf.Lerp(fillImage.fillAmount, targetFill, Time.deltaTime * smoothSpeed);
+        // Animación suave
+        currentFill = Mathf.Lerp(currentFill, targetFill, Time.deltaTime * smoothSpeed);
+
+        if (fillImage != null)
+            fillImage.fillAmount = currentFill;
+
+        // Flash de daño
+        UpdateDamageFlash();
     }
 
-    void UpdateFromDamage(float dmg)
+    // ═══════ EVENTOS ═══════
+
+    void OnHealthChanged(float current, float max)
     {
-        targetFill = player.currentHealth / player.maxHealth;
+        UpdateFill(current, max, false);
     }
 
-    void UpdateFromHeal(float heal)
+    void OnDamaged(float damage, Vector3 hitPoint)
     {
-        targetFill = player.currentHealth / player.maxHealth;
+        // Activar flash rojo
+        if (damageFlashImage != null)
+            flashTimer = flashDuration;
     }
 
-    void OnPlayerDeath()
+    void OnDeath()
     {
         targetFill = 0f;
+    }
+
+    void OnRespawn()
+    {
+        UpdateFill(player.currentHealth, player.MaxHealth, true);
+    }
+
+    // ═══════ UPDATES ═══════
+
+    void UpdateFill(float current, float max, bool instant)
+    {
+        if (max <= 0f)
+        {
+            targetFill = 0f;
+            if (instant)
+                currentFill = 0f;
+            return;
+        }
+
+        targetFill = current / max;
+
+        if (instant)
+            currentFill = targetFill;
+    }
+
+    void UpdateDamageFlash()
+    {
+        if (damageFlashImage == null)
+            return;
+
+        if (flashTimer > 0f)
+        {
+            flashTimer -= Time.deltaTime;
+
+            float alpha = Mathf.Clamp01(flashTimer / flashDuration);
+            Color c = damageFlashImage.color;
+            c.a = alpha;
+            damageFlashImage.color = c;
+        }
     }
 }

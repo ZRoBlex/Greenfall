@@ -2,86 +2,124 @@
 using UnityEngine;
 using static StructureData;
 
+/// <summary>
+/// Stats del jugador ULTRA optimizados
+/// - Cache de componentes
+/// - Diccionarios pre-inicializados
+/// - Sin buscar componentes en runtime
+/// </summary>
 public class PlayerStats : MonoBehaviour
 {
     [System.Serializable]
     public class MaterialDefinition
     {
-        public string id;            // "Wood", "Metal", "Scrap", "Brick"
+        public string id;
+        [Range(0f, 1000f)]
         public float maxAmount = 100f;
     }
 
-    [Header("Material Definitions (IDs visibles en Inspector)")]
+    [Header("═══════ MATERIALES ═══════")]
     public List<MaterialDefinition> materialDefinitions = new List<MaterialDefinition>();
 
-    [Header("Stats")]
+    [Header("═══════ STATS BÁSICOS ═══════")]
+    [Range(0f, 200f)]
     public float maxHunger = 100f;
+
+    [Range(0f, 200f)]
     public float maxEnergy = 100f;
 
+    [Range(0f, 200f)]
+    public float maxWater = 100f;
+
+    [Header("═══════ DECAY ═══════")]
+    [Range(0f, 10f)]
     public float hungerDecayPerSecond = 1f;
+
+    [Range(0f, 20f)]
     public float energyDecayPerSecond = 8f;
 
-    [Header("Recovery")]
-    public float energyRecoverPerSecond = 10f;
-    public float energyRecoverDelay = 2f; // ⏱️ tiempo antes de empezar a recuperar
+    [Range(0f, 5f)]
+    public float waterDrainPerSecond = 0.5f;
 
-    [Header("Multipliers")]
+    [Header("═══════ RECOVERY ═══════")]
+    [Range(0f, 30f)]
+    public float energyRecoverPerSecond = 10f;
+
+    [Range(0f, 5f)]
+    public float energyRecoverDelay = 2f;
+
+    [Header("═══════ MULTIPLIERS ═══════")]
+    [Range(1f, 3f)]
     public float walkHungerMultiplier = 1.25f;
+
+    [Range(1.5f, 5f)]
     public float sprintHungerMultiplier = 2f;
 
-    [Header("UI References")]
+    [Header("═══════ THRESHOLDS ═══════")]
+    [Range(0f, 100f)]
+    public float hungerSprintThreshold = 20f;
+
+    [Range(0f, 100f)]
+    public float energySprintThreshold = 20f;
+
+    [Header("═══════ DAMAGE ═══════")]
+    [Range(0f, 20f)]
+    [SerializeField] float hungerDamagePerSecond = 5f;
+
+    [Range(0f, 20f)]
+    [SerializeField] float waterDamagePerSecond = 8f;
+
+    [Header("═══════ REFERENCIAS ═══════")]
+    [SerializeField] FirstPersonController playerController;
+    [SerializeField] PlayerHealth playerHealth;
+
+    [Header("═══════ UI ═══════")]
     public UIResource hungerUI;
     public UIResource energyUI;
-
-    [Header("References")]
-    public FirstPersonController playerController;
-
-    [Header("Health Damage When Depleted")]
-    [SerializeField] private PlayerHealth playerHealth;
-
-    [SerializeField] private float hungerDamagePerSecond = 5f;
-    [SerializeField] private float waterDamagePerSecond = 8f;
-
-
-    public float currentHunger;
-    public float currentEnergy;
-
-    private float energyRecoverTimer = 0f; // ⏱️ contador interno
-
-
-    [Header("Materials")]
-    public float maxMaterials = 100f;
-
-    private float currentMaterials;
-    private Dictionary<string, float> currentMaterialsById =
-    new Dictionary<string, float>();
-
-    private Dictionary<string, float> maxMaterialsById =
-        new Dictionary<string, float>();
-
-    [Header("UI References")]
-    public UIResource materialsUI;
+    public UIResource waterUI;
     public UIMaterialsPanel materialsPanel;
 
-    [Header("Water")]
-    public float maxWater = 100f;
-    public float currentWater = 100f;
+    // ═══════ ESTADO ═══════
 
-    [SerializeField] private UIResource waterUI;
-    [SerializeField] private UIResourceSO waterResourceSO;
+    [HideInInspector] public float currentHunger;
+    [HideInInspector] public float currentEnergy;
+    [HideInInspector] public float currentWater;
 
+    float energyRecoverTimer;
+
+    // ═══════ MATERIALES ═══════
+
+    readonly Dictionary<string, float> currentMaterialsById = new Dictionary<string, float>();
+    readonly Dictionary<string, float> maxMaterialsById = new Dictionary<string, float>();
+
+    // ═══════ LIFECYCLE ═══════
 
     void Start()
     {
+        // Auto-find si falta
+        if (playerController == null)
+            playerController = GetComponent<FirstPersonController>();
+
+        if (playerHealth == null)
+            playerHealth = GetComponent<PlayerHealth>();
+
+        // Inicializar stats
         currentHunger = maxHunger;
         currentEnergy = maxEnergy;
-
-        waterUI?.SetAmount(currentWater, maxWater);
-        maxWater = waterResourceSO.maxAmount;
         currentWater = maxWater;
 
+        // Inicializar materiales
+        InitializeMaterials();
 
-        // 🔹 Inicializar materiales desde las definitions del inspector
+        // Actualizar UI
+        UpdateAllUI();
+    }
+
+    void InitializeMaterials()
+    {
+        currentMaterialsById.Clear();
+        maxMaterialsById.Clear();
+
         foreach (var def in materialDefinitions)
         {
             if (string.IsNullOrEmpty(def.id))
@@ -90,101 +128,18 @@ public class PlayerStats : MonoBehaviour
             currentMaterialsById[def.id] = 0f;
             maxMaterialsById[def.id] = def.maxAmount;
 
-            // 🔄 Refrescar UI (esto es lo que pone el texto en 0)
-            materialsPanel?.SetMaterialAmount(def.id, 0f, def.maxAmount);
+            if (materialsPanel != null)
+                materialsPanel.SetMaterialAmount(def.id, 0f, def.maxAmount);
         }
-
-        // 🔎 Validar que cada material tenga slot en el panel UI
-        if (materialsPanel != null)
-        {
-            foreach (var def in materialDefinitions)
-            {
-                bool found = false;
-
-                foreach (var entry in materialsPanel.materials)
-                {
-                    if (entry.materialId == def.id)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    Debug.LogWarning($"⚠️ No hay slot UI para el material ID: {def.id}");
-                }
-            }
-        }
-
-
-
-        hungerUI?.SetAmount(currentHunger, maxHunger);
-        energyUI?.SetAmount(currentEnergy, maxEnergy);
     }
 
     void Update()
     {
-        bool isMoving = IsPlayerMoving();
-        bool isSprinting = playerController != null && playerController.IsSprinting();
+        UpdateStats(Time.deltaTime);
+        UpdateAllUI();
+        HandleStarvationDamage(Time.deltaTime);
 
-        // ======================
-        // 🔻 HUNGER (igual que antes)
-        // ======================
-        float hungerMultiplier = 1f;
-
-        if (isMoving)
-            hungerMultiplier = walkHungerMultiplier;
-
-        if (isSprinting)
-            hungerMultiplier = sprintHungerMultiplier;
-
-        currentHunger -= hungerDecayPerSecond * hungerMultiplier * Time.deltaTime;
-        currentHunger = Mathf.Clamp(currentHunger, 0, maxHunger);
-
-        // ======================
-        // 🔋 ENERGY
-        // ======================
-
-        if (isSprinting)
-        {
-            // 🔻 Consumir energía
-            currentEnergy -= energyDecayPerSecond * Time.deltaTime;
-            currentEnergy = Mathf.Clamp(currentEnergy, 0, maxEnergy);
-
-            // ⏸️ resetear timer cada frame que corre
-            energyRecoverTimer = energyRecoverDelay;
-        }
-        else
-        {
-            // ⏱️ contar hacia atrás el delay
-            if (energyRecoverTimer > 0f)
-            {
-                energyRecoverTimer -= Time.deltaTime;
-            }
-            else
-            {
-                // 🔼 recuperar energía
-                if (currentEnergy < maxEnergy)
-                {
-                    currentEnergy += energyRecoverPerSecond * Time.deltaTime;
-                    currentEnergy = Mathf.Clamp(currentEnergy, 0, maxEnergy);
-                }
-            }
-        }
-
-        // ======================
-        // 🔹 UI
-        // ======================
-        hungerUI?.SetAmount(currentHunger, maxHunger);
-        energyUI?.SetAmount(currentEnergy, maxEnergy);
-        ConsumeWaterOverTime(Time.deltaTime);
-
-        // ======================
-        // ❤️ DAÑO POR HAMBRE / AGUA
-        // ======================
-        HandleStarvationAndDehydrationDamage(Time.deltaTime);
-
+        // DEBUG: Añadir recursos
         if (Input.GetKeyDown(KeyCode.T))
         {
             AddHunger(10f);
@@ -192,28 +147,80 @@ public class PlayerStats : MonoBehaviour
             AddWater(10f);
             AddMaterials("Wood", 10f);
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.C))
+    // ═══════ UPDATE STATS ═══════
+
+    void UpdateStats(float deltaTime)
+    {
+        bool isMoving = IsPlayerMoving();
+        bool isSprinting = playerController != null && playerController.IsSprinting();
+
+        // Hunger
+        float hungerMult = isMoving ? walkHungerMultiplier : 1f;
+        if (isSprinting)
+            hungerMult = sprintHungerMultiplier;
+
+        currentHunger -= hungerDecayPerSecond * hungerMult * deltaTime;
+        currentHunger = Mathf.Clamp(currentHunger, 0f, maxHunger);
+
+        // Energy
+        if (isSprinting)
         {
-            //AddHunger(10f);
-            //AddEnergy(10f);
-            //AddWater(10f);
-            ConsumeMaterials("Wood", 10f);
+            currentEnergy -= energyDecayPerSecond * deltaTime;
+            currentEnergy = Mathf.Clamp(currentEnergy, 0f, maxEnergy);
+            energyRecoverTimer = energyRecoverDelay;
+        }
+        else
+        {
+            energyRecoverTimer -= deltaTime;
+
+            if (energyRecoverTimer <= 0f && currentEnergy < maxEnergy)
+            {
+                currentEnergy += energyRecoverPerSecond * deltaTime;
+                currentEnergy = Mathf.Clamp(currentEnergy, 0f, maxEnergy);
+            }
         }
 
+        // Water
+        currentWater -= waterDrainPerSecond * deltaTime;
+        currentWater = Mathf.Clamp(currentWater, 0f, maxWater);
     }
 
-    private bool IsPlayerMoving()
+    void HandleStarvationDamage(float deltaTime)
     {
-        if (playerController == null) return false;
+        if (playerHealth == null)
+            return;
 
-        Vector2 moveInput = playerController.GetMovementInput();
-        return moveInput.sqrMagnitude > 0.01f;
+        if (currentHunger <= 0f)
+            playerHealth.TakeDamage(hungerDamagePerSecond * deltaTime);
+
+        if (currentWater <= 0f)
+            playerHealth.TakeDamage(waterDamagePerSecond * deltaTime);
     }
 
-    [Header("Thresholds")]
-    [Range(0, 100)] public float hungerSprintThreshold = 20f;
-    [Range(0, 100)] public float energySprintThreshold = 20f;
+    void UpdateAllUI()
+    {
+        if (hungerUI != null)
+            hungerUI.SetAmount(currentHunger, maxHunger);
+
+        if (energyUI != null)
+            energyUI.SetAmount(currentEnergy, maxEnergy);
+
+        if (waterUI != null)
+            waterUI.SetAmount(currentWater, maxWater);
+    }
+
+    bool IsPlayerMoving()
+    {
+        if (playerController == null)
+            return false;
+
+        Vector2 input = playerController.GetMovementInput();
+        return input.sqrMagnitude > 0.01f;
+    }
+
+    // ═══════ API PÚBLICA ═══════
 
     public bool CanSprint()
     {
@@ -224,26 +231,21 @@ public class PlayerStats : MonoBehaviour
                energyPercent > energySprintThreshold;
     }
 
-
-    // 🍗 Recuperar hambre desde otros objetos (comida, pickups, etc.)
     public void AddHunger(float amount)
     {
-        currentHunger += amount;
-        currentHunger = Mathf.Clamp(currentHunger, 0, maxHunger);
-
-        // 🔹 Actualizar UI inmediatamente
-        hungerUI?.SetAmount(currentHunger, maxHunger);
+        currentHunger = Mathf.Clamp(currentHunger + amount, 0f, maxHunger);
     }
 
     public void AddEnergy(float amount)
     {
-        currentEnergy += amount;
-        currentEnergy = Mathf.Clamp(currentEnergy, 0, maxEnergy);
-
-        energyUI?.SetAmount(currentEnergy, maxEnergy);
+        currentEnergy = Mathf.Clamp(currentEnergy + amount, 0f, maxEnergy);
     }
 
-    // 🧱 Agregar materiales desde pickups, crafting, recompensas, etc.
+    public void AddWater(float amount)
+    {
+        currentWater = Mathf.Clamp(currentWater + amount, 0f, maxWater);
+    }
+
     public void AddMaterials(string id, float amount)
     {
         if (!currentMaterialsById.ContainsKey(id))
@@ -255,17 +257,13 @@ public class PlayerStats : MonoBehaviour
         float current = currentMaterialsById[id];
         float max = maxMaterialsById[id];
 
-        current += amount;
-        current = Mathf.Clamp(current, 0, max);
-
+        current = Mathf.Clamp(current + amount, 0f, max);
         currentMaterialsById[id] = current;
 
-        materialsPanel?.SetMaterialAmount(id, current, max);
+        if (materialsPanel != null)
+            materialsPanel.SetMaterialAmount(id, current, max);
     }
 
-
-
-    // 🔨 Consumir materiales (crafting, construir, etc.)
     public bool ConsumeMaterials(string id, float amount)
     {
         if (!currentMaterialsById.ContainsKey(id))
@@ -279,113 +277,21 @@ public class PlayerStats : MonoBehaviour
         current -= amount;
         currentMaterialsById[id] = current;
 
-        float max = maxMaterialsById[id];
-        materialsPanel?.SetMaterialAmount(id, current, max);
-
-        return true;
-    }
-
-
-    public bool HasResources(ResourceCost[] costs)
-    {
-        foreach (var cost in costs)
+        if (materialsPanel != null)
         {
-            switch (cost.resourceType)
-            {
-                case ResourceType.Material:
-                    if (currentMaterials < cost.amount) return false;
-                    break;
-
-                case ResourceType.Food:
-                    if (currentHunger < cost.amount) return false;
-                    break;
-
-                case ResourceType.Energy:
-                    if (currentEnergy < cost.amount) return false;
-                    break;
-            }
+            float max = maxMaterialsById[id];
+            materialsPanel.SetMaterialAmount(id, current, max);
         }
 
         return true;
     }
 
-    public bool ConsumeResources(ResourceCost[] costs)
-    {
-        if (!HasResources(costs))
-            return false;
-
-        foreach (var cost in costs)
-        {
-            switch (cost.resourceType)
-            {
-                case ResourceType.Material:
-                    currentMaterials -= cost.amount;
-                    materialsUI?.SetAmount(currentMaterials, maxMaterials);
-                    break;
-
-                case ResourceType.Food:
-                    currentHunger -= cost.amount;
-                    hungerUI?.SetAmount(currentHunger, maxHunger);
-                    break;
-
-                case ResourceType.Energy:
-                    currentEnergy -= cost.amount;
-                    energyUI?.SetAmount(currentEnergy, maxEnergy);
-                    break;
-            }
-        }
-
-        return true;
-    }
-
-    [SerializeField] private float waterDrainPerSecond = 0.5f;
-
-    // 💧 Consumir agua con el tiempo
-    public void ConsumeWaterOverTime(float deltaTime)
-    {
-        currentWater -= waterDrainPerSecond * deltaTime;
-        currentWater = Mathf.Clamp(currentWater, 0f, maxWater);
-
-        waterUI?.SetAmount(currentWater, maxWater);
-    }
-
-    // 💧 Recuperar agua (beber, fuentes, botellas)
-    public void AddWater(float amount)
-    {
-        currentWater += amount;
-        currentWater = Mathf.Clamp(currentWater, 0f, maxWater);
-
-        waterUI?.SetAmount(currentWater, maxWater);
-    }
-    void HandleStarvationAndDehydrationDamage(float deltaTime)
-    {
-        if (playerHealth == null) return;
-
-        // 🍗 Daño por hambre
-        if (currentHunger <= 0f)
-        {
-            playerHealth.TakeDamage(hungerDamagePerSecond * deltaTime);
-        }
-
-        // 💧 Daño por sed
-        if (currentWater <= 0f)
-        {
-            playerHealth.TakeDamage(waterDamagePerSecond * deltaTime);
-        }
-    }
-
-    // ===============================
-    // 🔍 CONSULTAR COSTOS
-    // ===============================
     public bool HasMaterials(MaterialCost[] costs)
     {
         foreach (var cost in costs)
         {
             if (!currentMaterialsById.TryGetValue(cost.materialId, out float current))
-            {
-                Debug.LogWarning($"Material desconocido: {cost.materialId}");
                 return false;
-            }
 
             if (current < cost.amount)
                 return false;
@@ -394,9 +300,6 @@ public class PlayerStats : MonoBehaviour
         return true;
     }
 
-    // ===============================
-    // 🔨 CONSUMIR COSTOS
-    // ===============================
     public bool ConsumeMaterials(MaterialCost[] costs)
     {
         if (!HasMaterials(costs))
@@ -410,10 +313,10 @@ public class PlayerStats : MonoBehaviour
             current -= cost.amount;
             currentMaterialsById[cost.materialId] = current;
 
-            materialsPanel?.SetMaterialAmount(cost.materialId, current, max);
+            if (materialsPanel != null)
+                materialsPanel.SetMaterialAmount(cost.materialId, current, max);
         }
 
         return true;
     }
-
 }

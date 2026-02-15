@@ -1,132 +1,263 @@
-﻿// PlayerHealth.cs
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
+/// <summary>
+/// Sistema de salud del jugador ULTRA optimizado
+/// - Eventos para UI sin acoplamiento
+/// - Sistema de daño modular
+/// - Regeneración configurable
+/// - Invencibilidad temporal
+/// </summary>
 public class PlayerHealth : MonoBehaviour
 {
-    [Header("Health Settings")]
-    public float maxHealth = 100f;            // Vida máxima
-    public float currentHealth;               // Vida actual
-    public bool isDead = false;               // Flag para evitar duplicar muerte
+    [Header("═══════ HEALTH ═══════")]
+    [Range(1f, 1000f)]
+    [SerializeField] float maxHealth = 100f;
 
-    [Header("Regeneración")]
-    public bool enableRegen = false;          // Activar regeneración
-    public float regenRate = 5f;              // Vida por segundo
-    public float regenDelay = 3f;             // Tiempo antes de empezar regeneración
-    private float regenTimer = 0f;
+    [HideInInspector]
+    public float currentHealth;
 
-    [Header("Invencibilidad temporal")]
-    public float invincibleTime = 0.5f;       // frames de invencibilidad
-    private float invincibleTimer = 0f;
+    [HideInInspector]
+    public bool isDead = false;
 
-    // --- Eventos ---
-    // Otros sistemas (UI, sonido, etc.) pueden suscribirse sin acoplamiento
-    public event Action<float> OnDamaged;     // Envía el daño recibido
-    public event Action<float> OnHealed;      // Envía la cantidad curada
-    public event Action OnDeath;              // Notifica muerte
+    [Header("═══════ REGENERACIÓN ═══════")]
+    [SerializeField] bool enableRegen = false;
+
+    [Range(0f, 50f)]
+    [SerializeField] float regenRate = 5f;
+
+    [Range(0f, 10f)]
+    [SerializeField] float regenDelay = 3f;
+
+    float regenTimer;
+
+    [Header("═══════ INVENCIBILIDAD ═══════")]
+    [Range(0f, 3f)]
+    [SerializeField] float invincibleTime = 0.5f;
+
+    float invincibleTimer;
+
+    [Header("═══════ UI ═══════")]
+    [SerializeField] UIResource healthUI;
+
+    // ═══════ EVENTOS ═══════
+
+    /// <summary>Envía el daño recibido</summary>
+    public event Action<float, Vector3> OnDamaged;
+
+    /// <summary>Envía la cantidad curada</summary>
+    public event Action<float> OnHealed;
+
+    /// <summary>Notifica muerte</summary>
+    public event Action OnDeath;
+
+    /// <summary>Notifica respawn</summary>
+    public event Action OnRespawn;
+
+    /// <summary>Cambio de health (para UI reactiva)</summary>
+    public event Action<float, float> OnHealthChanged; // (current, max)
+
+    // ═══════ CACHE ═══════
+
+    CharacterController characterController;
+    FirstPersonController playerController;
+
+    // ═══════ PROPIEDADES ═══════
+
+    public float MaxHealth => maxHealth;
+    public float HealthPercent => maxHealth > 0 ? (currentHealth / maxHealth) * 100f : 0f;
+    public bool IsInvincible => invincibleTimer > 0f;
+
+    // ═══════ LIFECYCLE ═══════
+
+    void Awake()
+    {
+        characterController = GetComponent<CharacterController>();
+        playerController = GetComponent<FirstPersonController>();
+    }
 
     void Start()
     {
         currentHealth = maxHealth;
+        UpdateUI();
     }
 
     void Update()
     {
-        // --- Temporizador de invencibilidad ---
-        if (invincibleTimer > 0)
-            invincibleTimer -= Time.deltaTime;
+        UpdateTimers(Time.deltaTime);
+        UpdateRegeneration(Time.deltaTime);
+    }
 
-        // --- Regeneración ---
-        if (enableRegen && !isDead)
+    void UpdateTimers(float deltaTime)
+    {
+        if (invincibleTimer > 0f)
+            invincibleTimer -= deltaTime;
+
+        if (regenTimer > 0f)
+            regenTimer -= deltaTime;
+    }
+
+    void UpdateRegeneration(float deltaTime)
+    {
+        if (!enableRegen || isDead || currentHealth >= maxHealth)
+            return;
+
+        if (regenTimer <= 0f)
         {
-            if (regenTimer > 0)
-            {
-                regenTimer -= Time.deltaTime; // Esperamos a iniciar regeneración
-            }
-            else
-            {
-                RegenerateHealth();
-            }
+            currentHealth += regenRate * deltaTime;
+            currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+
+            UpdateUI();
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
     }
 
-    // ============================================
-    // 👇 DAÑO
-    // ============================================
+    // ═══════ DAÑO ═══════
+
     public void TakeDamage(float amount)
     {
-        // --- Evitar daño si estás en frames de invencibilidad ---
-        if (invincibleTimer > 0f || isDead)
+        TakeDamage(amount, Vector3.zero);
+    }
+
+    public void TakeDamage(float amount, Vector3 hitPoint)
+    {
+        if (IsInvincible || isDead)
             return;
 
-        // Activar invencibilidad temporal
+        // Activar invencibilidad
         invincibleTimer = invincibleTime;
 
         // Reducir vida
         currentHealth -= amount;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-        // Notificar UI o efectos
-        OnDamaged?.Invoke(amount);
+        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
 
         // Reiniciar regeneración
         regenTimer = regenDelay;
 
-        // Si llega a cero → muerte
+        // Eventos
+        OnDamaged?.Invoke(amount, hitPoint);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        // UI
+        UpdateUI();
+
+        // Muerte
         if (currentHealth <= 0f)
-        {
             Die();
-        }
     }
 
-    // ============================================
-    // 👇 CURACIÓN
-    // ============================================
+    // ═══════ CURACIÓN ═══════
+
     public void Heal(float amount)
     {
-        if (isDead) return;
+        if (isDead)
+            return;
 
         currentHealth += amount;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
 
         OnHealed?.Invoke(amount);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        UpdateUI();
     }
 
-    // ============================================
-    // 👇 MUERTE
-    // ============================================
+    public void HealToFull()
+    {
+        Heal(maxHealth - currentHealth);
+    }
+
+    // ═══════ MUERTE ═══════
+
     void Die()
     {
-        isDead = true;
-        currentHealth = 0;
+        if (isDead)
+            return;
 
-        Debug.Log("El jugador ha muerto.");
+        isDead = true;
+        currentHealth = 0f;
+
+        Debug.Log("💀 El jugador ha muerto");
+
+        // Desactivar controles
+        if (characterController != null)
+            characterController.enabled = false;
+
+        if (playerController != null)
+            playerController.enabled = false;
+
+        // Evento
         OnDeath?.Invoke();
 
-        // Aquí puedes:
-        // - Reproducir animación de muerte
-        // - Desactivar movimiento
-        // - Abrir menú GameOver
-        // - Respawnear después de X segundos
-        //
-        // Ejemplo: desactivar CharacterController
-        var controller = GetComponent<CharacterController>();
-        if (controller != null)
-            controller.enabled = false;
+        UpdateUI();
+
+        // Auto-respawn después de 3 segundos (opcional)
+        // Invoke(nameof(Respawn), 3f);
     }
 
-    // ============================================
-    // 👇 REGENERACIÓN
-    // ============================================
-    void RegenerateHealth()
+    // ═══════ RESPAWN ═══════
+
+    public void Respawn()
     {
-        if (currentHealth >= maxHealth) return;
-
-        // Sumar vida por segundo:
-        // matemática: currentHealth += regenRate * Time.deltaTime
-        // Time.deltaTime es el tiempo entre frames → regeneración suave y estable
-        currentHealth += regenRate * Time.deltaTime;
-
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        Respawn(transform.position);
     }
+
+    public void Respawn(Vector3 position)
+    {
+        isDead = false;
+        currentHealth = maxHealth;
+        invincibleTimer = 0f;
+        regenTimer = 0f;
+
+        transform.position = position;
+
+        // Reactivar controles
+        if (characterController != null)
+            characterController.enabled = true;
+
+        if (playerController != null)
+            playerController.enabled = true;
+
+        OnRespawn?.Invoke();
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        UpdateUI();
+
+        Debug.Log("✨ Jugador respawneado");
+    }
+
+    // ═══════ UI ═══════
+
+    void UpdateUI()
+    {
+        if (healthUI != null)
+            healthUI.SetAmount(currentHealth, maxHealth);
+    }
+
+    // ═══════ MODIFICADORES ═══════
+
+    public void SetMaxHealth(float newMax)
+    {
+        float percent = HealthPercent;
+        maxHealth = Mathf.Max(1f, newMax);
+        currentHealth = (maxHealth * percent) / 100f;
+
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        UpdateUI();
+    }
+
+    public void AddMaxHealth(float amount)
+    {
+        SetMaxHealth(maxHealth + amount);
+    }
+
+    // ═══════ QUERIES ═══════
+
+    public bool IsAlive() => !isDead;
+
+    public bool IsFullHealth() => currentHealth >= maxHealth;
+
+    public bool IsCritical() => HealthPercent <= 25f;
+
+    public float GetMissingHealth() => maxHealth - currentHealth;
 }

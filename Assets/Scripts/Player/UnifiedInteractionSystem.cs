@@ -3,8 +3,8 @@ using UnityEngine.InputSystem;
 using TMPro;
 
 /// <summary>
-/// Sistema de interacción UNIFICADO
-/// Reemplaza: PlayerInteractRaycast, WeaponInteractor, PlayerAmmoInteractor, ResourceHarvester
+/// Sistema de interacción UNIFICADO ultra optimizado
+/// Funciona con CUALQUIER IInteractable
 /// </summary>
 public class UnifiedInteractionSystem : MonoBehaviour
 {
@@ -23,10 +23,13 @@ public class UnifiedInteractionSystem : MonoBehaviour
     public string actionMapName = "Player";
     public string interactActionName = "Interact";
 
+    [Header("═══════ FILTROS ═══════")]
+    [Tooltip("Tags que el raycast ignorará completamente")]
+    public string[] ignoredTags = { "Untagged", "Decoration", "Grass" };
+
     // ═══════ ESTADO ═══════
 
     IInteractable currentInteractable;
-    GameObject currentInteractableObject;
 
     InputAction interactAction;
 
@@ -41,7 +44,8 @@ public class UnifiedInteractionSystem : MonoBehaviour
         if (playerCamera == null)
             playerCamera = Camera.main;
 
-        cameraTransform = playerCamera.transform;
+        if (playerCamera != null)
+            cameraTransform = playerCamera.transform;
 
         if (playerInput == null)
             playerInput = GetComponentInParent<PlayerInput>();
@@ -49,12 +53,19 @@ public class UnifiedInteractionSystem : MonoBehaviour
         if (playerInput != null)
         {
             var map = playerInput.actions.FindActionMap(actionMapName, true);
-            interactAction = map.FindAction(interactActionName, true);
-            interactAction.performed += OnInteractPerformed;
+            if (map != null)
+            {
+                interactAction = map.FindAction(interactActionName, true);
+                if (interactAction != null)
+                    interactAction.performed += OnInteractPerformed;
+            }
         }
 
         if (interactText != null)
+        {
             interactText.text = "";
+            interactText.gameObject.SetActive(false);
+        }
     }
 
     void OnDestroy()
@@ -69,19 +80,19 @@ public class UnifiedInteractionSystem : MonoBehaviour
         UpdateUI();
     }
 
-    // ═══════ DETECCIÓN ═══════
+    // ═══════ DETECCIÓN CON FILTRO ═══════
 
     void DetectInteractable()
     {
         currentInteractable = null;
-        currentInteractableObject = null;
 
-        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-
-        if (!Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactMask, QueryTriggerInteraction.Ignore))
+        if (cameraTransform == null)
             return;
 
-        // Buscar IInteractable en el objeto o sus padres
+        if (!RaycastFiltered(out RaycastHit hit))
+            return;
+
+        // Buscar IInteractable
         IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
 
         if (interactable == null)
@@ -91,7 +102,62 @@ public class UnifiedInteractionSystem : MonoBehaviour
             return;
 
         currentInteractable = interactable;
-        currentInteractableObject = hit.collider.gameObject;
+    }
+
+    bool RaycastFiltered(out RaycastHit finalHit)
+    {
+        Vector3 origin = cameraTransform.position;
+        Vector3 direction = cameraTransform.forward;
+
+        float remainingDistance = interactDistance;
+        Vector3 currentOrigin = origin;
+
+        // Raycast con penetración de objetos ignorados
+        while (remainingDistance > 0f)
+        {
+            if (!Physics.Raycast(
+                currentOrigin,
+                direction,
+                out RaycastHit hit,
+                remainingDistance,
+                interactMask,
+                QueryTriggerInteraction.Ignore))
+            {
+                break;
+            }
+
+            // Ignorar este tag?
+            if (HasIgnoredTag(hit.collider))
+            {
+                float traveled = hit.distance + 0.01f;
+                remainingDistance -= traveled;
+                currentOrigin = hit.point + direction * 0.01f;
+                continue;
+            }
+
+            // Hit válido
+            finalHit = hit;
+            return true;
+        }
+
+        finalHit = default;
+        return false;
+    }
+
+    bool HasIgnoredTag(Collider col)
+    {
+        if (ignoredTags == null || ignoredTags.Length == 0)
+            return false;
+
+        string colTag = col.tag;
+
+        foreach (string tag in ignoredTags)
+        {
+            if (colTag == tag)
+                return true;
+        }
+
+        return false;
     }
 
     void UpdateUI()
@@ -136,17 +202,4 @@ public class UnifiedInteractionSystem : MonoBehaviour
             InputControlPath.HumanReadableStringOptions.OmitDevice
         );
     }
-
-    // ═══════ GIZMOS ═══════
-
-#if UNITY_EDITOR
-    void OnDrawGizmosSelected()
-    {
-        if (playerCamera == null)
-            return;
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawRay(playerCamera.transform.position, playerCamera.transform.forward * interactDistance);
-    }
-#endif
 }

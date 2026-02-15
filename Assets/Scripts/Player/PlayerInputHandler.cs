@@ -1,93 +1,154 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Sistema de input CONSOLIDADO y optimizado
+/// - Cache de actions
+/// - API limpia
+/// - Sin buscar strings cada frame
+/// </summary>
 public class PlayerInputHandler : MonoBehaviour
 {
-    [Header("Input Actions Asset")]
+    [Header("═══════ INPUT ASSET ═══════")]
     [SerializeField] InputActionAsset playerControls;
 
-    [Header("Action Map Reference")]
+    [Header("═══════ ACTION MAP ═══════")]
     [SerializeField] string actionMapName = "Player";
 
-    [Header("Action Name Reference")]
-    [SerializeField] string movement = "Movement";
-    [SerializeField] string rotation = "Rotation";
-    [SerializeField] string Jump = "Jump";
-    [SerializeField] string Sprint = "Sprint";
-    [SerializeField] string Interact = "Interact"; // 👈 NUEVO
-    [SerializeField] string Crouch = "Crouch"; // 👈 NUEVO
+    [Header("═══════ ACTION NAMES ═══════")]
+    [SerializeField] string movementActionName = "Movement";
+    [SerializeField] string rotationActionName = "Rotation";
+    [SerializeField] string jumpActionName = "Jump";
+    [SerializeField] string sprintActionName = "Sprint";
+    [SerializeField] string interactActionName = "Interact";
+    [SerializeField] string crouchActionName = "Crouch";
 
-    private InputAction movementAction;
-    private InputAction rotationAction;
-    private InputAction JumpAction;
-    private InputAction SprintAction;
-    private InputAction interactAction; // 👈 NUEVO
-    private InputAction CrouchAction; // 👈 NUEVO
+    // ═══════ CACHED ACTIONS ═══════
+
+    InputAction movementAction;
+    InputAction rotationAction;
+    InputAction jumpAction;
+    InputAction sprintAction;
+    InputAction interactAction;
+    InputAction crouchAction;
+
+    // ═══════ INPUT STATE ═══════
 
     public Vector2 MovementInput { get; private set; }
     public Vector2 RotationInput { get; private set; }
     public bool JumpTrigger { get; private set; }
     public bool SprintTrigger { get; private set; }
-    public bool InteractTrigger { get; private set; } // 👈 NUEVO
-    public bool CrouchTrigger { get; private set; } // 👈 NUEVO
+    public bool InteractTrigger { get; private set; }
+    public bool CrouchTrigger { get; private set; }
 
-    private void Awake()
+    // ═══════ LIFECYCLE ═══════
+
+    void Awake()
     {
-        InputActionMap mapReference = playerControls.FindActionMap(actionMapName);
+        if (playerControls == null)
+        {
+            Debug.LogError("❌ PlayerInputHandler: playerControls no asignado");
+            enabled = false;
+            return;
+        }
 
-        movementAction = mapReference.FindAction(movement);
-        rotationAction = mapReference.FindAction(rotation);
-        JumpAction = mapReference.FindAction(Jump);
-        SprintAction = mapReference.FindAction(Sprint);
-        interactAction = mapReference.FindAction(Interact); // 👈 NUEVO
-        CrouchAction = mapReference.FindAction(Crouch); // 👈 NUEVO
-
-        SuscribeActionValuesToInputEvents();
-        enabled = true;
+        InitializeActions();
+        SubscribeToEvents();
     }
 
-    private void SuscribeActionValuesToInputEvents()
+    void InitializeActions()
     {
-        movementAction.performed += inputInfo => MovementInput = inputInfo.ReadValue<Vector2>();
-        movementAction.canceled += inputInfo => MovementInput = Vector2.zero;
+        InputActionMap map = playerControls.FindActionMap(actionMapName);
 
-        rotationAction.performed += inputInfo => RotationInput = inputInfo.ReadValue<Vector2>();
-        rotationAction.canceled += inputInfo => RotationInput = Vector2.zero;
+        if (map == null)
+        {
+            Debug.LogError($"❌ No se encontró el Action Map: {actionMapName}");
+            enabled = false;
+            return;
+        }
 
-        JumpAction.performed += inputInfo => JumpTrigger = true;
-        JumpAction.canceled += inputInfo => JumpTrigger = false;
+        movementAction = map.FindAction(movementActionName);
+        rotationAction = map.FindAction(rotationActionName);
+        jumpAction = map.FindAction(jumpActionName);
+        sprintAction = map.FindAction(sprintActionName);
+        interactAction = map.FindAction(interactActionName);
+        crouchAction = map.FindAction(crouchActionName);
+    }
 
-        SprintAction.performed += inputInfo => SprintTrigger = true;
-        SprintAction.canceled += inputInfo => SprintTrigger = false;
+    void SubscribeToEvents()
+    {
+        // Movement
+        if (movementAction != null)
+        {
+            movementAction.performed += ctx => MovementInput = ctx.ReadValue<Vector2>();
+            movementAction.canceled += ctx => MovementInput = Vector2.zero;
+        }
+
+        // Rotation
+        if (rotationAction != null)
+        {
+            rotationAction.performed += ctx => RotationInput = ctx.ReadValue<Vector2>();
+            rotationAction.canceled += ctx => RotationInput = Vector2.zero;
+        }
+
+        // Jump
+        if (jumpAction != null)
+        {
+            jumpAction.performed += ctx => JumpTrigger = true;
+            jumpAction.canceled += ctx => JumpTrigger = false;
+        }
+
+        // Sprint
+        if (sprintAction != null)
+        {
+            sprintAction.performed += ctx => SprintTrigger = true;
+            sprintAction.canceled += ctx => SprintTrigger = false;
+        }
 
         // Interact
-        interactAction.performed += _ =>
+        if (interactAction != null)
         {
-            InteractTrigger = true;
-            Debug.Log("🔥 Interact PERFORMED (Input System)");
-        };
+            interactAction.performed += ctx => InteractTrigger = true;
+        }
 
-        //interactAction.canceled += _ => InteractTrigger = false;
-
-        // 👇 CROUCH
-        //CrouchAction.performed += _ =>
-        //    CrouchTrigger = true;
-        //CrouchAction.canceled += _ =>
-        //    CrouchTrigger = false;
+        // Crouch
+        if (crouchAction != null)
+        {
+            crouchAction.performed += ctx => CrouchTrigger = true;
+            crouchAction.canceled += ctx => CrouchTrigger = false;
+        }
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
-        playerControls.FindActionMap(actionMapName).Enable();
+        playerControls?.FindActionMap(actionMapName)?.Enable();
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
-        playerControls.FindActionMap(actionMapName).Disable();
+        playerControls?.FindActionMap(actionMapName)?.Disable();
     }
+
+    // ═══════ API PÚBLICA ═══════
 
     public void ResetInteractTrigger()
     {
         InteractTrigger = false;
+    }
+
+    public void ResetAllTriggers()
+    {
+        JumpTrigger = false;
+        InteractTrigger = false;
+    }
+
+    public bool IsMoving()
+    {
+        return MovementInput.sqrMagnitude > 0.01f;
+    }
+
+    public float GetMovementMagnitude()
+    {
+        return MovementInput.magnitude;
     }
 }

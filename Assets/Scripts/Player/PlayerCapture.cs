@@ -1,16 +1,29 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Sistema de captura ULTRA optimizado - ERROR ARREGLADO
+/// </summary>
 [RequireComponent(typeof(PlayerInputHandler))]
 public class PlayerCapture : MonoBehaviour
 {
-    [Header("Rango de Interacción")]
-    public float interactRange = 3f;
+    [Header("═══════ CAPTURA ═══════")]
+    [Range(1f, 10f)]
+    [SerializeField] float captureRange = 3f;
 
-    [Header("Layer de Enemigos")]
-    public LayerMask enemyLayer;
+    [SerializeField] LayerMask enemyLayer;
+
+    [Header("═══════ FEEDBACK ═══════")]
+    [SerializeField] bool showDebugMessages = true;
+
+    // ═══════ CACHE ═══════
 
     PlayerInputHandler input;
     Transform playerTransform;
+
+    readonly Collider[] overlapResults = new Collider[10];
+    int overlapCount;
+
+    // ═══════ LIFECYCLE ═══════
 
     void Awake()
     {
@@ -18,75 +31,103 @@ public class PlayerCapture : MonoBehaviour
         playerTransform = transform;
 
         if (input == null)
-            Debug.LogError("[PlayerCapture] No se encontró PlayerInputHandler en el jugador.");
+        {
+            Debug.LogError("❌ PlayerCapture: No PlayerInputHandler");
+            enabled = false;
+        }
     }
 
     void Update()
     {
-        if (input == null)
-            return;
-
         if (input.InteractTrigger)
         {
             TryCapture();
+            input.ResetInteractTrigger();
         }
     }
 
+    // ═══════ CAPTURA ═══════
+
     void TryCapture()
     {
-        Collider[] hits = Physics.OverlapSphere(
+        overlapCount = Physics.OverlapSphereNonAlloc(
             playerTransform.position,
-            interactRange,
+            captureRange,
+            overlapResults,
             enemyLayer,
             QueryTriggerInteraction.Ignore
         );
 
-        for (int i = 0; i < hits.Length; i++)
+        if (overlapCount == 0)
+            return;
+
+        EnemyController closestEnemy = null;
+        float closestDistSqr = float.MaxValue;
+
+        for (int i = 0; i < overlapCount; i++)
         {
-            EnemyController enemy = hits[i].GetComponent<EnemyController>();
-            if (enemy == null)
+            EnemyController enemy = overlapResults[i].GetComponent<EnemyController>();
+
+            if (enemy == null || !IsStunned(enemy))
                 continue;
 
-            // 🔹 Debe estar en StunnedState REAL
-            if (!(enemy.FSM.CurrentState is StunnedState))
-                continue;
+            float distSqr = (enemy.transform.position - playerTransform.position).sqrMagnitude;
 
-            CaptureEnemy(enemy);
-            break; // solo uno por pulsación
+            if (distSqr < closestDistSqr)
+            {
+                closestDistSqr = distSqr;
+                closestEnemy = enemy;
+            }
         }
+
+        if (closestEnemy != null)
+            CaptureEnemy(closestEnemy);
+        else if (showDebugMessages)
+            Debug.Log("⚠️ No hay enemigos stunned cerca");
+    }
+
+    bool IsStunned(EnemyController enemy)
+    {
+        if (enemy == null || enemy.FSM == null)
+            return false;
+
+        return enemy.FSM.CurrentState is StunnedState;
     }
 
     void CaptureEnemy(EnemyController enemy)
     {
-        // 🔹 Resetear Non-Lethal Health
-        NonLethalHealth nl = enemy.GetComponent<NonLethalHealth>();
-        if (nl != null)
-        {
-            nl.ResetHealth();
-        }
+        if (enemy == null)
+            return;
 
-        // 🔹 Cambiar tipo y equipo
+        // Resetear non-lethal health
+        NonLethalHealthAdapted nl = enemy.GetComponent<NonLethalHealthAdapted>();
+        if (nl != null)
+            nl.ResetHealth();
+
+        // Cambiar a friendly
         enemy.SetTypeAndTeam(CannibalType.Friendly, "Player");
 
-        // 🔹 Reactivar motor por seguridad
-        if (enemy.Motor != null && !enemy.Motor.enabled)
+        // ✅ FIX: Usar Motor en vez de Movement
+        if (enemy.Motor != null)
             enemy.Motor.enabled = true;
 
-        // 🔹 Forzar target al jugador
+        // Target al jugador
         if (enemy.Perception != null)
             enemy.Perception.SetExternalTarget(playerTransform);
 
-        // 🔹 Cambiar inmediatamente al estado Following
-        enemy.FSM.ChangeState(new FollowingState());
+        // Cambiar a FollowingState
+        if (enemy.FSM != null)
+            enemy.FSM.ChangeState(new FollowingState());
 
-        Debug.Log($"[PlayerCapture] {enemy.name} capturado → ahora es Friendly");
+        if (showDebugMessages)
+            Debug.Log($"✅ {enemy.name} capturado → Friendly");
     }
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, interactRange);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, captureRange);
     }
 #endif
 }
