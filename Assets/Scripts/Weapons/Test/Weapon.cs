@@ -294,7 +294,7 @@ public class Weapon : MonoBehaviour
     void HandleHit(RaycastHit hit)
     {
         Health health = hit.collider.GetComponentInParent<Health>();
-        NonLethalHealth nonLethal = hit.collider.GetComponentInParent<NonLethalHealth>();
+        NonLethalHealthAdapted nonLethal = hit.collider.GetComponentInParent<NonLethalHealthAdapted>();
 
         DamageHitRelay relay = hit.collider.GetComponentInParent<DamageHitRelay>();
         if (relay)

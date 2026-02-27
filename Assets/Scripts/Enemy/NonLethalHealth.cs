@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-[RequireComponent(typeof(EnemyController))]
+//[RequireComponent(typeof(EnemyController))]
 public class NonLethalHealth : MonoBehaviour
 {
     [Header("Capture Settings")]
@@ -24,13 +24,13 @@ public class NonLethalHealth : MonoBehaviour
 
 
     // Internos
-    EnemyController ec;
+    OptimizedEnemyController ec;
     bool isStunned = false;
     float stunTimer = 0f;
 
     void Awake()
     {
-        ec = GetComponent<EnemyController>();
+        ec = GetComponent<OptimizedEnemyController>();
     }
 
     void Start()
@@ -134,7 +134,7 @@ public class NonLethalHealth : MonoBehaviour
             ec.Motor.enabled = true;
 
         // Volver a WanderState
-        ec?.FSM.ChangeState(new WanderState());
+        ec?.FSM.ChangeState(new OptimizedWanderState());
 
         Debug.Log($"[{ec.stats.displayName}] Salió de StunnedState.");
     }

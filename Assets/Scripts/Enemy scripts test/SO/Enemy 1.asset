@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d9f7b56950b3f8499e03cbfd02329a5, type: 3}
+  m_Name: Enemy 1
+  m_EditorClassIdentifier: Assembly-CSharp::OptimizedEnemyStats
+  displayName: Enemy
+  moveSpeed: 3.5
+  runSpeed: 6
+  turnSpeed: 8
+  stopDistance: 0.35
+  perceptionRange: 12
+  fieldOfView: 120
+  closeDetectionRadius: 2
+  attackRange: 2
+  attackDamage: 10
+  attackCooldown: 1.2
+  canDealDamage: 1
+  wanderRadius: 8
+  wanderWaitTime: 2
+  maxHealth: 100
+  captureMeterMax: 100
+  captureDecayPerSecond: 5
+  capturePerHit: 20
+  team: 0
+  obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 2688
+  obstacleTags:
+  - Obstacle
+  - structure
+  obstacleCheckHeight: 1
+  followMinDistance: 1
+  followMaxDistance: 3
+  scaredSafeDistance: 6
+  scaredRepathTime: 1.5
+  scaredSearchRadius: 8
+  lookDuration: 3
+  cellSize: 1
+  gridRadius: 15
+  cellHeight: 2

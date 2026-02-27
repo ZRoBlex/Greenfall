@@ -34,7 +34,7 @@ public class EnemyBarsUI : MonoBehaviour
     Camera cam;
 
     public Health hp;
-    public NonLethalHealth nl;
+    public NonLethalHealthAdapted nl;
 
     float smoothHealth = 1f;
     float smoothCapture = 0f;

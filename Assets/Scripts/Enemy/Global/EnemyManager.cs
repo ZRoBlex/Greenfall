@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public enum EnemyLOD
-{
-    Active,
-    SemiActive,
-    Sleep
-}
+//public enum EnemyLODO
+//{
+//    Active,
+//    SemiActive,
+//    Sleep
+//}
 
 public class EnemyManager : MonoBehaviour
 {
