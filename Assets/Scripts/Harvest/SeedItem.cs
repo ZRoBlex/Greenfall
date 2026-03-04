@@ -4,11 +4,11 @@ using UnityEngine;
 public class SeedItem : ScriptableObject
 {
     public string seedId;
-    public GameObject plantPrefab;   // qué planta crece de esta semilla
+    public GameObject plantPrefab;   // quï¿½ planta crece de esta semilla
 
     [Header("Growth Settings")]
     public float growTime = 60f;      // tiempo total en segundos
-    public int maxHarvests = 1;       // cuántas veces se puede cosechar
+    public int maxHarvests = 1;       // cuï¿½ntas veces se puede cosechar
 
     [Header("Drops")]
     public GameObject cropPrefab;     // lo que da al cosechar
@@ -20,5 +20,7 @@ public class SeedItem : ScriptableObject
 
     [Header("World Pickup")]
     public GameObject seedPickupPrefab;
+
+    public Sprite icon; // Ã­cono para el inventario
 
 }
