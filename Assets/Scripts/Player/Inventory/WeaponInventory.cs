@@ -1,6 +1,21 @@
-﻿// WeaponInventory.cs — BUGS CORREGIDOS
-// BUG 1: playerContext restaurado como [SerializeField]
-// BUG 2: PrepareAsDropped() llama w.gameObject.SetActive(true)
+﻿// ============================================================
+// WeaponInventory.cs — FIXES DE SINCRONIZACIÓN
+// ============================================================
+// CAMBIOS:
+//
+// 1. DropCurrent() y SwapCurrentWeapon() ahora disparan
+//    OnWeaponsRebuilt al FINAL (después del Equip).
+//    Esto le dice a UnifiedInventory "rehaz todo desde cero".
+//    Es más confiable que enviar índices individuales que
+//    se invalidan cuando la lista se comprime al quitar items.
+//
+// 2. PrepareAsDropped() llama WeaponPickup.ResetForDrop().
+//    Sin esto, el arma dropeada tiene _hasBeenPickedUp=true
+//    y no se puede volver a recoger (daba "inventario lleno").
+//
+// 3. playerContext restaurado como [SerializeField].
+//    (ya estaba en la versión anterior, se mantiene)
+// ============================================================
 
 using System;
 using System.Collections;
@@ -15,7 +30,6 @@ public class WeaponInventory : MonoBehaviour
     [SerializeField] int maxSlots = 5;
     [SerializeField] Transform weaponHolder;
 
-    // FIX BUG 1: restaurado. Arrastra el GO con PlayerWeaponContext en el Inspector.
     [Header("Contexto del Jugador")]
     [SerializeField] PlayerWeaponContext playerContext;
 
@@ -44,11 +58,14 @@ public class WeaponInventory : MonoBehaviour
     [SerializeField] float popTime     = 0.15f;
     [SerializeField] float shakeAmount = 6f;
 
-    // Eventos para UnifiedInventory
+    // ── Eventos ───────────────────────────────────────────────
     public event Action<int, Weapon> OnWeaponAdded;
     public event Action<int>         OnWeaponRemoved;
     public event Action<int>         OnWeaponEquipped;
-    public event Action              OnWeaponsRebuilt;
+
+    // FIX: este evento ahora se dispara después de un drop completo.
+    // UnifiedInventory lo usa para hacer un rebuild total del hotbar.
+    public event Action OnWeaponsRebuilt;
 
     readonly List<Weapon> slots = new();
     int currentIndex = -1;
@@ -65,22 +82,22 @@ public class WeaponInventory : MonoBehaviour
     public Weapon CurrentWeapon =>
         (currentIndex >= 0 && currentIndex < slots.Count) ? slots[currentIndex] : null;
 
+    // ── Awake ─────────────────────────────────────────────────
+
     void Awake()
     {
         if (giveDefaultWeaponOnStart && defaultWeaponPrefab != null)
             SpawnAndAddDefaultWeapon();
     }
 
-    // ─── ADD WEAPON ───────────────────────────────────────────
+    // ── Add Weapon ────────────────────────────────────────────
+
     public void AddWeapon(Weapon weapon)
     {
         if (IsFull || weapon == null) return;
 
         PrepareAsEquipped(weapon);
-
-        if (playerAmmoInventory != null)
-            weapon.AssignAmmoInventory(playerAmmoInventory);
-
+        if (playerAmmoInventory != null) weapon.AssignAmmoInventory(playerAmmoInventory);
         weapon.TransferAmmoToInventory();
         weapon.transform.SetParent(weaponHolder);
         ApplyWeaponOffset(weapon);
@@ -93,7 +110,8 @@ public class WeaponInventory : MonoBehaviour
         if (currentIndex == -1) Equip(0);
     }
 
-    // ─── EQUIP ────────────────────────────────────────────────
+    // ── Equip ─────────────────────────────────────────────────
+
     public void Equip(int index)
     {
         if (slots.Count == 0) return;
@@ -106,7 +124,6 @@ public class WeaponInventory : MonoBehaviour
         Weapon w = slots[currentIndex];
         ApplyWeaponOffset(w);
 
-        // FIX BUG 1: campo serializado, no TryGetComponent
         var aim = w.GetComponent<WeaponAimController>();
         if (aim != null && playerContext != null)
             aim.InjectContext(playerContext);
@@ -121,7 +138,8 @@ public class WeaponInventory : MonoBehaviour
         OnWeaponEquipped?.Invoke(currentIndex);
     }
 
-    // ─── DROP CURRENT ─────────────────────────────────────────
+    // ── Drop Current ──────────────────────────────────────────
+
     public void DropCurrent()
     {
         if (slots.Count == 0 || currentIndex < 0 || currentIndex >= slots.Count) return;
@@ -129,20 +147,16 @@ public class WeaponInventory : MonoBehaviour
         Weapon w = slots[currentIndex];
         if (w.isDefaultWeapon) { ShowDropDefaultWarning(); return; }
 
-        int droppedIndex = currentIndex;
         slots.RemoveAt(currentIndex);
 
         var aim = w.GetComponent<WeaponAimController>();
         if (aim) aim.ForceStopAim();
 
-        PrepareAsDropped(w);   // FIX BUG 2: reactiva el GO aquí
+        PrepareAsDropped(w); // reactiva GO + resetea WeaponPickup
 
         w.transform.SetParent(null);
         w.transform.position = transform.position + transform.forward;
-        w.transform.rotation = Quaternion.Euler(
-            Random.Range(randomRotationMin.x, randomRotationMax.x),
-            Random.Range(randomRotationMin.y, randomRotationMax.y),
-            Random.Range(randomRotationMin.z, randomRotationMax.z));
+        w.transform.rotation = Quaternic(randomRotationMin, randomRotationMax);
 
         if (w.TryGetComponent<Rigidbody>(out var rb))
         {
@@ -150,21 +164,26 @@ public class WeaponInventory : MonoBehaviour
             rb.AddTorque(Random.insideUnitSphere * randomAngularForce, ForceMode.Impulse);
         }
 
-        OnWeaponRemoved?.Invoke(droppedIndex);
-
         if (slots.Count == 0)
         {
             currentIndex = -1;
             if (ammoUI) ammoUI.SetCurrentWeapon(null);
             OnWeaponEquipped?.Invoke(-1);
+            // FIX: rebuild aunque no haya armas (limpiar UI)
+            OnWeaponsRebuilt?.Invoke();
             return;
         }
 
         currentIndex = Mathf.Clamp(currentIndex, 0, slots.Count - 1);
         Equip(currentIndex);
+
+        // FIX: rebuild DESPUÉS del equip para que UnifiedInventory
+        // lea el estado final correcto (lista ya comprimida + índice correcto)
+        OnWeaponsRebuilt?.Invoke();
     }
 
-    // ─── SET WEAPONS FROM INVENTORY ───────────────────────────
+    // ── Set Weapons From Inventory ────────────────────────────
+
     public void SetWeaponsFromInventory(Weapon[] weapons, int activeIndex)
     {
         foreach (var w in slots)
@@ -185,11 +204,13 @@ public class WeaponInventory : MonoBehaviour
         }
 
         OnWeaponsRebuilt?.Invoke();
+
         if (slots.Count > 0)
             Equip(Mathf.Clamp(activeIndex, 0, slots.Count - 1));
     }
 
-    // ─── LECTURA ──────────────────────────────────────────────
+    // ── Read ──────────────────────────────────────────────────
+
     public Weapon GetWeaponAtUI(int index) =>
         (index >= 0 && index < slots.Count) ? slots[index] : null;
 
@@ -212,7 +233,8 @@ public class WeaponInventory : MonoBehaviour
         SwapCurrentWeapon(newWeapon);
     }
 
-    // ─── HELPERS ──────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────
+
     bool TryCancelAim()
     {
         var aim = CurrentWeapon?.GetComponent<WeaponAimController>();
@@ -245,13 +267,19 @@ public class WeaponInventory : MonoBehaviour
         if (w.TryGetComponent<AudioSource>(out var src))         src.enabled   = false;
         if (w.TryGetComponent<WeaponAimController>(out var aim)) aim.enabled   = false;
 
-        // ── FIX BUG 2 ─────────────────────────────────────────
-        // El arma fue desactivada en AddWeapon() para no mostrarse
-        // mientras está en el inventario sin estar equipada.
-        // Al soltar, DEBE reactivarse para aparecer en el mundo.
-        // Sin esta línea: invisible, slot ocupado, sin poder recoger más.
+        // FIX: reactivar GO para que aparezca en el mundo
         w.gameObject.SetActive(true);
+
+        // FIX: resetear el pickup para que se pueda recoger de nuevo
+        var pickup = w.GetComponent<WeaponPickup>();
+        if (pickup != null) pickup.ResetForDrop();
     }
+
+    // Shorthand para rotación aleatoria
+    Quaternion Quaternic(Vector3 min, Vector3 max) => Quaternion.Euler(
+        Random.Range(min.x, max.x),
+        Random.Range(min.y, max.y),
+        Random.Range(min.z, max.z));
 
     void SwapCurrentWeapon(Weapon newWeapon)
     {
@@ -259,7 +287,6 @@ public class WeaponInventory : MonoBehaviour
         Weapon old = slots[currentIndex];
         if (old.isDefaultWeapon) { ShowDropDefaultWarning(); return; }
 
-        int swapIndex = currentIndex;
         slots.RemoveAt(currentIndex);
 
         var aim = old.GetComponent<WeaponAimController>();
@@ -268,18 +295,13 @@ public class WeaponInventory : MonoBehaviour
         PrepareAsDropped(old);
         old.transform.SetParent(null);
         old.transform.position = transform.position + transform.forward;
-        old.transform.rotation = Quaternion.Euler(
-            Random.Range(randomRotationMin.x, randomRotationMax.x),
-            Random.Range(randomRotationMin.y, randomRotationMax.y),
-            Random.Range(randomRotationMin.z, randomRotationMax.z));
+        old.transform.rotation = Quaternic(randomRotationMin, randomRotationMax);
 
         if (old.TryGetComponent<Rigidbody>(out var rb))
         {
             rb.AddForce(transform.forward * dropForce, ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * randomAngularForce, ForceMode.Impulse);
         }
-
-        OnWeaponRemoved?.Invoke(swapIndex);
 
         PrepareAsEquipped(newWeapon);
         if (playerAmmoInventory != null) newWeapon.AssignAmmoInventory(playerAmmoInventory);
@@ -288,8 +310,9 @@ public class WeaponInventory : MonoBehaviour
         ApplyWeaponOffset(newWeapon);
         newWeapon.gameObject.SetActive(false);
         slots.Insert(currentIndex, newWeapon);
-        OnWeaponAdded?.Invoke(currentIndex, newWeapon);
+
         Equip(currentIndex);
+        OnWeaponsRebuilt?.Invoke();
     }
 
     void SpawnAndAddDefaultWeapon()
@@ -301,7 +324,8 @@ public class WeaponInventory : MonoBehaviour
         AddWeapon(w);
     }
 
-    // ─── DROP WARNING ──────────────────────────────────────────
+    // ── Drop Warning UI ───────────────────────────────────────
+
     void ShowDropDefaultWarning()
     {
         if (dropWarningText == null) return;
@@ -312,10 +336,10 @@ public class WeaponInventory : MonoBehaviour
             warningOriginalPos   = rect.anchoredPosition;
             warningInitialized   = true;
         }
-        rect.localScale       = warningOriginalScale;
-        rect.anchoredPosition = warningOriginalPos;
-        dropWarningText.color = new Color(dropWarningText.color.r, dropWarningText.color.g,
-                                          dropWarningText.color.b, 0f);
+        rect.localScale        = warningOriginalScale;
+        rect.anchoredPosition  = warningOriginalPos;
+        dropWarningText.color  = new Color(dropWarningText.color.r, dropWarningText.color.g,
+                                           dropWarningText.color.b, 0f);
         dropWarningText.enabled = true;
         if (warningRoutine != null) StopCoroutine(warningRoutine);
         warningRoutine = StartCoroutine(DropWarningRoutine());
@@ -325,34 +349,32 @@ public class WeaponInventory : MonoBehaviour
     {
         dropWarningText.text    = "NO SE PUEDE DROPEAR EL ARMA DEFAULT";
         dropWarningText.enabled = true;
-        RectTransform rect  = dropWarningText.rectTransform;
-        Vector2 origPos     = warningOriginalPos;
-        Vector3 origScale   = warningOriginalScale;
-        Color   baseColor   = new Color(dropWarningText.color.r, dropWarningText.color.g,
-                                         dropWarningText.color.b, 0f);
+        RectTransform rect = dropWarningText.rectTransform;
+        Color baseColor = new Color(dropWarningText.color.r, dropWarningText.color.g,
+                                     dropWarningText.color.b, 0f);
         dropWarningText.color = baseColor;
 
         float t = 0f;
-        while (t < fadeInTime)
-        {
-            t += Time.deltaTime; float p = t / fadeInTime;
+        while (t < fadeInTime) { t += Time.deltaTime; float p = t / fadeInTime;
             dropWarningText.color = new Color(baseColor.r, baseColor.g, baseColor.b, Mathf.Lerp(0f, 1f, p));
-            rect.localScale = origScale * Mathf.Lerp(1f, popScale, p);
-            yield return null;
-        }
+            rect.localScale = warningOriginalScale * Mathf.Lerp(1f, popScale, p); yield return null; }
+
         t = 0f;
-        while (t < popTime) { t += Time.deltaTime; rect.localScale = origScale * Mathf.Lerp(popScale, 1f, t / popTime); yield return null; }
+        while (t < popTime) { t += Time.deltaTime;
+            rect.localScale = warningOriginalScale * Mathf.Lerp(popScale, 1f, t / popTime); yield return null; }
 
         float timer = 0f;
-        while (timer < warningDuration)
-        {
-            timer += Time.deltaTime;
-            rect.anchoredPosition = origPos + new Vector2(Random.Range(-1f, 1f) * shakeAmount, Random.Range(-1f, 1f) * shakeAmount);
-            yield return null;
-        }
-        rect.anchoredPosition = origPos;
+        while (timer < warningDuration) { timer += Time.deltaTime;
+            rect.anchoredPosition = warningOriginalPos + new Vector2(
+                Random.Range(-1f, 1f) * shakeAmount, Random.Range(-1f, 1f) * shakeAmount);
+            yield return null; }
+
+        rect.anchoredPosition = warningOriginalPos;
         t = 0f; Color cur = dropWarningText.color;
-        while (t < fadeOutTime) { t += Time.deltaTime; dropWarningText.color = new Color(cur.r, cur.g, cur.b, Mathf.Lerp(cur.a, 0f, t / fadeOutTime)); yield return null; }
+        while (t < fadeOutTime) { t += Time.deltaTime;
+            dropWarningText.color = new Color(cur.r, cur.g, cur.b, Mathf.Lerp(cur.a, 0f, t / fadeOutTime));
+            yield return null; }
+
         dropWarningText.enabled = false; dropWarningText.text = "";
         rect.localScale = warningOriginalScale; rect.anchoredPosition = warningOriginalPos;
     }

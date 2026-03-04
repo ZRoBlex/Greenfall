@@ -1,22 +1,21 @@
 // ============================================================
-// UnifiedInventory.cs  — VERSIÓN REESCRITA
-// Carpeta: Scripts/Inventory/
-// ------------------------------------------------------------
-// ARQUITECTURA:
-//   WeaponInventory = FUENTE DE VERDAD para armas.
-//   UnifiedInventory = ESPEJO + gestor de semillas/misc.
+// UnifiedInventory.cs — FIX: RebuildHotbarWeapons()
+// ============================================================
+// FIX PRINCIPAL:
+//   HandleWeaponsRebuilt() ahora hace un rebuild completo del
+//   hotbar en lugar de ignorar el evento.
 //
-// FLUJO DE ARMAS:
-//   • Inicio: lee armas de WeaponInventory → llena hotbar.
-//   • WeaponInventory.OnWeaponAdded/Removed → actualiza slot.
-//   • Jugador arrastra arma en la UI → Move() →
-//     SyncWeaponInventory() → WeaponInventory.SetWeaponsFromInventory()
-//     → WeaponInventory equipa el arma correcta.
+// LÓGICA DEL REBUILD:
+//   1. Recorre los slots del hotbar.
+//   2. Limpia todos los slots que contengan armas.
+//   3. Lee las armas actuales de WeaponInventory en orden.
+//   4. Las coloca en los primeros slots disponibles del hotbar.
+//   5. Conserva semillas y otros items no-arma en sus slots.
+//   6. Actualiza el slot activo según el índice equipado.
 //
-// SEMILLAS EN HOTBAR:
-//   Las semillas pueden ir a cualquier slot, incluida la hotbar.
-//   WeaponInventory las ignora (no son Weapon).
-//   Al seleccionar un slot de hotbar con semilla, no se llama Equip().
+// Esto funciona aunque WeaponInventory haya comprimido su lista
+// (al soltar la arma del slot 1, el slot 2 pasa a ser el 1,
+//  y el rebuild lo refleja correctamente en la UI).
 // ============================================================
 
 using System;
@@ -35,7 +34,6 @@ namespace Greenfall.Inventory
         [Header("WeaponInventory (fuente de verdad para armas)")]
         [SerializeField] private WeaponInventory _weaponInventory;
 
-        // ── Datos ────────────────────────────────────────────────
         private InventoryEntry[] _slots;
 
         public int TotalSlots => _hotbarSize + _bagSize;
@@ -45,17 +43,16 @@ namespace Greenfall.Inventory
         private int _activeHotbarSlot = -1;
         public  int ActiveHotbarSlot  => _activeHotbarSlot;
 
-        // ── Eventos ──────────────────────────────────────────────
         public event Action<int> OnSlotChanged;
         public event Action<int> OnActiveSlotChanged;
 
-        // ── Helpers ──────────────────────────────────────────────
         public int  HotbarIndex(int local) => local;
         public int  BagIndex(int local)    => _hotbarSize + local;
         public bool IsHotbar(int global)   => global >= 0 && global < _hotbarSize;
         public bool IsBag(int global)      => global >= _hotbarSize && global < TotalSlots;
 
-        // ── Awake ────────────────────────────────────────────────
+        // ── Awake ─────────────────────────────────────────────
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -75,24 +72,20 @@ namespace Greenfall.Inventory
             }
 
             _weaponInventory.OnWeaponAdded    += HandleWeaponAdded;
-            _weaponInventory.OnWeaponRemoved  += HandleWeaponRemoved;
             _weaponInventory.OnWeaponEquipped += HandleWeaponEquipped;
             _weaponInventory.OnWeaponsRebuilt += HandleWeaponsRebuilt;
 
             InitializeFromWeaponInventory();
         }
 
-        // ── Inicializar desde WeaponInventory ────────────────────
+        // ── Leer estado inicial de WeaponInventory ─────────────
 
         private void InitializeFromWeaponInventory()
         {
-            if (_weaponInventory == null) return;
-
             for (int i = 0; i < _hotbarSize; i++)
             {
                 Weapon w = _weaponInventory.GetWeaponAtUI(i);
                 if (w == null) continue;
-
                 _slots[i] = InventoryEntry.FromWeapon(w);
                 OnSlotChanged?.Invoke(i);
             }
@@ -105,7 +98,7 @@ namespace Greenfall.Inventory
             }
         }
 
-        // ── Lectura ──────────────────────────────────────────────
+        // ── Lectura ───────────────────────────────────────────
 
         public InventoryEntry GetSlot(int globalIndex)
         {
@@ -114,7 +107,7 @@ namespace Greenfall.Inventory
             return _slots[globalIndex];
         }
 
-        // ── Agregar item ─────────────────────────────────────────
+        // ── Agregar item ──────────────────────────────────────
 
         public bool TryAdd(InventoryEntry entry)
         {
@@ -165,7 +158,6 @@ namespace Greenfall.Inventory
                 _slots[i] = entry;
                 OnSlotChanged?.Invoke(i);
 
-                // Si es arma en hotbar y WeaponInventory no la tiene todavía → agregarla
                 if (entry.kind == ItemKind.Weapon && IsHotbar(i) && entry.weaponInstance != null)
                     if (!WeaponInventoryHasWeapon(entry.weaponInstance))
                         _weaponInventory?.AddWeapon(entry.weaponInstance);
@@ -179,11 +171,11 @@ namespace Greenfall.Inventory
         {
             if (_weaponInventory == null) return false;
             for (int i = 0; i < _weaponInventory.MaxSlots; i++)
-                if (_weaponInventory.GetWeaponAtUI(i) == w) return true;  // encontrada
-            return false; // no encontrada
+                if (_weaponInventory.GetWeaponAtUI(i) == w) return true;
+            return false;
         }
 
-        // ── Mover item (drag & drop) ─────────────────────────────
+        // ── Mover item (drag & drop) ──────────────────────────
 
         public void Move(int fromGlobal, int toGlobal)
         {
@@ -212,26 +204,21 @@ namespace Greenfall.Inventory
                 }
             }
 
-            // Intercambiar
             _slots[fromGlobal] = to;
             _slots[toGlobal]   = from;
 
             OnSlotChanged?.Invoke(fromGlobal);
             OnSlotChanged?.Invoke(toGlobal);
 
-            // CRÍTICO: sincronizar WeaponInventory con el nuevo estado
             SyncWeaponInventory();
         }
 
-        // ── SyncWeaponInventory ──────────────────────────────────
-        // Reconstruye WeaponInventory desde los slots de hotbar.
-        // Se llama después de cualquier Move() que afecte la hotbar.
+        // ── Sincronizar WeaponInventory tras drag ─────────────
 
         private void SyncWeaponInventory()
         {
             if (_weaponInventory == null) return;
 
-            // Recopilar armas en hotbar, en orden
             var weapons = new Weapon[_hotbarSize];
             int count   = 0;
             for (int i = 0; i < _hotbarSize; i++)
@@ -241,24 +228,21 @@ namespace Greenfall.Inventory
                     weapons[count++] = e.weaponInstance;
             }
 
-            // Calcular índice activo dentro de la lista de armas
-            int activeIdx = 0;
-            int counted   = 0;
+            int activeIdx = 0, counted = 0;
             for (int i = 0; i < _hotbarSize; i++)
             {
                 var e = _slots[i];
                 if (!e.IsEmpty && e.kind == ItemKind.Weapon)
                 {
-                    if (i == _activeHotbarSlot) { activeIdx = counted; }
+                    if (i == _activeHotbarSlot) activeIdx = counted;
                     counted++;
                 }
             }
 
-            // Dar el nuevo orden a WeaponInventory
             _weaponInventory.SetWeaponsFromInventory(weapons, activeIdx);
         }
 
-        // ── Quitar item ──────────────────────────────────────────
+        // ── Quitar item ───────────────────────────────────────
 
         public bool Remove(int globalIndex, int amount = 1)
         {
@@ -274,24 +258,21 @@ namespace Greenfall.Inventory
             return true;
         }
 
-        // ── Selección de hotbar ──────────────────────────────────
+        // ── Selección de hotbar ───────────────────────────────
 
         public void SetActiveHotbar(int hotbarLocal)
         {
             int global = HotbarIndex(hotbarLocal);
-            if (global == _activeHotbarSlot) return;
             if (!IsHotbar(global)) return;
 
             _activeHotbarSlot = global;
             OnActiveSlotChanged?.Invoke(global);
 
-            // Solo equipar en WeaponInventory si el slot activo contiene un arma
             if (_weaponInventory != null)
             {
                 var entry = _slots[global];
                 if (!entry.IsEmpty && entry.kind == ItemKind.Weapon)
                 {
-                    // Contar cuántas armas hay ANTES de este slot (= índice en WeaponInventory)
                     int weaponIdx = 0;
                     for (int i = 0; i < global; i++)
                     {
@@ -300,36 +281,33 @@ namespace Greenfall.Inventory
                     }
                     _weaponInventory.Equip(weaponIdx);
                 }
-                // Si es semilla u otro item: no tocar el arma equipada
             }
         }
 
-        // ── Handlers de eventos de WeaponInventory ───────────────
+        // ── Handlers de eventos de WeaponInventory ────────────
 
         private void HandleWeaponAdded(int slotIndex, Weapon weapon)
         {
             if (slotIndex < 0 || slotIndex >= _hotbarSize) return;
             int global = HotbarIndex(slotIndex);
-            if (!_slots[global].IsEmpty) return; // ya lo tenemos
+            if (!_slots[global].IsEmpty) return; // ya está reflejado
 
             _slots[global] = InventoryEntry.FromWeapon(weapon);
             OnSlotChanged?.Invoke(global);
         }
 
-        private void HandleWeaponRemoved(int slotIndex)
-        {
-            if (slotIndex < 0 || slotIndex >= _hotbarSize) return;
-            int global = HotbarIndex(slotIndex);
-            if (!_slots[global].IsEmpty && _slots[global].kind == ItemKind.Weapon)
-            {
-                _slots[global].Clear();
-                OnSlotChanged?.Invoke(global);
-            }
-        }
-
         private void HandleWeaponEquipped(int weaponInventoryIndex)
         {
-            if (weaponInventoryIndex < 0) return;
+            if (weaponInventoryIndex < 0)
+            {
+                // Sin arma equipada
+                if (_activeHotbarSlot != -1)
+                {
+                    _activeHotbarSlot = -1;
+                    OnActiveSlotChanged?.Invoke(-1);
+                }
+                return;
+            }
 
             int counted = 0;
             for (int i = 0; i < _hotbarSize; i++)
@@ -351,27 +329,92 @@ namespace Greenfall.Inventory
             }
         }
 
-        private void HandleWeaponsRebuilt() { /* iniciado por nosotros, no hacer nada */ }
+        /// <summary>
+        /// FIX PRINCIPAL: rebuild completo del hotbar desde WeaponInventory.
+        /// Se llama después de cualquier drop o reordenamiento.
+        ///
+        /// PROCESO:
+        ///   1. Limpiar todos los slots de hotbar que tengan armas.
+        ///   2. Colocar las armas de WeaponInventory en los primeros
+        ///      slots vacíos de hotbar (en orden).
+        ///   3. Los items no-arma (semillas, etc.) se conservan.
+        ///   4. Actualizar el slot activo.
+        /// </summary>
+        private void HandleWeaponsRebuilt()
+        {
+            // ── Paso 1: limpiar slots de armas en hotbar ──────────
+            for (int i = 0; i < _hotbarSize; i++)
+            {
+                if (!_slots[i].IsEmpty && _slots[i].kind == ItemKind.Weapon)
+                {
+                    _slots[i].Clear();
+                    OnSlotChanged?.Invoke(i);
+                }
+            }
 
-        // ── Limpieza ─────────────────────────────────────────────
+            // ── Paso 2: recolocar armas de WeaponInventory ────────
+            int slotIdx = 0;
+            for (int w = 0; w < _weaponInventory.SlotCount; w++)
+            {
+                Weapon weapon = _weaponInventory.GetWeaponAtUI(w);
+                if (weapon == null) continue;
+
+                // Buscar el próximo slot de hotbar vacío
+                while (slotIdx < _hotbarSize && !_slots[slotIdx].IsEmpty)
+                    slotIdx++;
+
+                if (slotIdx >= _hotbarSize) break; // hotbar llena
+
+                _slots[slotIdx] = InventoryEntry.FromWeapon(weapon);
+                OnSlotChanged?.Invoke(slotIdx);
+                slotIdx++;
+            }
+
+            // ── Paso 3: actualizar slot activo ────────────────────
+            int weaponActive = _weaponInventory.CurrentIndex;
+
+            if (weaponActive < 0)
+            {
+                _activeHotbarSlot = -1;
+                OnActiveSlotChanged?.Invoke(-1);
+                return;
+            }
+
+            // El slot activo = el slot donde quedó el arma en índice weaponActive
+            int weaponCounter = 0;
+            for (int i = 0; i < _hotbarSize; i++)
+            {
+                var e = _slots[i];
+                if (!e.IsEmpty && e.kind == ItemKind.Weapon)
+                {
+                    if (weaponCounter == weaponActive)
+                    {
+                        _activeHotbarSlot = i;
+                        OnActiveSlotChanged?.Invoke(i);
+                        return;
+                    }
+                    weaponCounter++;
+                }
+            }
+        }
+
+        // ── Limpieza ──────────────────────────────────────────
 
         private void OnDestroy()
         {
             if (_weaponInventory == null) return;
             _weaponInventory.OnWeaponAdded    -= HandleWeaponAdded;
-            _weaponInventory.OnWeaponRemoved  -= HandleWeaponRemoved;
             _weaponInventory.OnWeaponEquipped -= HandleWeaponEquipped;
             _weaponInventory.OnWeaponsRebuilt -= HandleWeaponsRebuilt;
         }
 
-        // ── Debug ────────────────────────────────────────────────
 #if UNITY_EDITOR
         [ContextMenu("Debug: Print Inventory")]
         private void DebugPrint()
         {
             for (int i = 0; i < TotalSlots; i++)
             {
-                string zone = IsHotbar(i) ? $"HOTBAR[{i}]" : $"  BAG[{i-_hotbarSize}]";
+                string zone = IsHotbar(i) ? $"HOTBAR[{i}]" : $"  BAG[{i - _hotbarSize}]";
                 string mark = i == _activeHotbarSlot ? " ◄ ACTIVO" : "";
                 string item = _slots[i].IsEmpty
                     ? "(vacío)"
