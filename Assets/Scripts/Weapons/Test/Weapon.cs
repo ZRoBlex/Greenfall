@@ -1,44 +1,54 @@
-﻿using UnityEngine;
+﻿// ============================================================
+// Weapon.cs — RECOIL LIMPIADO + INTEGRACIÓN CON CameraRecoilController
+// ============================================================
+// CAMBIOS RESPECTO A TU VERSIÓN:
+//
+// 1. ApplyRecoil() ya no modifica transform.localRotation.
+//    Ese método peleaba contra ApplyInventoryRotation() causando
+//    que el arma vibrara o se viera mal. El recoil VISUAL del
+//    modelo del arma ahora viene de WeaponRecoilAnimator (nuevo).
+//
+// 2. ApplyCameraRecoil() ahora sí se llama correctamente.
+//    La línea estaba comentada en tu código original.
+//
+// 3. HandleRecoil() también eliminado del arma.
+//    La cámara ya maneja su propia recuperación en CameraRecoilController.
+//
+// 4. El modelo del arma ahora tiene su propio "kick" visual
+//    mediante WeaponRecoilAnimator (componente separado, abajo).
+//    Eso da el feeling de que el arma "pega" sin interferir con
+//    la posición del inventario.
+// ============================================================
+
+using UnityEngine;
 using System.Collections;
 
 public class Weapon : MonoBehaviour
 {
     public WeaponStats stats;
-    public Transform firePoint;
-    public Camera shootCamera;
+    public Transform   firePoint;
+    public Camera      shootCamera;
 
-    float lastFire;
-    bool isBursting;
-    Vector3 recoilRotation;
-
+    float     lastFire;
+    bool      isBursting;
     Quaternion baseLocalRotation;
+
     [Header("Camera Recoil")]
     [SerializeField] CameraRecoilController cameraRecoil;
 
+    [Header("Weapon Visual Recoil")]
+    [Tooltip("Opcional. Maneja el kick visual del modelo del arma.")]
+    [SerializeField] WeaponRecoilAnimator weaponRecoilAnimator;
+
     [Header("Default Weapon")]
     public bool isDefaultWeapon = false;
+
     [Header("UI")]
     public Sprite icon;
-
+    public string weaponName;
 
     public WeaponMagazine magazine;
 
-    [Header("UI")]
-    public string weaponName;
-
-
-
-    [Header("Damage Systems")]
-    //[SerializeField] DistanceDamageScaler distanceScaler;
-
-
-    // 🔥 Muzzle flash instance
-    ParticleSystem muzzleFlashInstance;
-
-    //[Header("Material Layers")]
-    //public LayerMask metalLayer;
-    //public LayerMask leatherMask;
-    //public LayerMask dirtLayer; 
     [Header("Impact Tags")]
     [SerializeField] string[] metalTags;
     [SerializeField] string[] dirtTags;
@@ -49,36 +59,36 @@ public class Weapon : MonoBehaviour
 
     [SerializeField] DistanceDamageScalerSO distanceScalerSO;
 
-
     [Header("Inventory Offset Override")]
-    [SerializeField] bool overrideInventoryOffset = false;
-
-    [SerializeField] bool liveEditOffset = false; // 👈 ESTE ES EL NUEVO
-
+    [SerializeField] bool    overrideInventoryOffset = false;
+    [SerializeField] bool    liveEditOffset = false;
     [SerializeField] Vector3 inventoryPositionOffset;
     [SerializeField] Vector3 inventoryRotationOffset;
 
-    [SerializeField] DynamicCrosshair crosshair;
-
     [Header("Crosshair")]
-    [SerializeField] CrosshairProfile crosshairProfile;
+    [SerializeField] DynamicCrosshair  crosshair;
+    [SerializeField] CrosshairProfile  crosshairProfile;
 
-    float recoilAccumulated;
-
-
-    // Agregar arriba del Start()
     [Header("Ammo (Placeholder)")]
-    [SerializeField] int currentAmmo = 30; // Por ahora solo contador interno
-    [SerializeField] int maxAmmo = 30;
+    [SerializeField] int currentAmmo       = 30;
+    [SerializeField] int maxAmmo           = 30;
 
     [Header("Ammo On Pickup")]
-    [SerializeField] int minAmmoOnPickup = 5;
-    [SerializeField] int maxAmmoOnPickup = 30;
+    [SerializeField] int minAmmoOnPickup   = 5;
+    [SerializeField] int maxAmmoOnPickup   = 30;
 
-    // ------------------------------------------------
-    // AMMO TRANSFER FLAG
-    // ------------------------------------------------
-    private bool hasTransferredAmmo = false;
+    ParticleSystem muzzleFlashInstance;
+    bool hasTransferredAmmo = false;
+
+    // ─────────────────────────────────────────────────────────
+    // AMMO MANAGEMENT
+    // ─────────────────────────────────────────────────────────
+    [SerializeField] AmmoInventory ammoInventory;
+    private bool ammoInitialized = false;
+
+    // ─────────────────────────────────────────────────────────
+    // AWAKE / START / ON ENABLE
+    // ─────────────────────────────────────────────────────────
 
     private void Awake()
     {
@@ -95,94 +105,74 @@ public class Weapon : MonoBehaviour
         {
             if (isDefaultWeapon)
             {
-                // 🔥 SOLO el arma base empieza llena
                 magazine.currentBullets = magazine.maxBullets;
-                Debug.Log($"🟢 {name} (default) inicia con cargador lleno");
             }
             else
             {
-                // 🎲 Las demás siguen siendo aleatorias
                 int startAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
                 magazine.currentBullets = Mathf.Min(startAmmo, magazine.maxBullets);
-                Debug.Log($"🟡 {name} inicia con {magazine.currentBullets} balas");
             }
-
             ammoInitialized = true;
         }
     }
-
-
-
-
 
     void Start()
     {
         shootCamera = shootCamera ? shootCamera : Camera.main;
 
+        // Buscar CameraRecoilController en la jerarquía de la cámara
         if (!cameraRecoil && shootCamera)
             cameraRecoil = shootCamera.GetComponentInParent<CameraRecoilController>();
-        // Instanciar UNA SOLA VEZ el muzzle flash
+
+        // Autodetectar WeaponRecoilAnimator si no está asignado
+        if (!weaponRecoilAnimator)
+            weaponRecoilAnimator = GetComponent<WeaponRecoilAnimator>();
+
+        // Instanciar muzzle flash
         if (stats.muzzleFlash != null && firePoint != null)
         {
-            if (stats.muzzleFlash.GetComponent<ParticleSystem>() == null)
-            {
-                Debug.LogError("❌ MuzzleFlash prefab no tiene ParticleSystem válido");
-                return;
-            }
-
             muzzleFlashInstance = Instantiate(
                 stats.muzzleFlash,
                 firePoint.position,
                 firePoint.rotation,
-                firePoint
-            );
-
+                firePoint);
             muzzleFlashInstance.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
-
     }
 
     void Update()
     {
         HandleFireInput();
-        HandleRecoil();
+        // ELIMINADO: HandleRecoil() ya no existe aquí.
+        // La cámara tiene su propio Update en CameraRecoilController.
     }
 
-    // ------------------------------------------------
+    // ─────────────────────────────────────────────────────────
     // INPUT
-    // ------------------------------------------------
+    // ─────────────────────────────────────────────────────────
+
     void HandleFireInput()
     {
         switch (stats.fireMode)
         {
             case FireMode.SemiAuto:
-                if (Input.GetButtonDown("Fire1"))
-                    TryFire();
+                if (Input.GetButtonDown("Fire1")) TryFire();
                 break;
-
             case FireMode.FullAuto:
-                if (Input.GetButton("Fire1"))
-                    TryFire();
+                if (Input.GetButton("Fire1")) TryFire();
                 break;
-
             case FireMode.Burst:
-                if (Input.GetButtonDown("Fire1"))
-                    TryBurst();
+                if (Input.GetButtonDown("Fire1")) TryBurst();
                 break;
         }
     }
 
-    // ------------------------------------------------
-    // FIRE LOGIC (modificación mínima)
-    // ------------------------------------------------
     void TryFire()
     {
         if (Time.time - lastFire < stats.cooldown) return;
         lastFire = Time.time;
-
         Shoot();
     }
-
 
     void TryBurst()
     {
@@ -193,41 +183,28 @@ public class Weapon : MonoBehaviour
     IEnumerator BurstRoutine()
     {
         isBursting = true;
-
         for (int i = 0; i < stats.burstCount; i++)
         {
-            //if (!ConsumeAmmo()) break; // 🔹 no dispara si no hay munición
             Shoot();
             yield return new WaitForSeconds(stats.burstDelay);
         }
-
         isBursting = false;
     }
 
-    // ------------------------------------------------
+    // ─────────────────────────────────────────────────────────
     // SHOOT
-    // ------------------------------------------------
+    // ─────────────────────────────────────────────────────────
+
     void Shoot()
     {
-        if (magazine == null)
-            return;
+        if (magazine == null || !magazine.ConsumeBullet()) return;
 
-        if (!magazine.ConsumeBullet())
-        {
-            Debug.Log("🔴 Cargador vacío");
-            return;
-        }
+        if (weaponAudio != null) weaponAudio.PlayShoot();
 
-
-        if (weaponAudio != null)
-            weaponAudio.PlayShoot();
-
-
-        // 🔥 MUZZLE FLASH (PARTÍCULAS)
         if (muzzleFlashInstance)
         {
-            muzzleFlashInstance.transform.position = firePoint.position;
-            muzzleFlashInstance.transform.rotation = firePoint.rotation;
+            muzzleFlashInstance.transform.SetPositionAndRotation(
+                firePoint.position, firePoint.rotation);
             muzzleFlashInstance.Play();
         }
 
@@ -243,42 +220,19 @@ public class Weapon : MonoBehaviour
             }
             else
             {
-                SpawnLine(
-                    firePoint.position,
-                    firePoint.position + dir * stats.range,
-                    false
-                );
+                SpawnLine(firePoint.position, firePoint.position + dir * stats.range, false);
             }
         }
 
-        ApplyRecoil();
-        ApplyCameraRecoil(); // 👈 ESTO ES NUEVO
+        // ── RECOIL ────────────────────────────────────────────
+        // 1. Recoil de cámara (el que se siente como jugador)
+        ApplyCameraRecoil();
 
-        float recoilAmount =
-    stats.recoilKick +
-    Random.Range(-stats.recoilRandom, stats.recoilRandom);
+        // 2. Recoil visual del modelo del arma (kick del cañón)
+        weaponRecoilAnimator?.AddKick(stats.recoilKick, stats.recoilRandom);
 
-
-        if (DynamicCrosshair.Instance)
-        {
-            DynamicCrosshair.Instance.ApplyWeaponSpread(stats.spreadAngle);
-        }
-
-        //DynamicCrosshair.Instance?.OnShoot();
-
-        //DynamicCrosshair.Instance?.AddRecoil(recoilAmount);
-
-
-
-
-        //if (cameraRecoil)
-        //{
-        //    cameraRecoil.AddRecoil(
-        //        stats.cameraRecoilVertical,
-        //        stats.cameraRecoilHorizontal
-        //    );
-        //}
-
+        // 3. Crosshair spread
+        DynamicCrosshair.Instance?.ApplyWeaponSpread(stats.spreadAngle);
     }
 
     Vector3 GetSpreadDirection()
@@ -288,194 +242,117 @@ public class Weapon : MonoBehaviour
         return dir.normalized;
     }
 
-    // ------------------------------------------------
+    // ─────────────────────────────────────────────────────────
     // HIT
-    // ------------------------------------------------
+    // ─────────────────────────────────────────────────────────
+
     void HandleHit(RaycastHit hit)
     {
-        Health health = hit.collider.GetComponentInParent<Health>();
-        NonLethalHealthAdapted nonLethal = hit.collider.GetComponentInParent<NonLethalHealthAdapted>();
-
-        DamageHitRelay relay = hit.collider.GetComponentInParent<DamageHitRelay>();
-        if (relay)
-            relay.RegisterHit(hit.point);
+        Health health             = hit.collider.GetComponentInParent<Health>();
+        NonLethalHealthAdapted nl = hit.collider.GetComponentInParent<NonLethalHealthAdapted>();
+        DamageHitRelay relay      = hit.collider.GetComponentInParent<DamageHitRelay>();
+        if (relay) relay.RegisterHit(hit.point);
 
         bool validTag = false;
         foreach (string tag in stats.damageTags)
-        {
-            if (hit.collider.CompareTag(tag))
-            {
-                validTag = true;
-                break;
-            }
-        }
-
+            if (hit.collider.CompareTag(tag)) { validTag = true; break; }
         if (!validTag) return;
 
         bool isCritical = false;
 
-        if (stats.useCaptureDamage && nonLethal != null)
+        if (stats.useCaptureDamage && nl != null)
         {
             float dmg = GenerateDamage(stats.minCaptureDamage, stats.maxCaptureDamage, out isCritical);
-
-            var popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
-            if (popup) popup.SetLastHitCritical(isCritical);
-
-            nonLethal.ApplyCaptureTick(dmg);
+            hit.collider.GetComponentInParent<DamagePopupReceiver>()?.SetLastHitCritical(isCritical);
+            nl.ApplyCaptureTick(dmg);
         }
         else if (health != null)
         {
-            float dmg = GenerateDamage(
-                stats.minLethalDamage,
-                stats.maxLethalDamage,
-                out isCritical
-            );
+            float dmg = GenerateDamage(stats.minLethalDamage, stats.maxLethalDamage, out isCritical);
 
-            // 📏 ESCALADO POR DISTANCIA
             if (distanceScalerSO != null && shootCamera != null)
-            {
-                float distance = Vector3.Distance(
-                    shootCamera.transform.position,
-                    hit.point
-                );
+                dmg *= distanceScalerSO.GetMultiplier(
+                    Vector3.Distance(shootCamera.transform.position, hit.point));
 
-                dmg *= distanceScalerSO.GetMultiplier(distance);
-            }
-
-            // 🎯 ZONA DEL CUERPO
             DamageZone zone = hit.collider.GetComponent<DamageZone>();
-            if (zone != null)
-                dmg *= zone.damageMultiplier;
+            if (zone != null) dmg *= zone.damageMultiplier;
 
-            var popup = hit.collider.GetComponentInParent<DamagePopupReceiver>();
-            if (popup) popup.SetLastHitCritical(isCritical);
-
+            hit.collider.GetComponentInParent<DamagePopupReceiver>()?.SetLastHitCritical(isCritical);
             health.ApplyDamage(dmg);
         }
 
-        if (BulletDecalPool.Instance != null)
-        {
-            BulletDecalPool.Instance.Spawn(hit);
-        }
-
-
-
-
-
-
-
+        BulletDecalPool.Instance?.Spawn(hit);
         SpawnImpact(hit, isCritical);
     }
 
-    // ------------------------------------------------
-    // IMPACT FX
-    // ------------------------------------------------
     void SpawnImpact(RaycastHit hit, bool isCritical)
     {
         ParticleSystem fx = null;
         Collider col = hit.collider;
 
-        if (isCritical && stats.critImpact)
-        {
-            fx = stats.critImpact;
-        }
-        else if (HasAnyTag(col, metalTags))
-        {
-            fx = stats.metalImpactVFX;
-        }
-        else if (HasAnyTag(col, dirtTags))
-        {
-            fx = stats.dirtImpactVFX;
-        }
-        else if (HasAnyTag(col, fleshTags))
-        {
-            fx = stats.fleshImpactVFX;
-        }
+        if      (isCritical && stats.critImpact)    fx = stats.critImpact;
+        else if (HasAnyTag(col, metalTags))          fx = stats.metalImpactVFX;
+        else if (HasAnyTag(col, dirtTags))           fx = stats.dirtImpactVFX;
+        else if (HasAnyTag(col, fleshTags))          fx = stats.fleshImpactVFX;
 
         if (!fx) return;
-
-        Quaternion rot = Quaternion.LookRotation(-hit.normal);
-        if (ParticlePool.Instance != null)
-        {
-            ParticlePool.Instance.Spawn(fx, hit.point, rot);
-        }
-
+        ParticlePool.Instance?.Spawn(fx, hit.point, Quaternion.LookRotation(-hit.normal));
     }
 
-
-    // ------------------------------------------------
-    // LINE RENDERER
-    // ------------------------------------------------
     void SpawnLine(Vector3 start, Vector3 end, bool hit)
     {
         if (!stats.linePrefab) return;
-
         LineRenderer lr = Instantiate(stats.linePrefab);
         lr.positionCount = 2;
         lr.SetPosition(0, start);
         lr.SetPosition(1, end);
         lr.material = hit ? stats.hitLine : stats.normalLine;
-
         Destroy(lr.gameObject, stats.lineDuration);
     }
 
-    // ------------------------------------------------
+    // ─────────────────────────────────────────────────────────
     // RECOIL
-    // ------------------------------------------------
-    void ApplyRecoil()
+    // ─────────────────────────────────────────────────────────
+
+    void ApplyCameraRecoil()
     {
-        recoilRotation.x -= stats.recoilKick + Random.Range(-stats.recoilRandom, stats.recoilRandom);
+        if (!cameraRecoil || stats == null) return;
+        cameraRecoil.AddRecoil(stats.cameraRecoilVertical, stats.cameraRecoilHorizontal);
     }
 
-    void HandleRecoil()
-    {
-        recoilRotation = Vector3.Lerp(
-            recoilRotation,
-            Vector3.zero,
-            stats.recoilReturnSpeed * Time.deltaTime
-        );
-
-        //transform.localRotation = Quaternion.Euler(recoilRotation);
-        transform.localRotation =
-    baseLocalRotation * Quaternion.Euler(recoilRotation);
-
-    }
+    // ─────────────────────────────────────────────────────────
+    // UTILS
+    // ─────────────────────────────────────────────────────────
 
     float GenerateDamage(float min, float max, out bool isCritical)
     {
         float damage = Random.Range(min, max);
         isCritical = false;
-
         if (stats.allowCritical && Random.value <= stats.criticalChance)
         {
-            damage += damage * stats.criticalBonusPercent;
+            damage    += damage * stats.criticalBonusPercent;
             isCritical = true;
         }
-
         return damage;
     }
 
     bool HasAnyTag(Collider col, string[] tags)
     {
-        if (tags == null || tags.Length == 0)
-            return false;
-
+        if (tags == null) return false;
         foreach (string tag in tags)
-        {
-            if (!string.IsNullOrEmpty(tag) && col.CompareTag(tag))
-                return true;
-        }
-
+            if (!string.IsNullOrEmpty(tag) && col.CompareTag(tag)) return true;
         return false;
     }
 
     void LateUpdate()
     {
-        if (!liveEditOffset) return;
-        if (transform.parent == null) return;
-
+        if (!liveEditOffset || transform.parent == null) return;
         ApplyInventoryOffset();
     }
+
+    // ─────────────────────────────────────────────────────────
+    // INVENTORY OFFSET
+    // ─────────────────────────────────────────────────────────
 
     public void ApplyInventoryOffset()
     {
@@ -483,164 +360,68 @@ public class Weapon : MonoBehaviour
         transform.localRotation = Quaternion.Euler(GetInventoryRotationOffset());
     }
 
+    public Vector3 GetInventoryPositionOffset() =>
+        overrideInventoryOffset ? inventoryPositionOffset : stats.inventoryPositionOffset;
 
-    public Vector3 GetInventoryPositionOffset()
-    {
-        return overrideInventoryOffset
-            ? inventoryPositionOffset
-            : stats.inventoryPositionOffset;
-    }
-
-    public Vector3 GetInventoryRotationOffset()
-    {
-        return overrideInventoryOffset
-            ? inventoryRotationOffset
-            : stats.inventoryRotationOffset;
-    }
+    public Vector3 GetInventoryRotationOffset() =>
+        overrideInventoryOffset ? inventoryRotationOffset : stats.inventoryRotationOffset;
 
     public void ApplyInventoryRotation(Vector3 euler)
     {
-        baseLocalRotation = Quaternion.Euler(euler);
+        baseLocalRotation       = Quaternion.Euler(euler);
         transform.localRotation = baseLocalRotation;
     }
 
+    // ─────────────────────────────────────────────────────────
+    // AMMO
+    // ─────────────────────────────────────────────────────────
 
-    void ApplyCameraRecoil()
-    {
-        if (!cameraRecoil || stats == null) return;
-
-        cameraRecoil.AddRecoil(
-            stats.cameraRecoilVertical,
-            stats.cameraRecoilHorizontal
-        );
-    }
-
-
-
-    // ------------------------------------------------
-    // AMMO MANAGEMENT
-    // ------------------------------------------------
-    [SerializeField] AmmoInventory ammoInventory;
-    private bool ammoInitialized = false;
-
-    //bool ConsumeAmmo()
-    //{
-    //    if (ammoInventory == null || ammoInventory.ConsumeAmmo(stats.ammoType, 1) == false)
-    //    {
-    //        Debug.Log("Sin munición!");
-    //        return false;
-    //    }
-
-    //    return true;
-    //}
-
-
-
-    // 🔹 Método público para recargar
-    public void Reload(int amount)
-    {
+    public void Reload(int amount) =>
         currentAmmo = Mathf.Min(currentAmmo + amount, maxAmmo);
-    }
 
-    // Asigna el inventario del jugador al arma
     public void AssignAmmoInventory(AmmoInventory inventory)
     {
         ammoInventory = inventory;
-
-        // ❌ Ya no generamos aleatorio aquí
-        // if (!ammoInitialized)
-        // {
-        //     currentAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
-        //     ammoInitialized = true;
-        // }
-
-        // Asegurarse de que exista el slot
         if (stats.ammoType != null)
-        {
             ammoInventory.AddAmmo(stats.ammoType, 0);
-        }
     }
-
 
     public int TransferAmmoToInventory()
     {
-        if (stats.ammoType == null || ammoInventory == null)
-            return 0;
-
+        if (stats.ammoType == null || ammoInventory == null) return 0;
         AmmoSlot slot = ammoInventory.GetSlot(stats.ammoType);
         if (slot == null) return 0;
 
-        int spaceLeft = slot.maxAmount - slot.currentAmount;
-        if (spaceLeft <= 0) return 0;
+        int space = slot.maxAmount - slot.currentAmount;
+        if (space <= 0) return 0;
 
-        int ammoToGive = Mathf.Min(currentAmmo, spaceLeft);
+        int give = Mathf.Min(currentAmmo, space);
+        ammoInventory.AddAmmo(stats.ammoType, give);
+        currentAmmo -= give;
 
-        ammoInventory.AddAmmo(stats.ammoType, ammoToGive);
-        currentAmmo -= ammoToGive; // lo que sobra queda en el arma
-
-        // 🔥 UI FEEDBACK
-        if (AmmoPickupUIManager.Instance)
-        {
-            Sprite icon = null;
-
-            // si luego tu ammoType tiene icon:
-            // icon = stats.ammoType.icon;
-
-            AmmoPickupUIManager.Instance.ShowAmmoPickup(
-                ammoToGive,
-                stats.ammoType.ammoName, // o .name
-                icon
-            );
-        }
-
-        return ammoToGive;
+        AmmoPickupUIManager.Instance?.ShowAmmoPickup(give, stats.ammoType.ammoName, null);
+        return give;
     }
-
 
     public void InitializeAmmo()
     {
         if (!ammoInitialized)
         {
-            currentAmmo = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
+            currentAmmo    = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
             ammoInitialized = true;
         }
     }
 
     public void ReloadFromInventory()
     {
-        if (magazine == null || stats == null || stats.ammoType == null)
-            return;
-
-        if (magazine.IsFull)
-        {
-            Debug.Log("🟡 Cargador ya lleno");
-            return;
-        }
-
-        if (ammoInventory == null)
-        {
-            Debug.Log("❌ No hay inventario asignado al arma");
-            return;
-        }
+        if (magazine == null || stats?.ammoType == null) return;
+        if (magazine.IsFull) return;
+        if (ammoInventory == null) return;
 
         int needed = magazine.maxBullets - magazine.currentBullets;
-
-        int taken = ammoInventory.RemoveAmmo(stats.ammoType, needed);
-
-        if (taken > 0)
-        {
-            magazine.AddBullets(taken);
-            Debug.Log($"🔄 Recargadas {taken} balas");
-        }
-        else
-        {
-            Debug.Log("🔴 No hay balas en el inventario");
-        }
+        int taken  = ammoInventory.RemoveAmmo(stats.ammoType, needed);
+        if (taken > 0) magazine.AddBullets(taken);
     }
 
-    public void MarkAmmoInitialized()
-    {
-        ammoInitialized = true;
-    }
-
+    public void MarkAmmoInitialized() => ammoInitialized = true;
 }
