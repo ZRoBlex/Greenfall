@@ -21,4 +21,5 @@ MonoBehaviour:
   maxCropAmount: 3
   minSeedReturn: 0
   maxSeedReturn: 2
-  seedPickupPrefab: {fileID: 0}
+  seedPickupPrefab: {fileID: 5535388702236958303, guid: b1a1cd35cda436e4390b44ac1f89b58a, type: 3}
+  icon: {fileID: 2441754920960949527, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}

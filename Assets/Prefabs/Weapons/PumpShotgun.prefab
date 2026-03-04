@@ -61,6 +61,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -82,9 +84,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5376526998047005301
 GameObject:
@@ -103,6 +107,7 @@ GameObject:
   - component: {fileID: 5783091046433715182}
   - component: {fileID: 2524879747933190082}
   - component: {fileID: 6787494192170779087}
+  - component: {fileID: -1131870211035148993}
   m_Layer: 13
   m_Name: PumpShotgun
   m_TagString: Untagged
@@ -155,10 +160,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5376526998047005301}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -390,6 +395,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentBullets: 0
   maxBullets: 30
+--- !u!114 &-1131870211035148993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5376526998047005301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 463e0b2c65a5fb1409b33463cd3dc328, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPickup
+  _weapon: {fileID: 4960586557098612420}
+  _pickupVerb: Recoger
+  _pickupVFXPrefab: {fileID: 0}
+  _pickupSound: {fileID: 0}
 --- !u!1 &6925551273715609402
 GameObject:
   m_ObjectHideFlags: 0

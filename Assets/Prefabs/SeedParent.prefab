@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6564217065393167422}
   - component: {fileID: 6410044603095941832}
   - component: {fileID: 8306007181538480642}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: SeedParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -63,10 +63,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5535388702236958303}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -97,6 +97,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   seedData: {fileID: 11400000, guid: 9e1d186f0fc9be54fb14881a47885337, type: 2}
   amount: 1
+  _autoPickup: 0
+  _vfxPrefab: {fileID: 0}
+  _pickupSound: {fileID: 0}
 --- !u!1001 &6616061666710018696
 PrefabInstance:
   m_ObjectHideFlags: 0

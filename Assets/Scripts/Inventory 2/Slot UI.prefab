@@ -160,6 +160,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2242326927676983796}
   - component: {fileID: 3074275044344647798}
+  - component: {fileID: 2405093902701094175}
+  - component: {fileID: 5023845210182315430}
   m_Layer: 5
   m_Name: Slot UI
   m_TagString: Untagged
@@ -203,8 +205,46 @@ MonoBehaviour:
   _icon: {fileID: 4086770762143256727}
   _background: {fileID: 7391231540541877429}
   _amountText: {fileID: 0}
+  _iconSize: {x: 48, y: 48}
   _liftPixels: 15
   _liftSpeed: 10
   _normalColor: {r: 1, g: 1, b: 1, a: 1}
   _selectedColor: {r: 1, g: 0.85, b: 0.3, a: 1}
-  _hoverColor: {r: 0.8, g: 0.9, b: 1, a: 1}
+--- !u!222 &2405093902701094175
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8579627843011588965}
+  m_CullTransparentMesh: 1
+--- !u!114 &5023845210182315430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8579627843011588965}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
