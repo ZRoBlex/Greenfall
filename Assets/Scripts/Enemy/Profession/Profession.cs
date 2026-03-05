@@ -7,7 +7,8 @@ public enum ProfessionType
     Mage,
     Healer,
     Merchant,
-    // Agrega más según tus necesidades
+    
+    // Agrega mï¿½s segï¿½n tus necesidades
 }
 
 [CreateAssetMenu(menuName = "Enemies/Profession", fileName = "NewProfession")]
@@ -21,20 +22,20 @@ public class Profession : ScriptableObject
     [Tooltip("Prefab del enemigo con este modelo")]
     public GameObject modelPrefab;
 
-    [Tooltip("Animator Controller específico para esta profesión")]
+    [Tooltip("Animator Controller especï¿½fico para esta profesiï¿½n")]
     public RuntimeAnimatorController animatorController;
 
     [Header("Animaciones Opcionales")]
-    [Tooltip("Animación de ataque principal de la profesión")]
+    [Tooltip("Animaciï¿½n de ataque principal de la profesiï¿½n")]
     public string attackAnim = "Attack";
 
-    [Tooltip("Animación de caminar / desplazamiento")]
+    [Tooltip("Animaciï¿½n de caminar / desplazamiento")]
     public string walkAnim = "Walk";
 
-    [Tooltip("Animación de idle / quieto")]
+    [Tooltip("Animaciï¿½n de idle / quieto")]
     public string idleAnim = "Idle";
 
-    [Tooltip("Animación especial / habilidad (comentada para futuras habilidades)")]
+    [Tooltip("Animaciï¿½n especial / habilidad (comentada para futuras habilidades)")]
     public string specialAnim = "Special";
 
     [Header("Estados Especiales")]
@@ -43,10 +44,10 @@ public class Profession : ScriptableObject
 
     // -----------------------------
     // CAMPOS DE ATRIBUTOS DUPLICADOS ELIMINADOS
-    // Se usarán los valores del EnemyStats para movimiento, ataque, rango, etc.
+    // Se usarï¿½n los valores del EnemyStats para movimiento, ataque, rango, etc.
     // -----------------------------
 
-    // [Header("Atributos Base de Profesión")]
+    // [Header("Atributos Base de Profesiï¿½n")]
     // public float baseHealth = 100f;
     // public float baseMoveSpeed = 3.5f;
     // public float baseAttackDamage = 10f;

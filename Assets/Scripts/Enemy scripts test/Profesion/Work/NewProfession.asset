@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b2493ddc1ccaf2438eb89534d01edfc, type: 3}
+  m_Name: NewProfession
+  m_EditorClassIdentifier: Assembly-CSharp::ProfessionSO
+  type: 0
+  displayName: a
+  description: 
+  icon: {fileID: 9112743452827066768, guid: 215687feeab0b7445b4a1cd86c82c2e1, type: 3}
+  skinPrefab: {fileID: 0}
+  animatorController: {fileID: 0}
+  skinTint: {r: 1, g: 1, b: 1, a: 1}
+  workingParam: IsWorking
+  walkingParam: IsWalking
+  attackTrigger: Attack
+  hurtTrigger: Hurt
+  dieTrigger: Die
+  compatibleWorkTags: []
+  productionMultiplier: 1
+  foodConsumptionRate: 1
+  combatDamage: 5
+  alertRadius: 8
+  unlocks: []
