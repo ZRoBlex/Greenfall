@@ -81452,7 +81452,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5072951406552765578, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 18.24
       objectReference: {fileID: 0}
     - target: {fileID: 6113399037751863655, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: waterUI
@@ -81471,14 +81471,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 176994167}
     - target: {fileID: 6227774678157671081, guid: fc95a902743b2f244bc1085196210a31, type: 3}
-      propertyPath: settings
-      value: 
-      objectReference: {fileID: 11400000, guid: 1e51139587c83204cba68341d2ea6234, type: 2}
-    - target: {fileID: 6227774678157671081, guid: fc95a902743b2f244bc1085196210a31, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6227774678157671081, guid: fc95a902743b2f244bc1085196210a31, type: 3}
       propertyPath: drawPreview
       value: 0
       objectReference: {fileID: 0}
@@ -81493,10 +81485,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 948642336}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fc95a902743b2f244bc1085196210a31, type: 3}
 --- !u!4 &670818488 stripped
 Transform:
@@ -81506,11 +81495,6 @@ Transform:
 --- !u!4 &670818489 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5072951406552765578, guid: fc95a902743b2f244bc1085196210a31, type: 3}
-  m_PrefabInstance: {fileID: 670818487}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &670818490 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3311313125817710361, guid: fc95a902743b2f244bc1085196210a31, type: 3}
   m_PrefabInstance: {fileID: 670818487}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &675725580
@@ -110628,7 +110612,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6861638465220344482, guid: fc95a902743b2f244bc1085196210a31, type: 3}
   m_PrefabInstance: {fileID: 670818487}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 670818490}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 020d78477a9bc23438a1709ab3845ccf, type: 3}
@@ -110639,34 +110623,12 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6227774678157671081, guid: fc95a902743b2f244bc1085196210a31, type: 3}
   m_PrefabInstance: {fileID: 670818487}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 670818490}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fff34d05d3b10bb4ba74993eb458b084, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &948642336
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 670818490}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fff34d05d3b10bb4ba74993eb458b084, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BiomeMap
-  seed: -691323300
-  settings: {fileID: 11400000, guid: 9c5e50f29058f334ab60e744df8fd6ec, type: 2}
-  drawPreview: 0
-  previewSize: 4000
-  previewStep: 20
-  allBiomeDefinitions:
-  - {fileID: 11400000, guid: f5cad7965d50529448ffa26cc2803ddf, type: 2}
-  - {fileID: 11400000, guid: 57d9a92b78d5d4e48aca7bd892b9e399, type: 2}
-  - {fileID: 11400000, guid: 101048c5c2d448e428fb08da03420762, type: 2}
-  - {fileID: 11400000, guid: 6d53df2a093c31740a9a313e0e7cd485, type: 2}
+  m_EditorClassIdentifier: 
 --- !u!1 &949303399
 GameObject:
   m_ObjectHideFlags: 0
