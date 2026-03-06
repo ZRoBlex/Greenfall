@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2491858018597769487
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4850435891507523944}
+  - component: {fileID: 1968531164451498022}
+  m_Layer: 0
+  m_Name: Weapon Spot spawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4850435891507523944
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491858018597769487}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 2, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1968531164451498022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2491858018597769487}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18384b7a21f9a394d87bc374295714c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnOnStart: 1
+  useAreaSpawn: 0
+  areaSize: {x: 1.5, y: 0, z: 1.5}
+  weapons:
+  - weaponPrefab: {fileID: 4598127322584725019, guid: 826ce2d4e7c8de148b91031f0c1f590b, type: 3}
+    probability: 0.25
+  - weaponPrefab: {fileID: 4960586557098612420, guid: 40c88282559bedc44bd970f530ed030f, type: 3}
+    probability: 0.25
+  - weaponPrefab: {fileID: 3421039222878667892, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+    probability: 0.25
+  - weaponPrefab: {fileID: 5911498127234084116, guid: cc8fead958b6893468c10bc45a6298e8, type: 3}
+    probability: 1
+  respawnDelay: 3
+  despawnTimeIfNotPicked: 60
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+  groundCheckDistance: 3
+  spawnOffset: {x: 0, y: 0.3, z: 0}
+  randomRotation: 1
+  minRotation: {x: 0, y: 0, z: 0}
+  maxRotation: {x: 0, y: 360, z: 0}
+  randomAngularForce: 1
+  forceRespawnEvenIfPicked: 1
