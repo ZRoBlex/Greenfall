@@ -7,6 +7,7 @@ public enum ProfessionType
     Mage,
     Healer,
     Merchant,
+    None
     
     // Agrega m�s seg�n tus necesidades
 }
