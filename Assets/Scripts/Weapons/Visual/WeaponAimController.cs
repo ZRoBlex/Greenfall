@@ -1,15 +1,33 @@
 ﻿// ============================================================
-// WeaponAimController.cs — FIX: zoom se quedaba al cambiar arma
+//  WeaponAimController.cs — v2  CORREGIDO
+//  Greenfall: The Last Harvest
 // ============================================================
-// BUG CORREGIDO:
-//   defaultFOV se cacheaba en InjectContext() con el FOV actual
-//   de la cámara. Si el jugador estaba apuntando (FOV reducido)
-//   cuando cambiaba de arma, el nuevo arma cacheaba el FOV
-//   reducido como su "normal". Resultado: zoom permanente.
 //
-//   FIX: ForceStopAim() ahora restaura el FOV ANTES de que
-//   InjectContext() del nuevo arma lo lea. Además se agrega
-//   OnDisable() que hace lo mismo si el GO se desactiva.
+//  QUÉ HACE ESTE SCRIPT:
+//  Controla el apuntado del arma:
+//   - Mueve el weaponRoot hacia la posición de apuntado (ADS)
+//   - Hace zoom en la cámara (FOV reducido)
+//   - Soporte para múltiples niveles de zoom (para francotirador)
+//   - Modifica la sensibilidad del jugador mientras apunta
+//
+//  CORRECCIONES v2:
+//
+//  BUG 1 — "Al apuntar, el arma conserva la rotación torcida del sway"
+//  Causa: StartAim() deshabilitaba SwayController pero la rotación del
+//  arma quedaba congelada en baseRotation * currentSway. El lerp hacia
+//  aimLocalRotation empezaba desde esa rotación sucia.
+//  Fix: StartAim() ahora llama sway.ResetImmediately() ANTES de
+//  deshabilitar el SwayController. El lerp arranca desde rotación limpia.
+//
+//  BUG 2 — "Al cambiar armas y volver, el arma recuerda la pos de apuntado"
+//  Causa: OnDisable() llamaba InternalStopAim() que solo ponía isAiming=false
+//  pero NUNCA reseteaba weaponRoot.localPosition. Cuando se volvía a equipar
+//  el arma, InjectContext() llamaba CacheDefaults() que leía el weaponRoot
+//  todavía en posición ADS y guardaba eso como "posición neutral". Los
+//  defaults se corrompían permanentemente.
+//  Fix: Se introduce _neutralPos / _neutralRot que se capturan UNA SOLA VEZ
+//  al inicio (antes de cualquier modificación runtime). OnDisable() ahora
+//  resetea weaponRoot a esos valores neutrales inmediatamente.
 // ============================================================
 
 using UnityEngine;
@@ -17,256 +35,456 @@ using System.Collections.Generic;
 
 public class WeaponAimController : MonoBehaviour
 {
-    [Header("Aim Mode")]
+    // ── Modo de apuntado ──────────────────────────────────────────────────
+    [Header("Modo de apuntado")]
+    [Tooltip("true = mantener presionado para apuntar / false = toggle con clic en los niveles de zoom.")]
     [SerializeField] bool holdToAim = true;
 
-    [Header("Position Aim")]
+    // ── Posición ADS ──────────────────────────────────────────────────────
+    [Header("Posición al apuntar (ADS)")]
+    [Tooltip("El Transform raíz del arma que este controlador mueve. " +
+             "Si no se asigna, se usa transform.parent automáticamente.")]
     [SerializeField] Transform weaponRoot;
-    [SerializeField] Vector3   aimLocalPosition;
-    [SerializeField] Vector3   aimLocalRotation;
-    [SerializeField] float     aimSmoothSpeed = 10f;
 
-    [Header("Camera Zoom")]
+    [Tooltip("Posición local del weaponRoot cuando se está apuntando.")]
+    [SerializeField] Vector3 aimLocalPosition;
+
+    [Tooltip("Rotación local (euler) del weaponRoot cuando se está apuntando.")]
+    [SerializeField] Vector3 aimLocalRotation;
+
+    [Tooltip("Velocidad del lerp entre posición idle y posición ADS. " +
+             "10 = bastante rápido, 4 = lento y suave.")]
+    [SerializeField] float aimSmoothSpeed = 10f;
+
+    // ── Zoom de cámara ────────────────────────────────────────────────────
+    [Header("Zoom de cámara")]
+    [Tooltip("Lista de FOVs al apuntar. Para rifle normal: [40]. " +
+             "Para francotirador con 2 niveles: [40, 20].")]
     [SerializeField] List<float> zoomLevels = new() { 40f, 20f };
-    int currentZoomIndex;
 
-    [Header("Aim Modifiers")]
-    [SerializeField] float moveMultiplier      = 0.4f;
+    // Índice actual en zoomLevels (se avanza con clic si holdToAim=false)
+    int _currentZoomIndex;
 
-    [Header("Sniper")]
-    [SerializeField] bool       useScopeUI                = false;
-    [SerializeField] bool       hideWeaponModelWhenScoped = false;
+    // ── Modificadores mientras apunta ─────────────────────────────────────
+    [Header("Modificadores al apuntar")]
+    [Tooltip("Multiplicador de velocidad de movimiento mientras apunta. " +
+             "0.4 = moverse al 40% de velocidad normal.")]
+    [SerializeField] float moveMultiplier = 0.4f;
+
+    // ── Modo francotirador ────────────────────────────────────────────────
+    [Header("Modo francotirador (scope)")]
+    [Tooltip("Si true, muestra una UI de mira óptica al apuntar.")]
+    [SerializeField] bool useScopeUI = false;
+
+    [Tooltip("Si true, oculta el modelo del arma cuando se muestra el scope (modo sniper).")]
+    [SerializeField] bool hideWeaponModelWhenScoped = false;
+
+    [Tooltip("El GameObject del modelo visual del arma (para ocultarlo con scope).")]
     [SerializeField] GameObject weaponModel;
 
-    [Header("Sensitivity By Zoom")]
-    [SerializeField] bool  scaleSensitivityByFOV        = true;
+    // ── Sensibilidad al apuntar ───────────────────────────────────────────
+    [Header("Sensibilidad al apuntar")]
+    [Tooltip("Si true, reduce la sensibilidad proporcionalmente al zoom (FOV actual / FOV base).")]
+    [SerializeField] bool scaleSensitivityByFOV = true;
+
+    [Tooltip("Multiplicador base de sensibilidad mientras apunta. " +
+             "0.6 = 60% de la sensibilidad normal.")]
     [SerializeField] float baseAimSensitivityMultiplier = 0.6f;
 
-    [Header("Spread")]
+    // ── Spread ────────────────────────────────────────────────────────────
+    [Header("Spread al apuntar")]
+    [Tooltip("Referencia al WeaponStats para reducir el spread al apuntar.")]
     public WeaponStats weaponStats;
+
+    [Tooltip("Si true, pone el spreadAngle a 0 mientras apunta (más preciso).")]
     public bool overrideSpreadOnAim = true;
 
-    [SerializeField] MonoBehaviour swayController;
+    // ── SwayController ────────────────────────────────────────────────────
+    [Header("Sway")]
+    [Tooltip("Referencia al SwayController del arma. " +
+             "CORRECCIÓN: Ahora es SwayController directamente (no MonoBehaviour) " +
+             "para poder llamar ResetImmediately() sin casteo.")]
+    [SerializeField] SwayController swayController;
 
-    public bool IsAiming => isAiming;
+    // ─────────────────────────────────────────────────────────────────────
+    //  ESTADO INTERNO
+    // ─────────────────────────────────────────────────────────────────────
 
-    PlayerWeaponContext    context;
-    Camera                 cam;
-    CameraRecoilController recoil;
+    // Referencia al contexto del jugador (cámara, controller, scopeUI, etc.)
+    // Se inyecta por WeaponInventory al equipar el arma.
+    PlayerWeaponContext _context;
 
-    Vector3    defaultPos;
-    Quaternion defaultRot;
-    float      defaultFOV;
-    float      initialSpread;
-    bool       isAiming;
-    bool       contextReady;
+    // Cámara del jugador
+    Camera _cam;
 
-    // ── InjectContext ──────────────────────────────────────────
-    // Llamado por WeaponInventory.Equip() cada vez que se equipa
-    // este arma.
+    // Controlador de recoil de la cámara
+    CameraRecoilController _recoil;
 
+    // ── CORRECCIÓN BUG 2: Posición/rotación neutral capturada UNA SOLA VEZ ──
+    //
+    // _neutralPos y _neutralRot representan la posición y rotación del weaponRoot
+    // cuando el arma está en su estado "en reposo" (sin apuntar, sin sway).
+    // Se capturan en Awake() (si weaponRoot ya está asignado) o en el primer
+    // InjectContext(). NUNCA se actualizan con valores runtime.
+    //
+    // Por qué es crítico: CacheDefaults() en la versión anterior leía de
+    // weaponRoot.localPosition en cada InjectContext(). Si el arma se
+    // desequipaba mientras apuntaba, la posición ADS se guardaba como "default".
+    // Al volver a equiparla, el arma seguía en posición ADS para siempre.
+    Vector3    _neutralPos;
+    Quaternion _neutralRot;
+    bool       _neutralCached; // Flag: ¿ya capturamos los neutrales?
+
+    // FOV de la cámara cuando NO está apuntando (el FOV "real")
+    float _defaultFOV;
+    bool  _fovCached;
+
+    // Spread original del arma (para restaurarlo al dejar de apuntar)
+    float _initialSpread;
+
+    // Estado actual
+    bool _isAiming;
+    bool _contextReady; // True después del primer InjectContext exitoso
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  AWAKE — Captura neutral ANTES de cualquier modificación runtime
+    // ─────────────────────────────────────────────────────────────────────
+    private void Awake()
+    {
+        // Si weaponRoot está asignado en el Inspector desde el prefab,
+        // capturamos su posición neutral ahora — antes de que WeaponInventory
+        // lo reasigne o lo mueva. Esta es la captura más temprana y más limpia.
+        if (weaponRoot != null && !_neutralCached)
+        {
+            _neutralPos    = weaponRoot.localPosition;
+            _neutralRot    = weaponRoot.localRotation;
+            _neutralCached = true;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  INJECT CONTEXT — Llamado por WeaponInventory al equipar el arma
+    // ─────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// WeaponInventory llama este método cada vez que este arma es equipada.
+    /// Recibe el contexto del jugador (cámara, controller, scopeUI).
+    /// </summary>
     public void InjectContext(PlayerWeaponContext ctx)
     {
-        context = ctx;
-        cam     = ctx.playerCamera;
+        _context = ctx;
+        _cam     = ctx.playerCamera;
 
+        // Si weaponRoot no fue asignado en el Inspector, usamos el padre
         if (weaponRoot == null)
             weaponRoot = transform.parent;
 
-        if (cam != null)
-            recoil = cam.GetComponentInParent<CameraRecoilController>();
+        // Buscamos el CameraRecoilController en la jerarquía de la cámara
+        if (_cam != null)
+            _recoil = _cam.GetComponentInParent<CameraRecoilController>();
 
-        // FIX: cachear DESPUÉS de que la cámara esté en FOV normal.
-        // Si el arma anterior no llamó ForceStopAim antes de desactivarse,
-        // restauramos el FOV ahora para evitar que se cachee un valor reducido.
-        if (cam != null)
-            cam.fieldOfView = GetSafeFOV();
-
-        CacheDefaults();
-
-        if (weaponStats != null)
-            initialSpread = weaponStats.spreadAngle;
-
-        contextReady = true;
-        ResetWeapon();
-    }
-
-    // Intenta leer el FOV "verdadero" desde la lista de zoom.
-    // Si el FOV actual coincide con un nivel de zoom, usamos el
-    // mayor (el FOV sin zoom). Si no, usamos el actual.
-    float GetSafeFOV()
-    {
-        if (cam == null) return 60f;
-        float current = cam.fieldOfView;
-
-        // ¿El FOV actual es uno de los niveles de zoom?
-        foreach (float z in zoomLevels)
-            if (Mathf.Abs(current - z) < 1f)
-                return defaultFOV > 0f ? defaultFOV : 60f; // usar el guardado o 60
-
-        // No es un nivel de zoom, es el FOV real
-        return current;
-    }
-
-    void CacheDefaults()
-    {
-        if (weaponRoot)
+        // ── CORRECCIÓN BUG 2: Captura neutral si no se hizo en Awake ───────
+        // Esto cubre el caso donde weaponRoot se asigna dinámicamente o
+        // si por alguna razón Awake no lo capturó.
+        //
+        // PRIMERO reseteamos el weaponRoot a neutral (si tenemos el dato).
+        // LUEGO capturamos si aún no tenemos el dato.
+        // Este orden garantiza que nunca cacheemos una posición ADS.
+        if (!_neutralCached)
         {
-            defaultPos = weaponRoot.localPosition;
-            defaultRot = weaponRoot.localRotation;
+            // Primera vez equipando: el weaponRoot debería estar en posición limpia
+            _neutralPos    = weaponRoot.localPosition;
+            _neutralRot    = weaponRoot.localRotation;
+            _neutralCached = true;
         }
-        if (cam) defaultFOV = cam.fieldOfView;
+        else
+        {
+            // Volvemos a equipar el arma: reseteamos a neutral ANTES de hacer nada más
+            // (Arregla el bug donde volver al arma lo dejaba en posición ADS)
+            ApplyNeutralImmediate();
+        }
+
+        // ── FOV base (solo si no lo tenemos o si parece corrupto) ───────────
+        //
+        // Corrección del bug original de FOV: si el FOV actual de la cámara
+        // es igual a uno de los niveles de zoom, significa que el arma anterior
+        // se desequipó SIN restaurar el FOV. Usamos el último FOV guardado.
+        if (_cam != null)
+        {
+            float currentFOV = _cam.fieldOfView;
+            bool  isSafeToCache = true;
+
+            // ¿El FOV actual coincide con un nivel de zoom del arma anterior?
+            foreach (float zoomLevel in zoomLevels)
+            {
+                if (Mathf.Abs(currentFOV - zoomLevel) < 1f)
+                {
+                    isSafeToCache = false;
+                    break;
+                }
+            }
+
+            if (isSafeToCache || !_fovCached)
+            {
+                _defaultFOV = currentFOV;
+                _fovCached  = true;
+                // Forzamos que la cámara esté en FOV normal
+                _cam.fieldOfView = _defaultFOV;
+            }
+            else if (_fovCached)
+            {
+                // El FOV parece corrupto, restauramos el guardado
+                _cam.fieldOfView = _defaultFOV;
+            }
+        }
+
+        // Guardamos el spread inicial para restaurarlo al dejar de apuntar
+        if (weaponStats != null)
+            _initialSpread = weaponStats.spreadAngle;
+
+        // Estado listo
+        _contextReady = true;
+
+        // Aseguramos estado limpio de aim
+        _isAiming        = false;
+        _currentZoomIndex = 0;
+
+        // Aseguramos que el scope está oculto y el modelo visible
+        _context?.scopeUI?.SetActive(false);
+        if (weaponModel != null) weaponModel.SetActive(true);
+        _recoil?.SetAiming(false);
     }
 
-    // ── OnDisable ──────────────────────────────────────────────
-    // Se llama cuando WeaponInventory desactiva el GO del arma
-    // al cambiar de arma (slots[old].gameObject.SetActive(false)).
-    // Restauramos FOV aquí para que el próximo arma lo cachee limpio.
-
-    void OnDisable()
+    // ─────────────────────────────────────────────────────────────────────
+    //  ON DISABLE — CORRECCIÓN CLAVE del Bug 2
+    // ─────────────────────────────────────────────────────────────────────
+    private void OnDisable()
     {
-        if (!contextReady) return;
+        // OnDisable se llama cuando WeaponInventory desactiva este arma
+        // (al cambiar de slot). Es el momento crítico que causaba el bug.
+
+        if (!_contextReady) return;
+
+        // PASO 1: Restauramos el FOV inmediatamente
+        // (para que el siguiente arma lo cachee limpio)
         ForceRestoreFOV();
-        if (isAiming) InternalStopAim();
+
+        // PASO 2: Reseteamos el weaponRoot a la posición neutral
+        // CORRECCIÓN: La versión anterior NO hacía esto, dejando el
+        // weaponRoot en posición ADS si el arma se cambiaba mientras apuntaba.
+        ApplyNeutralImmediate();
+
+        // PASO 3: Reseteamos el sway para que al re-habilitar el arma
+        // no haya un "pop" visual
+        if (swayController != null)
+        {
+            swayController.enabled = true;      // re-habilitamos si estaba off
+            swayController.ResetImmediately(); // limpiamos el sway acumulado
+        }
+
+        // PASO 4: Limpiamos todos los estados
+        _isAiming         = false;
+        _currentZoomIndex = 0;
+
+        // Restauramos modificadores del jugador (si el contexto sigue válido)
+        _context?.playerController?.ResetAimModifiers();
+        _context?.scopeUI?.SetActive(false);
+        if (weaponModel != null) weaponModel.SetActive(true);
+        if (weaponStats != null) weaponStats.spreadAngle = _initialSpread;
+        _recoil?.SetAiming(false);
     }
 
-    // ── Update ─────────────────────────────────────────────────
-
-    void Update()
+    // ─────────────────────────────────────────────────────────────────────
+    //  UPDATE
+    // ─────────────────────────────────────────────────────────────────────
+    private void Update()
     {
-        if (!contextReady) return;
+        if (!_contextReady) return;
         HandleInput();
         UpdateAimTransform();
         UpdateFOV();
     }
 
-    void HandleInput()
+    // ─────────────────────────────────────────────────────────────────────
+    //  INPUT
+    // ─────────────────────────────────────────────────────────────────────
+    private void HandleInput()
     {
         if (holdToAim)
         {
+            // Hold to aim: mantener para apuntar, soltar para dejar de apuntar
             if (Input.GetMouseButtonDown(1)) StartAim();
             if (Input.GetMouseButtonUp(1))   StopAim();
         }
         else
         {
+            // Toggle: primer clic = apuntar, clic adicional = siguiente zoom,
+            // último zoom = volver a idle
             if (Input.GetMouseButtonDown(1))
             {
-                if (!isAiming) StartAim();
-                else           CycleZoomOrStop();
+                if (!_isAiming) StartAim();
+                else            CycleZoomOrStop();
             }
         }
     }
 
-    // ── Start / Stop Aim ───────────────────────────────────────
-
-    void StartAim()
+    // ─────────────────────────────────────────────────────────────────────
+    //  INICIAR APUNTADO
+    // ─────────────────────────────────────────────────────────────────────
+    private void StartAim()
     {
-        isAiming         = true;
-        currentZoomIndex = 0;
+        _isAiming         = true;
+        _currentZoomIndex = 0;
 
-        context.playerController.SetAimMoveMultiplier(moveMultiplier);
-        context.playerController.SetAimSensitivityMultiplier(GetSensMult());
+        // ── CORRECCIÓN BUG 1: Reset del sway ANTES de deshabilitarlo ───────
+        //
+        // Sin este reset, el WeaponAimController intentaba hacer lerp desde
+        // la rotación "sucia" del sway (baseRotation * currentSway) hacia la
+        // posición de apuntado. El arma aparecía torcida o rotada incorrectamente.
+        //
+        // Con el reset, la rotación del arma vuelve a su base limpia
+        // INSTANTÁNEAMENTE antes de que el lerp de aim empiece. El usuario
+        // no percibe este reset porque ocurre en el mismo frame del click.
+        if (swayController != null)
+        {
+            swayController.ResetImmediately(); // ← La corrección del Bug 1
+            swayController.enabled = false;    // Ahora sí lo deshabilitamos
+        }
 
-        if (swayController)                               swayController.enabled = false;
-        if (useScopeUI)                                   context.scopeUI?.SetActive(true);
-        if (hideWeaponModelWhenScoped && weaponModel)     weaponModel.SetActive(false);
-        if (overrideSpreadOnAim && weaponStats != null)   weaponStats.spreadAngle = 0f;
-        recoil?.SetAiming(true);
+        // Aplicamos modificadores al jugador
+        _context.playerController.SetAimMoveMultiplier(moveMultiplier);
+        _context.playerController.SetAimSensitivityMultiplier(GetSensitivityMultiplier());
+
+        // UI y modelo
+        if (useScopeUI) _context.scopeUI?.SetActive(true);
+        if (hideWeaponModelWhenScoped && weaponModel != null)
+            weaponModel.SetActive(false);
+
+        // Reducimos el spread a 0 para máxima precisión al apuntar
+        if (overrideSpreadOnAim && weaponStats != null)
+            weaponStats.spreadAngle = 0f;
+
+        _recoil?.SetAiming(true);
     }
 
-    void StopAim()
+    // ─────────────────────────────────────────────────────────────────────
+    //  DETENER APUNTADO
+    // ─────────────────────────────────────────────────────────────────────
+    private void StopAim()
     {
-        InternalStopAim();
-        ForceRestoreFOV();
+        _isAiming         = false;
+        _currentZoomIndex = 0;
+
+        // Restauramos modificadores del jugador
+        _context?.playerController?.ResetAimModifiers();
+
+        // UI y modelo
+        _context?.scopeUI?.SetActive(false);
+        if (weaponModel != null) weaponModel.SetActive(true);
+
+        // Restauramos spread original
+        if (overrideSpreadOnAim && weaponStats != null)
+            weaponStats.spreadAngle = _initialSpread;
+
+        _recoil?.SetAiming(false);
+
+        // Re-habilitamos el sway (OnEnable del SwayController hará el reset)
+        if (swayController != null)
+            swayController.enabled = true;
     }
 
-    // Lógica interna de stop (sin restaurar FOV directamente,
-    // para que OnDisable también pueda llamarla)
-    void InternalStopAim()
+    // Avanza al siguiente nivel de zoom, o sale del modo aim si no hay más
+    private void CycleZoomOrStop()
     {
-        isAiming         = false;
-        currentZoomIndex = 0;
-
-        context?.playerController.ResetAimModifiers();
-        if (swayController)                               swayController.enabled = true;
-        if (useScopeUI)                                   context?.scopeUI?.SetActive(false);
-        if (weaponModel)                                  weaponModel.SetActive(true);
-        if (overrideSpreadOnAim && weaponStats != null)   weaponStats.spreadAngle = initialSpread;
-        recoil?.SetAiming(false);
-    }
-
-    // Restaura el FOV al valor cacheado de forma inmediata (sin lerp)
-    void ForceRestoreFOV()
-    {
-        if (cam != null && defaultFOV > 0f)
-            cam.fieldOfView = defaultFOV;
-    }
-
-    void CycleZoomOrStop()
-    {
-        if (zoomLevels.Count > 1 && currentZoomIndex < zoomLevels.Count - 1)
-            currentZoomIndex++;
+        if (zoomLevels.Count > 1 && _currentZoomIndex < zoomLevels.Count - 1)
+            _currentZoomIndex++;
         else
             StopAim();
     }
 
-    // ── Transform / FOV ────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    //  UPDATE: TRANSFORM Y FOV
+    // ─────────────────────────────────────────────────────────────────────
 
-    void UpdateAimTransform()
+    // Mueve el weaponRoot suavemente entre posición idle y posición ADS
+    private void UpdateAimTransform()
     {
         if (!weaponRoot) return;
-        Vector3    pos = isAiming ? aimLocalPosition               : defaultPos;
-        Quaternion rot = isAiming ? Quaternion.Euler(aimLocalRotation) : defaultRot;
+
+        // Target: si apuntando → posición ADS; si no → posición neutral
+        Vector3    targetPos = _isAiming ? aimLocalPosition              : _neutralPos;
+        Quaternion targetRot = _isAiming ? Quaternion.Euler(aimLocalRotation) : _neutralRot;
 
         weaponRoot.localPosition = Vector3.Lerp(
-            weaponRoot.localPosition, pos, Time.deltaTime * aimSmoothSpeed);
+            weaponRoot.localPosition, targetPos,
+            Time.deltaTime * aimSmoothSpeed);
+
         weaponRoot.localRotation = Quaternion.Slerp(
-            weaponRoot.localRotation, rot, Time.deltaTime * aimSmoothSpeed);
+            weaponRoot.localRotation, targetRot,
+            Time.deltaTime * aimSmoothSpeed);
     }
 
-    void UpdateFOV()
+    // Interpola el FOV de la cámara hacia el nivel de zoom objetivo
+    private void UpdateFOV()
     {
-        if (!cam) return;
-        float target = isAiming ? zoomLevels[currentZoomIndex] : defaultFOV;
-        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, target, Time.deltaTime * 8f);
+        if (!_cam || !_fovCached) return;
 
-        if (isAiming && context?.playerController)
-            context.playerController.SetAimSensitivityMultiplier(GetSensMult());
+        float targetFOV = _isAiming ? zoomLevels[_currentZoomIndex] : _defaultFOV;
+        _cam.fieldOfView = Mathf.Lerp(_cam.fieldOfView, targetFOV, Time.deltaTime * 8f);
+
+        // Actualizamos la sensibilidad cada frame mientras apunta (porque
+        // el FOV cambia gradualmente, la sensibilidad debe ir con él)
+        if (_isAiming && _context?.playerController != null)
+            _context.playerController.SetAimSensitivityMultiplier(GetSensitivityMultiplier());
     }
 
-    // ── Force Stop / Reset ─────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    //  HELPERS INTERNOS
+    // ─────────────────────────────────────────────────────────────────────
 
+    // Aplica la posición/rotación neutral AL INSTANTE (sin lerp)
+    // Para uso en OnDisable y InjectContext
+    private void ApplyNeutralImmediate()
+    {
+        if (!weaponRoot || !_neutralCached) return;
+        weaponRoot.localPosition = _neutralPos;
+        weaponRoot.localRotation = _neutralRot;
+    }
+
+    // Restaura el FOV de la cámara al valor neutral (sin lerp)
+    private void ForceRestoreFOV()
+    {
+        if (_cam != null && _fovCached && _defaultFOV > 0f)
+            _cam.fieldOfView = _defaultFOV;
+    }
+
+    // Calcula el multiplicador de sensibilidad según el zoom actual
+    private float GetSensitivityMultiplier()
+    {
+        if (!scaleSensitivityByFOV || !_cam || _defaultFOV <= 0f)
+            return baseAimSensitivityMultiplier;
+
+        // Proporción: si el FOV es la mitad del normal → sensibilidad a la mitad
+        return baseAimSensitivityMultiplier * (_cam.fieldOfView / _defaultFOV);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  API PÚBLICA — Para uso desde WeaponInventory u otros sistemas
+    // ─────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fuerza la salida del modo aim y resetea TODO al estado neutral.
+    /// Útil cuando WeaponInventory cambia de arma o en situaciones especiales.
+    /// </summary>
     public void ForceStopAim()
     {
-        if (!contextReady) return;
-        InternalStopAim();
-        ResetWeapon();
+        if (!_contextReady) return;
+        StopAim();
+        ApplyNeutralImmediate();
     }
 
-    void ResetWeapon()
-    {
-        isAiming         = false;
-        currentZoomIndex = 0;
-
-        if (weaponRoot)
-        {
-            weaponRoot.localPosition = defaultPos;
-            weaponRoot.localRotation = defaultRot;
-        }
-
-        ForceRestoreFOV();
-        context?.playerController.ResetAimModifiers();
-        context?.scopeUI?.SetActive(false);
-        if (weaponModel) weaponModel.SetActive(true);
-        if (overrideSpreadOnAim && weaponStats != null)
-            weaponStats.spreadAngle = initialSpread;
-        recoil?.SetAiming(false);
-    }
-
-    float GetSensMult()
-    {
-        if (!scaleSensitivityByFOV || !cam || defaultFOV <= 0f)
-            return baseAimSensitivityMultiplier;
-        return baseAimSensitivityMultiplier * (cam.fieldOfView / defaultFOV);
-    }
+    /// <summary>
+    /// Devuelve true si el arma está actualmente en modo aim.
+    /// </summary>
+    public bool IsAiming => _isAiming;
 }
