@@ -107,8 +107,8 @@ MonoBehaviour:
   seed: -1467863645
   useSeed: 1
   spawnAttemptsPerChunk: 120
-  rayHeight: 50
-  maxRayDistance: 100
+  rayHeight: 150
+  maxRayDistance: 300
   groundLayer:
     serializedVersion: 2
     m_Bits: 4096
