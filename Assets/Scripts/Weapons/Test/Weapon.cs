@@ -83,7 +83,7 @@ public class Weapon : MonoBehaviour
     // ─────────────────────────────────────────────────────────
     // AMMO MANAGEMENT
     // ─────────────────────────────────────────────────────────
-    [SerializeField] AmmoInventory ammoInventory;
+    [SerializeField] GF_WeaponAdapter adapter;
     private bool ammoInitialized = false;
 
     // ─────────────────────────────────────────────────────────
@@ -379,49 +379,49 @@ public class Weapon : MonoBehaviour
     public void Reload(int amount) =>
         currentAmmo = Mathf.Min(currentAmmo + amount, maxAmmo);
 
-    public void AssignAmmoInventory(AmmoInventory inventory)
-    {
-        ammoInventory = inventory;
-        if (stats.ammoType != null)
-            ammoInventory.AddAmmo(stats.ammoType, 0);
-    }
+    // public void AssignAmmoInventory(AmmoInventory inventory)
+    // {
+    //     ammoInventory = inventory;
+    //     if (stats.ammoType != null)
+    //         ammoInventory.AddAmmo(stats.ammoType, 0);
+    // }
 
-    public int TransferAmmoToInventory()
-    {
-        if (stats.ammoType == null || ammoInventory == null) return 0;
-        AmmoSlot slot = ammoInventory.GetSlot(stats.ammoType);
-        if (slot == null) return 0;
+    // public int TransferAmmoToInventory()
+    // {
+    //     if (stats.ammoType == null || ammoInventory == null) return 0;
+    //     AmmoSlot slot = ammoInventory.GetSlot(stats.ammoType);
+    //     if (slot == null) return 0;
 
-        int space = slot.maxAmount - slot.currentAmount;
-        if (space <= 0) return 0;
+    //     int space = slot.maxAmount - slot.currentAmount;
+    //     if (space <= 0) return 0;
 
-        int give = Mathf.Min(currentAmmo, space);
-        ammoInventory.AddAmmo(stats.ammoType, give);
-        currentAmmo -= give;
+    //     int give = Mathf.Min(currentAmmo, space);
+    //     ammoInventory.AddAmmo(stats.ammoType, give);
+    //     currentAmmo -= give;
 
-        AmmoPickupUIManager.Instance?.ShowAmmoPickup(give, stats.ammoType.ammoName, null);
-        return give;
-    }
+    //     AmmoPickupUIManager.Instance?.ShowAmmoPickup(give, stats.ammoType.ammoName, null);
+    //     return give;
+    // }
 
-    public void InitializeAmmo()
-    {
-        if (!ammoInitialized)
-        {
-            currentAmmo    = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
-            ammoInitialized = true;
-        }
-    }
+    // public void InitializeAmmo()
+    // {
+    //     if (!ammoInitialized)
+    //     {
+    //         currentAmmo    = Random.Range(minAmmoOnPickup, maxAmmoOnPickup + 1);
+    //         ammoInitialized = true;
+    //     }
+    // }
 
-    public void ReloadFromInventory()
-    {
-        if (magazine == null || stats?.ammoType == null) return;
-        if (magazine.IsFull) return;
-        if (ammoInventory == null) return;
+    // public void ReloadFromInventory()
+    // {
+    //     if (magazine == null || stats?.ammoType == null) return;
+    //     if (magazine.IsFull) return;
+    //     if (ammoInventory == null) return;
 
-        int needed = magazine.maxBullets - magazine.currentBullets;
-        int taken  = ammoInventory.RemoveAmmo(stats.ammoType, needed);
-        if (taken > 0) magazine.AddBullets(taken);
-    }
+    //     int needed = magazine.maxBullets - magazine.currentBullets;
+    //     int taken  = ammoInventory.RemoveAmmo(stats.ammoType, needed);
+    //     if (taken > 0) magazine.AddBullets(taken);
+    // }
 
     public void MarkAmmoInitialized() => ammoInitialized = true;
 }
