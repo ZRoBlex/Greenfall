@@ -1,210 +1,372 @@
 // ============================================================
-// PlayerInteractor.cs
-// Carpeta: Scripts/Pickup/
-// ------------------------------------------------------------
-// Componente del JUGADOR que detecta objetos recogibles cercanos.
-// Funciona con CUALQUIER IPickable sin importar el tipo.
+//  PlayerInteractor.cs
+//  Greenfall: The Last Harvest
+//  Carpeta sugerida: Assets/Greenfall/Player/
+// ============================================================
 //
-// DOS MODOS (configurables en Inspector):
+//  QUÉ HACE:
+//  Script UNIFICADO de interacción del jugador.
+//  Reemplaza COMPLETAMENTE a:
+//    - PlayerInteractRaycast.cs (raycast genérico)
+//    - PlayerAmmoInteractor.cs (específico para munición)
 //
-// MODO RAYCAST (recomendado para FPS):
-//   Lanza un rayo desde el centro de la cámara hacia adelante.
-//   Si golpea algo con IPickable → muestra el prompt y recoge con E.
-//   Tiene rango configurable (ej: 2.5 metros).
+//  QUÉ DETECTA:
+//  Cualquier objeto que tenga InventoryItemController en su jerarquía.
+//  También detecta cualquier IInteractable (puertas, NPCs, etc.)
 //
-// MODO SPHERE (alternativo):
-//   Detecta todos los IPickable en un radio.
-//   Recoge el más cercano al presionar E.
-//   Útil si el juego no es FPS puro.
+//  CÓMO FUNCIONA:
+//  Cada frame: lanza un raycast desde la cámara.
+//  Si golpea algo interactuable:
+//    → Muestra el texto de interacción en la UI
+//    → Resalta el objeto (outline)
+//  Al presionar E (o el botón configurado):
+//    → Llama a la acción del objeto (recoger, abrir, etc.)
 //
-// PROMPT DE UI:
-//   PickupPromptUI es un componente de UI separado.
-//   PlayerInteractor solo llama Show(label) / Hide() en él.
-//   Si no hay PickupPromptUI, funciona igual pero sin texto en pantalla.
+//  COMPATIBILIDAD:
+//  Funciona con el nuevo Input System (PlayerInputHandler) Y con el
+//  Input System antiguo (Input.GetKeyDown). Configurable en Inspector.
 //
-// VA EN: el mismo GameObject que PlayerController
-//
-// EJEMPLO DE USO DESDE CÓDIGO:
-//   No necesitas llamar nada manualmente.
-//   Solo agrega este componente al Player.
+//  COLOCA ESTE SCRIPT EN: el mismo GameObject que PlayerController
 // ============================================================
 
 using UnityEngine;
-using Greenfall.Inventory;
+using TMPro;
+
+/// <summary>
+/// Interfaz que cualquier objeto interactuable debe implementar.
+/// Permite que PlayerInteractor funcione con puertas, NPCs, etc.
+/// además de items recogibles.
+/// </summary>
+public interface IInteractable
+{
+    /// <summary>Texto que aparece en la UI. Ej: "Abrir Puerta", "Hablar con Elias".</summary>
+    string GetInteractionText();
+
+    /// <summary>Ejecuta la acción de interacción. Llamado al presionar E.</summary>
+    bool TryInteract(GameObject interactor);
+
+    /// <summary>Transform del objeto para calcular distancia.</summary>
+    Transform WorldTransform { get; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 public class PlayerInteractor : MonoBehaviour
 {
-    // ─────────────────────────────────────────────────────────
-    // CONFIGURACIÓN
-    // ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    //  CONFIGURACIÓN DE DETECCIÓN
+    // ─────────────────────────────────────────────────────────────────────
 
-    public enum DetectionMode { Raycast, Sphere }
+    [Header("Detección")]
+    [Tooltip("Distancia máxima del raycast de interacción (metros). " +
+             "4 es un buen valor para FPS en primera persona.")]
+    [Range(1f, 8f)] [SerializeField] private float _interactDistance = 4f;
 
-    [Header("Modo de Detección")]
-    [SerializeField] private DetectionMode _mode = DetectionMode.Raycast;
+    [Tooltip("LayerMask que define qué capas pueden ser interactuadas. " +
+             "Excluye siempre la capa del Player para evitar auto-detección.")]
+    [SerializeField] private LayerMask _interactMask = ~0;
 
-    [Header("Raycast")]
-    [Tooltip("Rango de detección en metros (modo Raycast).")]
-    [SerializeField] private float _rayRange    = 2.5f;
-    [Tooltip("Capas que puede golpear el raycast. Excluir Player.")]
-    [SerializeField] private LayerMask _rayMask = ~0;
-
-    [Header("Sphere")]
-    [Tooltip("Radio de detección en metros (modo Sphere).")]
-    [SerializeField] private float _sphereRadius = 2f;
+    // ─────────────────────────────────────────────────────────────────────
+    //  INPUT
+    // ─────────────────────────────────────────────────────────────────────
 
     [Header("Input")]
-    [Tooltip("Tecla para recoger.")]
-    [SerializeField] private KeyCode _pickupKey = KeyCode.E;
+    [Tooltip("Si tienes PlayerInputHandler, asígnalo aquí para usar el New Input System. " +
+             "Si está vacío, usa el Input.GetKeyDown() clásico con la tecla _fallbackKey.")]
+    [SerializeField] private PlayerInputHandler _inputHandler;
+
+    [Tooltip("Tecla de interacción (usado solo si _inputHandler es null).")]
+    [SerializeField] private KeyCode _fallbackKey = KeyCode.E;
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  REFERENCIAS
+    // ─────────────────────────────────────────────────────────────────────
 
     [Header("Referencias")]
-    [Tooltip("La cámara principal. Se autodetecta si no se asigna.")]
+    [Tooltip("La cámara del jugador. Se autodetecta con Camera.main si no se asigna.")]
     [SerializeField] private Camera _camera;
 
-    [Tooltip("UI que muestra el texto de interacción. Puede ser null.")]
-    [SerializeField] private PickupPromptUI _promptUI;
+    // ─────────────────────────────────────────────────────────────────────
+    //  UI
+    // ─────────────────────────────────────────────────────────────────────
 
-    // ─────────────────────────────────────────────────────────
-    // ESTADO INTERNO
-    // ─────────────────────────────────────────────────────────
+    [Header("UI de Interacción")]
+    [Tooltip("Texto TMP donde aparece el texto de interacción. " +
+             "Ej: 'Recoger Hacha Básica'. Puede ser null si no tienes UI.")]
+    [SerializeField] private TextMeshProUGUI _interactionText;
 
-    // El IPickable que el jugador está mirando/tiene más cerca ahora
-    private IPickable _currentTarget;
+    [Tooltip("GameObject del panel/fondo de la UI de interacción. " +
+             "Se activa/desactiva automáticamente. Puede ser null.")]
+    [SerializeField] private GameObject _interactionPanel;
 
-    // ─────────────────────────────────────────────────────────
-    // INICIALIZACIÓN
-    // ─────────────────────────────────────────────────────────
+    [Tooltip("Icono/imagen que acompaña el texto. Se actualiza con el ícono del item. " +
+             "Puede ser null.")]
+    [SerializeField] private UnityEngine.UI.Image _interactionIcon;
+
+    [Tooltip("Texto que aparece cuando el inventario está lleno.")]
+    [SerializeField] private string _inventoryFullMessage = "Inventario lleno";
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  ESTADO INTERNO
+    // ─────────────────────────────────────────────────────────────────────
+
+    // El item recogible que el jugador está mirando este frame
+    private InventoryItemController _currentItemTarget;
+
+    // El objeto interactuable genérico que el jugador está mirando
+    private IInteractable _currentInteractable;
+
+    // El último objeto al que le activamos el highlight
+    // (para desactivarlo cuando el jugador deja de mirarlo)
+    private InventoryItemController _lastHighlightedItem;
+
+    // Timer para mostrar el mensaje de inventario lleno temporalmente
+    private float _fullMessageTimer = 0f;
+    private const float FULL_MESSAGE_DURATION = 2f;
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  AWAKE
+    // ─────────────────────────────────────────────────────────────────────
 
     private void Awake()
     {
         if (_camera == null)
             _camera = Camera.main;
+
+        // Suscribirse al evento de inventario lleno para mostrar mensaje
+        // (InventorySystem dispara este evento cuando no cabe el item)
     }
 
-    // ─────────────────────────────────────────────────────────
-    // UPDATE
-    // ─────────────────────────────────────────────────────────
+    private void Start()
+    {
+        if (InventorySystem.Instance != null)
+            InventorySystem.Instance.OnInventoryFull += HandleInventoryFull;
+
+        // Iniciar la UI oculta
+        SetUIVisible(false);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  UPDATE
+    // ─────────────────────────────────────────────────────────────────────
 
     private void Update()
     {
-        // 1. Detectar qué IPickable hay disponible este frame
-        IPickable detected = _mode == DetectionMode.Raycast
-            ? DetectWithRaycast()
-            : DetectWithSphere();
+        // 1. Detectar qué hay frente al jugador
+        DoRaycast();
 
-        // 2. Actualizar la UI si el target cambió
-        if (detected != _currentTarget)
+        // 2. Actualizar la UI según lo detectado
+        UpdateUI();
+
+        // 3. Verificar si el jugador presionó el botón de interacción
+        if (GetInteractPressed())
+            TryInteract();
+
+        // 4. Temporizador del mensaje de inventario lleno
+        if (_fullMessageTimer > 0f)
         {
-            _currentTarget = detected;
-            UpdatePrompt();
-        }
-
-        // 3. Recoger al presionar la tecla
-        if (_currentTarget != null && Input.GetKeyDown(_pickupKey))
-        {
-            bool success = _currentTarget.TryPickup();
-
-            if (success)
+            _fullMessageTimer -= Time.deltaTime;
+            if (_fullMessageTimer <= 0f)
             {
-                // El objeto fue recogido: limpiar target y UI
-                _currentTarget = null;
-                _promptUI?.Hide();
-            }
-            else
-            {
-                // Inventario lleno u otro error
-                _promptUI?.ShowFullMessage();
+                // Volver a mostrar el texto normal (si sigue mirando algo)
+                UpdateUI();
             }
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    // DETECCIÓN CON RAYCAST
-    // ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    //  RAYCAST
+    // ─────────────────────────────────────────────────────────────────────
 
-    private IPickable DetectWithRaycast()
+    private void DoRaycast()
     {
-        if (_camera == null) return null;
+        // Resetear targets del frame anterior
+        _currentItemTarget    = null;
+        _currentInteractable  = null;
 
-        Ray ray = new Ray(_camera.transform.position, _camera.transform.forward);
+        if (_camera == null) return;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, _rayRange, _rayMask,
-                            QueryTriggerInteraction.Collide))
+        // Raycast desde el centro de la cámara hacia adelante
+        var ray = new Ray(_camera.transform.position, _camera.transform.forward);
+
+        if (!Physics.Raycast(ray, out RaycastHit hit, _interactDistance, _interactMask,
+                             QueryTriggerInteraction.Collide))
         {
-            // Buscar IPickable en el objeto golpeado o en su padre
-            return hit.collider.GetComponent<IPickable>()
-                ?? hit.collider.GetComponentInParent<IPickable>();
-        }
-
-        return null;
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // DETECCIÓN CON ESFERA
-    // ─────────────────────────────────────────────────────────
-
-    private IPickable DetectWithSphere()
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, _sphereRadius, _rayMask,
-                                               QueryTriggerInteraction.Collide);
-
-        IPickable closest  = null;
-        float     minDist  = float.MaxValue;
-
-        foreach (var col in hits)
-        {
-            var pickable = col.GetComponent<IPickable>()
-                        ?? col.GetComponentInParent<IPickable>();
-
-            if (pickable == null) continue;
-
-            float dist = Vector3.Distance(transform.position,
-                                          pickable.WorldTransform.position);
-            if (dist < minDist)
-            {
-                minDist  = dist;
-                closest  = pickable;
-            }
-        }
-
-        return closest;
-    }
-
-    // ─────────────────────────────────────────────────────────
-    // UI PROMPT
-    // ─────────────────────────────────────────────────────────
-
-    private void UpdatePrompt()
-    {
-        if (_currentTarget == null)
-        {
-            _promptUI?.Hide();
+            // No golpeó nada — desactivar highlight del objeto anterior si lo había
+            ClearHighlight();
             return;
         }
 
-        // El label viene del propio objeto ("Recoger AK-47", "Recoger Semilla x3")
-        string label = _currentTarget.GetPickupLabel();
-        _promptUI?.Show(label, _pickupKey);
+        // Buscar componentes interactuables en el objeto golpeado y sus padres
+        // Primero buscamos InventoryItemController (items recogibles)
+        _currentItemTarget = hit.collider.GetComponent<InventoryItemController>()
+                          ?? hit.collider.GetComponentInParent<InventoryItemController>();
+
+        // Si no es item recogible, buscar IInteractable genérico (puertas, NPCs, etc.)
+        if (_currentItemTarget == null)
+        {
+            _currentInteractable = hit.collider.GetComponent<IInteractable>()
+                                ?? hit.collider.GetComponentInParent<IInteractable>();
+        }
+
+        // Manejar highlight del nuevo target
+        if (_currentItemTarget != _lastHighlightedItem)
+        {
+            ClearHighlight();
+            _lastHighlightedItem = _currentItemTarget;
+            _lastHighlightedItem?.SetHighlight(true);
+        }
     }
 
-    // ─────────────────────────────────────────────────────────
-    // GIZMOS DE DEBUG
-    // ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    //  INTERACCIÓN
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void TryInteract()
+    {
+        // Intentar recoger item
+        if (_currentItemTarget != null)
+        {
+            bool success = _currentItemTarget.TryPickup();
+            if (success)
+            {
+                // Si el item se recogió, el target deja de existir
+                _lastHighlightedItem = null;
+                _currentItemTarget   = null;
+                SetUIVisible(false);
+            }
+            // Si falló, HandleInventoryFull ya muestra el mensaje
+            return;
+        }
+
+        // Intentar interacción genérica (puertas, NPCs, etc.)
+        if (_currentInteractable != null)
+        {
+            _currentInteractable.TryInteract(gameObject);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  INPUT
+    // ─────────────────────────────────────────────────────────────────────
+
+    private bool GetInteractPressed()
+    {
+        // Preferir el New Input System si está disponible
+        if (_inputHandler != null && _inputHandler.InteractTrigger)
+        {
+            _inputHandler.ResetInteractTrigger();
+            return true;
+        }
+
+        // Fallback al Input clásico
+        return Input.GetKeyDown(_fallbackKey);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  UI
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void UpdateUI()
+    {
+        // Si hay un mensaje de inventario lleno activo, no sobreescribir
+        if (_fullMessageTimer > 0f) return;
+
+        // Si hay item target, mostrar su texto
+        if (_currentItemTarget != null)
+        {
+            SetInteractionText(_currentItemTarget.GetInteractionText());
+            UpdateInteractionIcon(_currentItemTarget.ItemData?.icon);
+            SetUIVisible(true);
+            return;
+        }
+
+        // Si hay interactuable genérico, mostrar su texto
+        if (_currentInteractable != null)
+        {
+            SetInteractionText(_currentInteractable.GetInteractionText());
+            UpdateInteractionIcon(null);
+            SetUIVisible(true);
+            return;
+        }
+
+        // No hay nada — ocultar UI
+        SetUIVisible(false);
+    }
+
+    private void HandleInventoryFull(InventoryItemData itemData)
+    {
+        // Mostrar mensaje de inventario lleno temporalmente
+        SetInteractionText(_inventoryFullMessage);
+        SetUIVisible(true);
+        _fullMessageTimer = FULL_MESSAGE_DURATION;
+    }
+
+    private void SetInteractionText(string text)
+    {
+        if (_interactionText != null)
+            _interactionText.text = text;
+    }
+
+    private void UpdateInteractionIcon(Sprite icon)
+    {
+        if (_interactionIcon == null) return;
+        if (icon != null)
+        {
+            _interactionIcon.sprite  = icon;
+            _interactionIcon.enabled = true;
+        }
+        else
+        {
+            _interactionIcon.enabled = false;
+        }
+    }
+
+    private void SetUIVisible(bool visible)
+    {
+        if (_interactionPanel != null)
+            _interactionPanel.SetActive(visible);
+
+        if (!visible && _interactionText != null)
+            _interactionText.text = "";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  HIGHLIGHT
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void ClearHighlight()
+    {
+        if (_lastHighlightedItem != null)
+        {
+            _lastHighlightedItem.SetHighlight(false);
+            _lastHighlightedItem = null;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  CLEANUP
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void OnDestroy()
+    {
+        if (InventorySystem.Instance != null)
+            InventorySystem.Instance.OnInventoryFull -= HandleInventoryFull;
+
+        ClearHighlight();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  GIZMOS
+    // ─────────────────────────────────────────────────────────────────────
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        if (_mode == DetectionMode.Sphere)
-        {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(transform.position, _sphereRadius);
-        }
-        else if (_camera != null)
-        {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawRay(_camera.transform.position,
-                           _camera.transform.forward * _rayRange);
-        }
+        if (_camera == null) return;
+        Gizmos.color = _currentItemTarget != null ? Color.green : Color.cyan;
+        Gizmos.DrawRay(_camera.transform.position,
+                       _camera.transform.forward * _interactDistance);
     }
 #endif
 }

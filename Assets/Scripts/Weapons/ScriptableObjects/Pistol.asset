@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24ed5e012be379543b9f8448157b4d8e, type: 3}
   m_Name: Pistol
   m_EditorClassIdentifier: 
+  weaponIcon: {fileID: 21300000, guid: 3f938017c0d7bf74ca95d673ed01c6d3, type: 3}
   fireMode: 0
   cooldown: 0.1
   burstCount: 3

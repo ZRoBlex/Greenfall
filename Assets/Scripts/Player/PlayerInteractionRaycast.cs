@@ -41,6 +41,6 @@ public class PlayerInteractRaycast : MonoBehaviour
             return;
 
         CurrentInteractable = interactable;
-        interactionText.text = interactable.GetInteractText();
+        // interactionText.text = interactable.GetInteractText();
     }
 }

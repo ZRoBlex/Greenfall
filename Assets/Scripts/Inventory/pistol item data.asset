@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ae5bccc98bd89342b52efeab660b800, type: 3}
+  m_Name: pistol item data
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItemData
+  itemId: pistol
+  displayName: pistol
+  description: pistol
+  icon: {fileID: 21300000, guid: 3f938017c0d7bf74ca95d673ed01c6d3, type: 3}
+  type: 0
+  rarity: 0
+  worldPrefab: {fileID: 3190426564994398644, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+  isStackable: 0
+  maxStack: 1
+  canBeDropped: 1
+  canBeEquipped: 1
+  consumeOnUse: 0
+  weight: 0.1
+  baseValue: 10
+  slotBackgroundColor: {r: 0.6320754, g: 0.21168566, b: 0.58225656, a: 0.95}
+  slotBorderColor: {r: 0.65, g: 0.65, b: 0.65, a: 1}
+  slotEffect: 4
+  slotEffectIntensity: 0.5
+  pickupSound: {fileID: 0}
+  pickupVolume: 0.8
+  dropSound: {fileID: 0}
+  equipSound: {fileID: 0}
+  pickupVFX:
+    shape: 2
+    primaryColor: {r: 1, g: 0, b: 0, a: 1}
+    secondaryColor: {r: 1, g: 0, b: 0, a: 0}
+    particleCount: 20
+    duration: 0.8
+    radius: 1.5
+    particleSize: 0.1
+    sizeVariation: 0.3
+    useGravity: 1
+    rotateParticles: 1
+    rotationSpeed: 90
+  weaponStats: {fileID: 11400000, guid: 70e993a5ea785d24ba3f0c3ee93565ec, type: 2}
+  ammoType: {fileID: 0}
+  ammoAmountPerPickup: 30
+  plantPrefab: {fileID: 0}
+  growthTime: 120
+  requiredSoilId: 
+  toolData: {fileID: 0}
+  healthRestore: 0
+  staminaRestore: 0
+  hungerRestore: 0
+  effectDuration: 0
+  craftingValue: 1
+  materialCategory: 

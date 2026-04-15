@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AmmoPickup : MonoBehaviour, IInteractable
+public class AmmoPickup : MonoBehaviour
 {
     [Header("Ammo Settings")]
     public AmmoTypeSO ammoType;
@@ -12,7 +12,7 @@ public class AmmoPickup : MonoBehaviour, IInteractable
 
     void OnEnable()
     {
-        // Generar munición solo al activarse (pool friendly)
+        // Generar municiï¿½n solo al activarse (pool friendly)
         if (!ammoInitialized)
         {
             currentAmount = Random.Range(minAmmo, maxAmmo + 1);
@@ -20,7 +20,7 @@ public class AmmoPickup : MonoBehaviour, IInteractable
         }
     }
 
-    // Texto que verá el jugador
+    // Texto que verï¿½ el jugador
     public string GetInteractText()
     {
         if (ammoType != null)
@@ -29,7 +29,7 @@ public class AmmoPickup : MonoBehaviour, IInteractable
             return "PICK UP AMMO";
     }
 
-    // Lógica al interactuar
+    // Lï¿½gica al interactuar
     public void Interact(GameObject interactor)
     {
         // Buscamos el inventario DENTRO del jugador
@@ -53,7 +53,7 @@ public class AmmoPickup : MonoBehaviour, IInteractable
 
         currentAmount -= ammoToGive;
 
-        // Si se acabó, se va al pool
+        // Si se acabï¿½, se va al pool
         if (currentAmount <= 0)
         {
             ammoInitialized = false;

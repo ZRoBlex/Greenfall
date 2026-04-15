@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ae5bccc98bd89342b52efeab660b800, type: 3}
+  m_Name: ak47 item data
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryItemData
+  itemId: ak47
+  displayName: ak47
+  description: 
+  icon: {fileID: 21300000, guid: 6ba476c15fe790e4bb4f5b7c47076f19, type: 3}
+  type: 0
+  rarity: 1
+  worldPrefab: {fileID: 3190426564994398644, guid: 77220002ec0a35b4da24f927af74c818, type: 3}
+  isStackable: 0
+  maxStack: 1
+  canBeDropped: 1
+  canBeEquipped: 1
+  consumeOnUse: 0
+  weight: 0.1
+  baseValue: 10
+  slotBackgroundColor: {r: 0.6320754, g: 0.21168566, b: 0.58225656, a: 0.95}
+  slotBorderColor: {r: 0.1, g: 0.75, b: 0.25, a: 1}
+  slotEffect: 4
+  slotEffectIntensity: 0.5
+  pickupSound: {fileID: 0}
+  pickupVolume: 0.8
+  dropSound: {fileID: 0}
+  equipSound: {fileID: 0}
+  pickupVFX:
+    shape: 5
+    primaryColor: {r: 1, g: 0, b: 0, a: 1}
+    secondaryColor: {r: 1, g: 0, b: 0, a: 0}
+    particleCount: 20
+    duration: 0.8
+    radius: 1.5
+    particleSize: 0.1
+    sizeVariation: 0.3
+    useGravity: 1
+    rotateParticles: 1
+    rotationSpeed: 90
+  weaponStats: {fileID: 11400000, guid: b902aca8ceb5c4e48b6a559579eacb23, type: 2}
+  ammoType: {fileID: 0}
+  ammoAmountPerPickup: 30
+  plantPrefab: {fileID: 0}
+  growthTime: 120
+  requiredSoilId: 
+  toolData: {fileID: 0}
+  healthRestore: 0
+  staminaRestore: 0
+  hungerRestore: 0
+  effectDuration: 0
+  craftingValue: 1
+  materialCategory: 
