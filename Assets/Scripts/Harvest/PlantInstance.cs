@@ -106,11 +106,11 @@ public class PlantInstance : MonoBehaviour
                 Quaternion.identity
             );
 
-            SeedPickup pickup = seedGO.GetComponent<SeedPickup>();
-            if (pickup != null)
-            {
-                pickup.Initialize(seedData, seedReturn);
-            }
+            // SeedPickup pickup = seedGO.GetComponent<SeedPickup>();
+            // if (pickup != null)
+            // {
+            //     pickup.Initialize(seedData, seedReturn);
+            // }
         }
 
         GroundPlantable ground = GetComponentInParent<GroundPlantable>();

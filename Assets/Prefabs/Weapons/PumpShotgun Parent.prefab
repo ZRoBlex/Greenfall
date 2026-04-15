@@ -107,8 +107,7 @@ GameObject:
   - component: {fileID: 5783091046433715182}
   - component: {fileID: 2524879747933190082}
   - component: {fileID: 6787494192170779087}
-  - component: {fileID: -1131870211035148993}
-  - component: {fileID: 106592859153159863}
+  - component: {fileID: 9075836339487421087}
   m_Layer: 13
   m_Name: PumpShotgun Parent
   m_TagString: Untagged
@@ -219,7 +218,7 @@ MonoBehaviour:
   maxAmmo: 10
   minAmmoOnPickup: 5
   maxAmmoOnPickup: 10
-  ammoInventory: {fileID: 0}
+  adapter: {fileID: 0}
 --- !u!114 &6597110830552862324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -395,7 +394,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentBullets: 0
   maxBullets: 30
---- !u!114 &-1131870211035148993
+--- !u!114 &9075836339487421087
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -404,31 +403,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 5376526998047005301}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 463e0b2c65a5fb1409b33463cd3dc328, type: 3}
+  m_Script: {fileID: 11500000, guid: a6fa431262f6e034b82f4ba610ba571a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponPickup
-  _weapon: {fileID: 4960586557098612420}
-  _pickupVerb: Recoger
-  _pickupVFXPrefab: {fileID: 0}
-  _pickupSound: {fileID: 0}
---- !u!114 &106592859153159863
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5376526998047005301}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 886c8a9769301e54bbbd234d7b9ec307, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InventoryItemController
-  _itemData: {fileID: 11400000, guid: 305021255fb257f42b912d4113c32bb8, type: 2}
-  _amountOverride: 0
-  _pickupSoundOverride: {fileID: 0}
-  _interactionTextOverride: 
-  _highlightOnFocus: 1
-  _randomAmmoOnSpawn: 0
+  m_EditorClassIdentifier: Assembly-CSharp::GF_WorldPickup
+  definition: {fileID: 11400000, guid: 36d55910d3c555940a2cb5cba8e07b8a, type: 2}
+  amount: 1
+  customInteractionText: 
+  highlightOnFocus: 1
+  autoPickup: 0
 --- !u!1 &6925551273715609402
 GameObject:
   m_ObjectHideFlags: 0

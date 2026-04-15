@@ -37,6 +37,7 @@ public class GF_InventoryUI : MonoBehaviour
     [Tooltip("Canvas donde se genera la UI. Si está vacío, crea uno nuevo.")]
     public Canvas targetCanvas;
 
+
     // ─────────────────────────────────────────────────────────────────────
     //  ESTADO INTERNO
     // ─────────────────────────────────────────────────────────────────────
@@ -426,8 +427,14 @@ public class GF_InventoryUI : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             var slotGO = CreateUIObject($"Slot_{globalIndexStart + i}", parent);
-            var rt     = slotGO.GetComponent<RectTransform>();
-            rt.sizeDelta = Vector2.one * config.slotSize;
+            // var rt     = slotGO.GetComponent<RectTransform>();
+
+            var le = slotGO.AddComponent<LayoutElement>();
+            le.preferredWidth  = config.slotSize;
+            le.preferredHeight = config.slotSize;
+
+
+            // rt.sizeDelta = Vector2.one * config.slotSize;
 
             var widget = slotGO.AddComponent<GF_SlotWidget>();
             widget.Initialize(globalIndexStart + i, config);
@@ -525,7 +532,7 @@ public class GF_SlotWidget : MonoBehaviour,
     private void BuildVisuals()
     {
         var rt = GetComponent<RectTransform>();
-        rt.sizeDelta = Vector2.one * _cfg.slotSize;
+        // rt.sizeDelta = Vector2.one * _cfg.slotSize;
 
         // Fondo
         _bg = gameObject.AddComponent<Image>();
@@ -556,6 +563,7 @@ public class GF_SlotWidget : MonoBehaviour,
         _icon = iconGO.AddComponent<Image>();
         _icon.raycastTarget = false;
         _icon.enabled       = false;
+        _icon.preserveAspect = _cfg.preserveAspect;
         _iconBasePos = iconRT.anchoredPosition;
 
         // Cantidad

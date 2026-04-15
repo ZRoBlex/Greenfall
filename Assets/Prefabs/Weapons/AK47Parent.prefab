@@ -107,8 +107,7 @@ GameObject:
   - component: {fileID: 1339573225908058217}
   - component: {fileID: 1738296960053349466}
   - component: {fileID: 5020257004308468083}
-  - component: {fileID: 1172919055433540726}
-  - component: {fileID: 9203841862192324928}
+  - component: {fileID: 2522869304723963671}
   m_Layer: 13
   m_Name: AK47Parent
   m_TagString: Untagged
@@ -220,7 +219,7 @@ MonoBehaviour:
   maxAmmo: 30
   minAmmoOnPickup: 5
   maxAmmoOnPickup: 30
-  ammoInventory: {fileID: 0}
+  adapter: {fileID: 0}
 --- !u!114 &750339304953804674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,7 +395,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentBullets: 0
   maxBullets: 30
---- !u!114 &1172919055433540726
+--- !u!114 &2522869304723963671
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -405,31 +404,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3190426564994398644}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 463e0b2c65a5fb1409b33463cd3dc328, type: 3}
+  m_Script: {fileID: 11500000, guid: a6fa431262f6e034b82f4ba610ba571a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponPickup
-  _weapon: {fileID: 3421039222878667892}
-  _pickupVerb: Recoger
-  _pickupVFXPrefab: {fileID: 0}
-  _pickupSound: {fileID: 0}
---- !u!114 &9203841862192324928
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3190426564994398644}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 886c8a9769301e54bbbd234d7b9ec307, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InventoryItemController
-  _itemData: {fileID: 0}
-  _amountOverride: 0
-  _pickupSoundOverride: {fileID: 0}
-  _interactionTextOverride: 
-  _highlightOnFocus: 1
-  _randomAmmoOnSpawn: 0
+  m_EditorClassIdentifier: Assembly-CSharp::GF_WorldPickup
+  definition: {fileID: 11400000, guid: 8bd44d13c7d6cc44bba6efd0ef49ba8b, type: 2}
+  amount: 1
+  customInteractionText: 
+  highlightOnFocus: 1
+  autoPickup: 0
 --- !u!1 &3699121252197606731
 GameObject:
   m_ObjectHideFlags: 0

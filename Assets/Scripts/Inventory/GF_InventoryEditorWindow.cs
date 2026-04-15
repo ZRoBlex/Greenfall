@@ -365,9 +365,9 @@ public class GF_InventoryEditorWindow : EditorWindow
         GUILayout.Space(4);
 
         // Hotbar
-        DrawDebugSection("HOTBAR", 0, inv.HotbarSize, inv);
+        DrawDebugSection("HOTBAR", 0, inv.hotbarSize, inv);
         GUILayout.Space(6);
-        DrawDebugSection("BOLSA", inv.HotbarSize, inv.TotalSlots, inv);
+        DrawDebugSection("BOLSA", inv.hotbarSize, inv.TotalSlots, inv);
 
         Repaint(); // Live refresh
     }
@@ -385,7 +385,7 @@ public class GF_InventoryEditorWindow : EditorWindow
         {
             var slot   = inv.GetSlot(i);
             bool active = i == inv.ActiveIndex;
-            string local = inv.IsHotbarSlot(i) ? $"H[{i}]" : $"B[{i - inv.HotbarSize}]";
+            string local = inv.IsHotbarSlot(i) ? $"H[{i}]" : $"B[{i - inv.hotbarSize}]";
 
             var r = EditorGUILayout.GetControlRect(false, 20f);
             if (active) EditorGUI.DrawRect(r, new Color(0.9f, 0.8f, 0.1f, 0.15f));

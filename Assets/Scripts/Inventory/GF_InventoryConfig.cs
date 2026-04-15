@@ -32,10 +32,12 @@ public class GF_InventoryConfig : ScriptableObject
     [Range(40,120)] public float slotSize = 64f;
 
     [Tooltip("Separación entre slots en píxeles.")]
-    [Range(0,16)] public float slotSpacing = 4f;
+    [Range(0,1920)] public float slotSpacing = 4f;
 
     [Tooltip("Padding interno del ícono dentro del slot (0=ícono ocupa todo el slot).")]
     [Range(0,20)] public float iconPadding = 6f;
+
+    public bool preserveAspect = true;
 
     // ── Posición de la Hotbar ─────────────────────────────────────────────
     [Header("Layout — Posición Hotbar")]
