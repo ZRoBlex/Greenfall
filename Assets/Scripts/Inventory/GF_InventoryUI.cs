@@ -223,7 +223,7 @@ public class GF_InventoryUI : MonoBehaviour
         }
         else
         {
-            int local = globalIndex - GF_Inventory.Instance.HotbarSize;
+            int local = globalIndex - GF_Inventory.Instance.hotbarSize;
             if (_bagSlots != null && local >= 0 && local < _bagSlots.Length)
                 _bagSlots[local].Refresh();
         }
@@ -259,7 +259,7 @@ public class GF_InventoryUI : MonoBehaviour
         // Hotbar
         _hotbarPanel = CreateHotbarPanel();
         _hotbarSlots = CreateSlotGrid(_hotbarPanel.transform, config.hotbarSlotCount, 1,
-                                       0, GF_Inventory.Instance?.HotbarSize ?? config.hotbarSlotCount);
+                                       0, GF_Inventory.Instance?.hotbarSize ?? config.hotbarSlotCount);
 
         // Panel de bolsa
         _bagPanel = CreateBagPanel();
@@ -268,8 +268,8 @@ public class GF_InventoryUI : MonoBehaviour
 
         var bagContent = CreateBagContent(_bagPanel);
         _bagSlots = CreateSlotGrid(bagContent.transform, config.bagColumns, config.bagRows,
-                                    GF_Inventory.Instance?.HotbarSize ?? config.hotbarSlotCount,
-                                    (GF_Inventory.Instance?.TotalSlots ?? (config.hotbarSlotCount + config.bagColumns * config.bagRows)) - (GF_Inventory.Instance?.HotbarSize ?? config.hotbarSlotCount));
+                                    GF_Inventory.Instance?.hotbarSize ?? config.hotbarSlotCount,
+                                    (GF_Inventory.Instance?.TotalSlots ?? (config.hotbarSlotCount + config.bagColumns * config.bagRows)) - (GF_Inventory.Instance?.hotbarSize ?? config.hotbarSlotCount));
 
         _bagPanel.SetActive(false);
 

@@ -22,7 +22,7 @@ public class FirstPersonController : MonoBehaviour
     [SerializeField] Animator playerAnimator;
 
     [Header("Sway")]
-    [SerializeField] WeaponSwayBinder weaponSwayBinder;
+    [SerializeField] GF_WeaponSwayBinder weaponSwayBinder;
     //[SerializeField] SwayController cameraVisualSway;
     [SerializeField] CameraBobController cameraVisualSway;
 
